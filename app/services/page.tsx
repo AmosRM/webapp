@@ -108,7 +108,7 @@ export default function Services() {
             <div className="space-x-4">
               <Link href="/contact">
                 <ShinyButton>
-                  Contact Us
+                  Contact Me
                 </ShinyButton>
               </Link>
             </div>
