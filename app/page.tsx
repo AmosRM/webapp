@@ -1,103 +1,187 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useTheme } from "next-themes";
+import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
+import { RocketIcon, FileTextIcon, VideoIcon, BrainCircuitIcon, Blocks } from "lucide-react";
+import Link from "next/link";
+import build from "next/dist/build";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <main className="min-h-screen bg-background relative">
+      {/* Theme Backgrounds */}
+      <div className="fixed inset-0 transition-opacity duration-500 pointer-events-none">
+        <div 
+          className={`absolute inset-0 bg-[url('/images/mountains-light.jpg')] bg-cover bg-center ${
+            theme === 'light' ? 'opacity-30' : 'opacity-0'
+          }`}
+        />
+        <div 
+          className={`absolute inset-0 bg-[url('/images/stars-dark.jpg')] bg-cover bg-center ${
+            theme === 'dark' ? 'opacity-60' : 'opacity-0'
+          }`}
+        />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Floating Header */}
+        <header className="fixed w-full top-0 z-10 bg-background/50 backdrop-blur-sm border-b">
+          <div className="container mx-auto flex items-center justify-between p-4">
+            <div className="flex items-center gap-8">
+              <Link href="/" className="font-bold text-xl">Lumino AI</Link>
+              <nav className="hidden md:flex space-x-6">
+                <Link href="/about" className="text-foreground/60 hover:text-foreground transition-colors">
+                  About
+                </Link>
+                <Link href="/services" className="text-foreground/60 hover:text-foreground transition-colors">
+                  Services
+                </Link>
+                <Link href="/contact" className="text-foreground/60 hover:text-foreground transition-colors">
+                  Contact
+                </Link>
+              </nav>
+            </div>
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-full p-0.5 flex">
+              <button
+                onClick={() => setTheme('light')}
+                className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? 'bg-white shadow-sm' : ''}`}
+              >
+                <Sun className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? 'bg-white shadow-sm' : ''}`}
+              >
+                <Moon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="container mx-auto px-4 pt-24 pb-16 max-w-3xl">
+          {/* Hero Section */}
+          <section className="py-12 text-center">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6">
+              Lumino AI Studio
+            </h1>
+            <div className="space-y-0.1">
+              <p className="text-xl text-foreground/80">
+                Leverage Your Expertise
+              </p>
+              <p className="text-xl text-foreground/80">
+                Gain productivity with AI tools
+              </p>
+            </div>
+          </section>
+
+          {/* About You Section */}
+          <section id="about" className="mb-12">
+            <h2 className="text-2xl font-bold mb-4 border-b pb-2">About you</h2>
+            <ul className="space-y-2 list-disc pl-5">
+              <li>
+                You're eager to learn about AI, but you don't know where to start
+              </li>
+              <li>
+                You want to build products with expert help
+              </li>
+            </ul>
+          </section>
+
+          {/* About Me Section */}
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-4 border-b pb-2">About me</h2>
+            <ul className="space-y-2 list-disc pl-5">
+              <li>
+                Content forward (show don't tell), your friend in AI
+              </li>
+              <li>
+                Teach busineses how to leverage AI
+              </li>
+              <li>
+                I help you build your AI culture
+              </li>
+              <li>
+                Building AI products with AI tools
+              </li>
+            </ul>
+          </section>
+
+          {/* What I Do Section */}
+          <section id="services" className="mb-12">
+            <h2 className="text-2xl font-bold mb-4 border-b pb-2">What I do</h2>
+            <ul className="space-y-2 list-disc text-foreground/80 pl-5">
+              <li>
+                <strong>Share</strong>: Latest AI tools and resources that matter
+              </li>
+              <li>
+                <strong>Educate</strong>: Team or one-on-one sessions to help you learn about AI
+              </li>
+              <li>
+                <strong>Build</strong>: Building prototypes and projects with AI, fast!
+              </li>
+            </ul>
+          </section>
+
+          {/* Projects Section */}
+          <section id="projects" className="mb-12">
+            <h2 className="text-2xl font-bold mb-8 text-center pb-2">Featured Projects</h2>
+            <BentoGrid className="mx-auto">
+              <BentoCard
+                name="AI Content Assistant"
+                description="A smart writing assistant that helps create, edit, and enhance content using advanced AI models."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl" />}
+                Icon={FileTextIcon}
+                href="#"
+                cta="Learn more"
+                className="md:col-span-2"
+              />
+              <BentoCard
+                name="Build a prototype"
+                description="Build a prototype for your specific needs with AI tools."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl" />}
+                Icon={Blocks}
+                href="#"
+                cta="Learn more"
+                className="col-span-1"
+              />
+              <BentoCard
+                name="AI Meeting Assistant"
+                description="Automated meeting notes, action items, and summaries powered by speech recognition and AI."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl" />}
+                Icon={RocketIcon}
+                href="#"
+                cta="Learn more"
+                className="col-span-1"
+              />
+              <BentoCard
+                name="Custom ChatGPT Agents"
+                description="Specialized AI agents trained on your business data and processes for enhanced automation."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl" />}
+                Icon={BrainCircuitIcon}
+                href="#"
+                cta="Learn more"
+                className="md:col-span-2"
+              />
+            </BentoGrid>
+          </section>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }
