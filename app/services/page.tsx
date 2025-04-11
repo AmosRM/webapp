@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
@@ -104,7 +103,7 @@ export default function Services() {
           <section className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Ready to Work Together?</h2>
             <p className="text-muted-foreground mb-6">
-            Let's discuss how we can leverage AI to achieve your goals.
+              Let&apos;s discuss how we can help you achieve your goals.
             </p>
             <div className="space-x-4">
               <Link href="/contact">

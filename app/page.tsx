@@ -2,13 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useTheme } from "next-themes";
 import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
-import { RocketIcon, FileTextIcon, VideoIcon, BrainCircuitIcon, Blocks } from "lucide-react";
+import { RocketIcon, FileTextIcon, BrainCircuitIcon, Blocks } from "lucide-react";
 import Link from "next/link";
-import build from "next/dist/build";
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
@@ -95,7 +92,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-4 border-b pb-2">About you</h2>
             <ul className="space-y-2 list-disc pl-5">
               <li>
-                You're eager to learn about AI, but you don't know where to start
+                You&apos;re eager to learn about AI, but you don&apos;t know where to start
               </li>
               <li>
                 You want to build products with expert help
@@ -108,7 +105,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-4 border-b pb-2">About me</h2>
             <ul className="space-y-2 list-disc pl-5">
               <li>
-                Content forward (show don't tell), your friend in AI
+                Content forward (show don&apos;t tell), your friend in AI
               </li>
               <li>
                 Teach busineses how to leverage AI

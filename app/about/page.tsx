@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
@@ -73,9 +72,9 @@ export default function About() {
         <div className="container mx-auto px-4 pt-24 pb-16 max-w-3xl">
           {/* Introduction Section */}
           <section className="mb-12">
-            <h2 className="text-2xl font-semibold mb-4">Hi, I'm Amos 👋</h2>
+            <h2 className="text-2xl font-semibold mb-4">Hi, I&apos;m Amos 👋</h2>
             <p className="text-lg text-muted-foreground mb-6">
-              I'm an AI consultant and developer passionate about helping businesses and individuals leverage the power of artificial intelligence.
+              I&apos;m an AI consultant and developer passionate about helping businesses and individuals leverage the power of artificial intelligence.
             </p>
           </section>
 
@@ -99,7 +98,7 @@ export default function About() {
           <section className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Ready to Work Together?</h2>
             <p className="text-muted-foreground mb-6">
-            Let's discuss how we can leverage AI to achieve your goals.
+            Let&apos;s discuss how we can leverage AI to achieve your goals.
             </p>
             <div className="space-x-4">
               <Link href="/contact">
