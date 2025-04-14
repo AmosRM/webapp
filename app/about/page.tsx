@@ -47,25 +47,20 @@ export default function About() {
                 <Link href="/services" className="text-foreground/60 hover:text-foreground transition-colors">
                   Services
                 </Link>
+                <Link href="/projects" className="text-foreground/60 hover:text-foreground transition-colors">
+                  Projects
+                </Link>
                 <Link href="/contact" className="text-foreground/60 hover:text-foreground transition-colors">
                   Contact
                 </Link>
               </nav>
             </div>
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-full p-0.5 flex">
-              <button
-                onClick={() => setTheme('light')}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? 'bg-white shadow-sm' : ''}`}
-              >
-                <Sun className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setTheme('dark')}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? 'bg-white shadow-sm' : ''}`}
-              >
-                <Moon className="h-4 w-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </button>
           </div>
         </header>
 

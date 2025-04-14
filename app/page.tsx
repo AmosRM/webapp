@@ -48,6 +48,9 @@ export default function Home() {
                 <Link href="/services" className="text-foreground/60 hover:text-foreground transition-colors">
                   Services
                 </Link>
+                <Link href="/projects" className="text-foreground/60 hover:text-foreground transition-colors">
+                  Projects
+                </Link>
                 <Link href="/contact" className="text-foreground/60 hover:text-foreground transition-colors">
                   Contact
                 </Link>
@@ -74,7 +77,7 @@ export default function Home() {
                 Leverage Your Expertise
               </p>
               <p className="text-xl text-foreground/80">
-                Gain productivity with AI tools
+                Gain Productivity with AI tools
               </p>
             </div>
           </section>
@@ -128,49 +131,6 @@ export default function Home() {
                 <strong>Build</strong>: Building prototypes and projects with AI, fast!
               </li>
             </ul>
-          </section>
-
-          {/* Projects Section */}
-          <section id="projects" className="mb-24">
-            <h2 className="text-2xl font-bold mb-8 text-center pb-2">Featured Projects</h2>
-            <BentoGrid className="mx-auto">
-              <BentoCard
-                name="AI Content Assistant"
-                description="A smart writing assistant that helps create, edit, and enhance content using advanced AI models."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl" />}
-                Icon={FileTextIcon}
-                href="#"
-                cta="Learn more"
-                className="md:col-span-2"
-              />
-              <BentoCard
-                name="Build a prototype"
-                description="Build a prototype for your specific needs with AI tools."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl" />}
-                Icon={Blocks}
-                href="#"
-                cta="Learn more"
-                className="col-span-1"
-              />
-              <BentoCard
-                name="AI Meeting Assistant"
-                description="Automated meeting notes, action items, and summaries powered by speech recognition and AI."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl" />}
-                Icon={RocketIcon}
-                href="#"
-                cta="Learn more"
-                className="col-span-1"
-              />
-              <BentoCard
-                name="Custom ChatGPT Agents"
-                description="Specialized AI agents trained on your business data and processes for enhanced automation."
-                background={<img src="/images/dash.jpeg" className="absolute -right-0 -top-0 opacity-40" />}
-                Icon={BrainCircuitIcon}
-                href="#"
-                cta="Learn more"
-                className="md:col-span-2"
-              />
-            </BentoGrid>
           </section>
         </div>
       </div>

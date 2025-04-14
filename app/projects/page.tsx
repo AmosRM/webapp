@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
-import { ShinyButton } from "@/components/magicui/shiny-button";
+import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
+import { FileTextIcon, BrainCircuitIcon, Blocks, RocketIcon } from "lucide-react";
 
-export default function Services() {
+export default function Projects() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -65,58 +66,54 @@ export default function Services() {
         </header>
 
         <div className="container mx-auto px-4 pt-24 pb-16 max-w-3xl">
-          {/* Services Introduction */}
+          {/* Projects Introduction */}
           <section className="mb-12">
-            <h1 className="text-3xl font-bold mb-4">Comprehensive AI Solutions</h1>
+            <h1 className="text-3xl font-bold mb-4">Featured Projects</h1>
             <p className="text-lg text-muted-foreground mb-12">
-              Helping businesses and individuals harness the power of artificial intelligence — efficiently, effectively, and sustainably.
+              Explore our portfolio of AI-powered solutions and innovations.
             </p>
           </section>
-          {/* Services List */}
-          <section className="mb-12">
-            <div className="prose dark:prose-invert">
-              <h3 className="text-xl font-semibold mt-6 border-b mb-2 flex items-center gap-2">
-                <span>🔍</span> AI Consulting
-              </h3>
-              <p className="font-medium mb-2">Strategic guidance for AI integration.</p>
-              <p className="mb-8">
-                Work with you to identify high-impact opportunities, assess technical requirements, 
-                and design a clear roadmap for successful AI implementation.
-              </p>
 
-              <h3 className="text-xl font-semibold mt-6 border-b mb-2 flex items-center gap-2">
-                <span>🛠️</span> Custom AI Development
-              </h3>
-              <p className="font-medium mb-2">Tailored solutions for real-world problems.</p>
-              <p className="mb-8">
-                Whether it's intelligent automation, chatbots, or predictive models, I build 
-                production-ready AI tools that address your unique business challenges.
-              </p>
-
-              <h3 className="text-xl font-semibold mt-6 border-b mb-2 flex items-center gap-2">
-                <span>📚</span> AI Training
-              </h3>
-              <p className="font-medium mb-2">Upskill your team with hands-on learning.</p>
-              <p className="mb-8">
-                Through workshops and custom training, I help your team build AI literacy and 
-                develop the confidence to use AI tools effectively in daily workflows.
-              </p>
-            </div>
-          </section>
-
-          {/* Call to Action */}
-          <section className="text-center">
-            <h2 className="text-2xl font-semibold mb-4">Ready to Work Together?</h2>
-            <p className="text-muted-foreground mb-6">
-              Let&apos;s discuss how I can help you achieve your goals.
-            </p>
-            <div className="space-x-4">
-              <Link href="/contact">
-                <ShinyButton>
-                  Contact Me
-                </ShinyButton>
-              </Link>
-            </div>
+          {/* Projects Grid */}
+          <section className="mb-24">
+            <BentoGrid className="mx-auto">
+              <BentoCard
+                name="AI Content Assistant"
+                description="A smart writing assistant that helps create, edit, and enhance content using advanced AI models."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl" />}
+                Icon={FileTextIcon}
+                href="#"
+                cta="View Project"
+                className="md:col-span-2"
+              />
+              <BentoCard
+                name="Build a prototype"
+                description="Build a prototype for your specific needs with AI tools."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl" />}
+                Icon={Blocks}
+                href="#"
+                cta="View Project"
+                className="col-span-1"
+              />
+              <BentoCard
+                name="AI Meeting Assistant"
+                description="Automated meeting notes, action items, and summaries powered by speech recognition and AI."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl" />}
+                Icon={RocketIcon}
+                href="#"
+                cta="View Project"
+                className="col-span-1"
+              />
+              <BentoCard
+                name="Custom ChatGPT Agents"
+                description="Specialized AI agents trained on your business data and processes for enhanced automation."
+                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl" />}
+                Icon={BrainCircuitIcon}
+                href="#"
+                cta="View Project"
+                className="md:col-span-2"
+              />
+            </BentoGrid>
           </section>
         </div>
       </div>
