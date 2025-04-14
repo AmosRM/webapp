@@ -71,7 +71,7 @@ export default function About() {
 
         <div className="container mx-auto px-4 pt-24 pb-16 max-w-3xl">
           {/* Introduction Section */}
-          <section className="mb-12">
+          <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">Hi, I&apos;m Amos 👋</h2>
             <p className="text-lg text-muted-foreground mb-6">
               I&apos;m an AI consultant and developer passionate about helping businesses and individuals leverage the power of artificial intelligence.
@@ -83,14 +83,17 @@ export default function About() {
             <h2 className="text-2xl font-semibold mb-4">My Philosophy</h2>
             <div className="prose dark:prose-invert">
               <p className="mb-4">
-                I believe in making AI accessible and practical. My approach focuses on:
+              I focus on making AI practical, understandable, and impactful. That means:
               </p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Simplifying complex AI concepts</li>
-                <li>Building practical, production-ready solutions</li>
-                <li>Teaching sustainable AI practices</li>
-                <li>Creating long-term value for clients</li>
-              </ul>
+              <ul className="list-disc pl-6 mb-4">
+                <li>Breaking down complex AI concepts into simple, useful ideas</li>
+                <li>Building real-world, production-ready solutions</li>
+                <li>Teaching sustainable AI practices that stick</li>
+                <li>Delivering long-term value, not just quick wins</li>
+                </ul>
+              <p className="mb-4">
+              Let's make AI work for you — not the other way around.
+              </p>
             </div>
           </section>
 
@@ -98,7 +101,7 @@ export default function About() {
           <section className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Ready to Work Together?</h2>
             <p className="text-muted-foreground mb-6">
-            Let&apos;s discuss how we can leverage AI to achieve your goals.
+            Let&apos;s discuss how I can help you achieve your goals.
             </p>
             <div className="space-x-4">
               <Link href="/contact">

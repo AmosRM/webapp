@@ -131,7 +131,7 @@ export default function Home() {
           </section>
 
           {/* Projects Section */}
-          <section id="projects" className="mb-12">
+          <section id="projects" className="mb-24">
             <h2 className="text-2xl font-bold mb-8 text-center pb-2">Featured Projects</h2>
             <BentoGrid className="mx-auto">
               <BentoCard

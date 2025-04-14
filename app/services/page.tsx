@@ -72,29 +72,39 @@ export default function Services() {
         <div className="container mx-auto px-4 pt-24 pb-16 max-w-3xl">
           {/* Services Introduction */}
           <section className="mb-12">
-            <p className="text-lg text-muted-foreground mb-6">
-              Provide comprehensive AI solutions to help businesses and individuals leverage the power of artificial intelligence.
+            <h1 className="text-3xl font-bold mb-4">Comprehensive AI Solutions</h1>
+            <p className="text-lg text-muted-foreground mb-12">
+              Helping businesses and individuals harness the power of artificial intelligence — efficiently, effectively, and sustainably.
             </p>
           </section>
           {/* Services List */}
           <section className="mb-12">
             <div className="prose dark:prose-invert">
-              <h3 className="text-xl font-semibold mt-6 border-b mb-2">AI Consulting</h3>
-              <p className="mb-4">
-                Strategic guidance for implementing AI solutions in your business. We help you identify opportunities, 
-                assess requirements, and develop a roadmap for AI integration.
+              <h3 className="text-xl font-semibold mt-6 border-b mb-2 flex items-center gap-2">
+                <span>🔍</span> AI Consulting
+              </h3>
+              <p className="font-medium mb-2">Strategic guidance for AI integration.</p>
+              <p className="mb-8">
+                Work with you to identify high-impact opportunities, assess technical requirements, 
+                and design a clear roadmap for successful AI implementation.
               </p>
 
-              <h3 className="text-xl font-semibold mt-6 border-b mb-2">Custom AI Development</h3>
-              <p className="mb-4">
-                Building tailored AI solutions for your specific needs. From chatbots to predictive analytics, 
-                we create custom AI applications that solve your unique challenges.
+              <h3 className="text-xl font-semibold mt-6 border-b mb-2 flex items-center gap-2">
+                <span>🛠️</span> Custom AI Development
+              </h3>
+              <p className="font-medium mb-2">Tailored solutions for real-world problems.</p>
+              <p className="mb-8">
+                Whether it's intelligent automation, chatbots, or predictive models, I build 
+                production-ready AI tools that address your unique business challenges.
               </p>
 
-              <h3 className="text-xl font-semibold mt-6 border-b mb-2">AI Training</h3>
-              <p className="mb-4">
-                Workshops and training sessions for your team. We help your organization build AI literacy 
-                and develop the skills needed to work effectively with AI tools.
+              <h3 className="text-xl font-semibold mt-6 border-b mb-2 flex items-center gap-2">
+                <span>📚</span> AI Training
+              </h3>
+              <p className="font-medium mb-2">Upskill your team with hands-on learning.</p>
+              <p className="mb-8">
+                Through workshops and custom training, I help your team build AI literacy and 
+                develop the confidence to use AI tools effectively in daily workflows.
               </p>
             </div>
           </section>
@@ -103,7 +113,7 @@ export default function Services() {
           <section className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Ready to Work Together?</h2>
             <p className="text-muted-foreground mb-6">
-              Let&apos;s discuss how we can help you achieve your goals.
+              Let&apos;s discuss how I can help you achieve your goals.
             </p>
             <div className="space-x-4">
               <Link href="/contact">
