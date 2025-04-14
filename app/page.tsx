@@ -53,20 +53,12 @@ export default function Home() {
                 </Link>
               </nav>
             </div>
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-full p-0.5 flex">
-              <button
-                onClick={() => setTheme('light')}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? 'bg-white shadow-sm' : ''}`}
-              >
-                <Sun className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setTheme('dark')}
-                className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? 'bg-white shadow-sm' : ''}`}
-              >
-                <Moon className="h-4 w-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </button>
           </div>
         </header>
 
@@ -92,10 +84,13 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-4 border-b pb-2">About you</h2>
             <ul className="space-y-2 list-disc pl-5">
               <li>
-                You&apos;re eager to learn about AI, but you don&apos;t know where to start
+                You&apos;re eager to learn about AI
               </li>
               <li>
-                You want to build products with expert help
+                You want to build with expert help
+              </li>
+              <li>
+                You have an idea, but don&apos;t know how to build it
               </li>
             </ul>
           </section>
@@ -114,7 +109,7 @@ export default function Home() {
                 I help you build your AI culture
               </li>
               <li>
-                Building AI products with AI tools
+                Building AI products, with AI tools
               </li>
             </ul>
           </section>
