@@ -164,7 +164,7 @@ export default function Home() {
               <BentoCard
                 name="Custom ChatGPT Agents"
                 description="Specialized AI agents trained on your business data and processes for enhanced automation."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl" />}
+                background={<img src="/images/dash.jpeg" className="absolute -right-0 -top-0 opacity-40" />}
                 Icon={BrainCircuitIcon}
                 href="#"
                 cta="Learn more"
