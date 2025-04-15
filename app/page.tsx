@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
-import { RocketIcon, FileTextIcon, BrainCircuitIcon, Blocks } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
