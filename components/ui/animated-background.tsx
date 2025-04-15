@@ -21,6 +21,16 @@ export type AnimatedBackgroundProps = {
   enableHover?: boolean;
 };
 
+type ChildProps = {
+  'data-id': string;
+  className?: string;
+  children?: React.ReactNode;
+  'data-checked'?: string;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  onClick?: () => void;
+};
+
 export function AnimatedBackground({
   children,
   defaultValue,
@@ -46,7 +56,7 @@ export function AnimatedBackground({
     }
   }, [defaultValue]);
 
-  return Children.map(children, (child: any, index) => {
+  return Children.map(children, (child: ReactElement<ChildProps>, index) => {
     const id = child.props['data-id'];
 
     const interactionProps = enableHover
