@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
 import { FileTextIcon, BrainCircuitIcon, Blocks, RocketIcon } from "lucide-react";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 
 export default function Projects() {
   const { theme, setTheme } = useTheme();
@@ -114,6 +115,66 @@ export default function Projects() {
                 className="md:col-span-2"
               />
             </BentoGrid>
+          </section>
+
+          {/* Animated Background Section */}
+          <section className="mb-24">
+            <h2 className="text-2xl font-bold mb-8 text-center">More Projects</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatedBackground
+                className="rounded-lg bg-zinc-100 dark:bg-zinc-800"
+                transition={{
+                  type: 'spring',
+                  bounce: 0.2,
+                  duration: 0.6,
+                }}
+                enableHover
+              >
+                {[
+                  {
+                    id: 'card-1',
+                    title: 'AI Image Generator',
+                    description: 'Create stunning visuals with AI-powered image generation.',
+                  },
+                  {
+                    id: 'card-2',
+                    title: 'Data Analysis Tool',
+                    description: 'Transform raw data into actionable insights with AI.',
+                  },
+                  {
+                    id: 'card-3',
+                    title: 'Voice Assistant',
+                    description: 'Build custom voice assistants for your business needs.',
+                  },
+                  {
+                    id: 'card-4',
+                    title: 'AI Recommendation Engine',
+                    description: 'Personalize user experiences with smart recommendations.',
+                  },
+                  {
+                    id: 'card-5',
+                    title: 'Document Processing',
+                    description: 'Automate document extraction and processing workflows.',
+                  },
+                  {
+                    id: 'card-6',
+                    title: 'Sentiment Analysis',
+                    description: 'Analyze customer feedback and social media sentiment.',
+                  },
+                ].map((item, index) => (
+                  <div key={index} data-id={item.id}>
+                    <div className="flex select-none flex-col space-y-1 p-4">
+                      <h3 className="text-base font-medium text-zinc-800 dark:text-zinc-50">
+                        {item.title}
+                      </h3>
+                      <p className="text-base text-zinc-600 dark:text-zinc-400">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </AnimatedBackground>
+            </div>
           </section>
         </div>
       </div>
