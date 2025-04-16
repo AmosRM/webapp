@@ -19,6 +19,7 @@ export type AnimatedBackgroundProps = {
   className?: string;
   transition?: Transition;
   enableHover?: boolean;
+  opacity?: number;
 };
 
 type ChildProps = {
@@ -38,6 +39,7 @@ export function AnimatedBackground({
   className,
   transition,
   enableHover = false,
+  opacity = 1,
 }: AnimatedBackgroundProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const uniqueId = useId();
@@ -83,9 +85,9 @@ export function AnimatedBackground({
               layoutId={`background-${uniqueId}`}
               className={cn('absolute inset-0', className)}
               transition={transition}
-              initial={{ opacity: defaultValue ? 1 : 0 }}
+              initial={{ opacity: defaultValue ? opacity : 0 }}
               animate={{
-                opacity: 1,
+                opacity: opacity,
               }}
               exit={{
                 opacity: 0,

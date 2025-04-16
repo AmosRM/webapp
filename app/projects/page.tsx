@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
-import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
-import { FileTextIcon, BrainCircuitIcon, Blocks, RocketIcon } from "lucide-react";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 
 export default function Projects() {
@@ -75,54 +73,12 @@ export default function Projects() {
             </p>
           </section>
 
-          {/* Projects Grid */}
-          <section className="mb-24">
-            <BentoGrid className="mx-auto">
-              <BentoCard
-                name="AI Content Assistant"
-                description="A smart writing assistant that helps create, edit, and enhance content using advanced AI models."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl" />}
-                Icon={FileTextIcon}
-                href="#"
-                cta="View Project"
-                className="md:col-span-2"
-              />
-              <BentoCard
-                name="Build a prototype"
-                description="Build a prototype for your specific needs with AI tools."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl" />}
-                Icon={Blocks}
-                href="#"
-                cta="View Project"
-                className="col-span-1"
-              />
-              <BentoCard
-                name="AI Meeting Assistant"
-                description="Automated meeting notes, action items, and summaries powered by speech recognition and AI."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl" />}
-                Icon={RocketIcon}
-                href="#"
-                cta="View Project"
-                className="col-span-1"
-              />
-              <BentoCard
-                name="Custom ChatGPT Agents"
-                description="Specialized AI agents trained on your business data and processes for enhanced automation."
-                background={<div className="flex-1 w-full h-full bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl" />}
-                Icon={BrainCircuitIcon}
-                href="#"
-                cta="View Project"
-                className="md:col-span-2"
-              />
-            </BentoGrid>
-          </section>
-
           {/* Animated Background Section */}
           <section className="mb-24">
-            <h2 className="text-2xl font-bold mb-8 text-center">More Projects</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <AnimatedBackground
-                className="rounded-lg bg-zinc-100 dark:bg-zinc-800"
+                className="rounded-lg bg-zinc-300/80 dark:bg-zinc-700"
+                opacity={1}
                 transition={{
                   type: 'spring',
                   bounce: 0.2,
@@ -133,7 +89,7 @@ export default function Projects() {
                 {[
                   {
                     id: 'card-1',
-                    title: 'AI Image Generator',
+                    title: <Link href="/projects/ai-image-generator">AI Image Generator</Link>,
                     description: 'Create stunning visuals with AI-powered image generation.',
                   },
                   {

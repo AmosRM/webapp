@@ -80,7 +80,7 @@ export default function About() {
               <p className="mb-4">
               I focus on making AI practical, understandable, and impactful. That means:
               </p>
-              <ul className="list-disc pl-6 space-y-2">
+              <ul className="list-disc mb-4 pl-6 space-y-2">
                 <li>Breaking down complex AI concepts into simple, useful ideas</li>
                 <li>Building real-world, production-ready solutions</li>
                 <li>Teaching sustainable AI practices that stick</li>
