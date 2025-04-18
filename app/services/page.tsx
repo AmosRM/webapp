@@ -89,8 +89,8 @@ export default function Services() {
               </h3>
               <p className="font-medium mb-2">Tailored solutions for real-world problems.</p>
               <p className="mb-8">
-                Whether it&apos;s intelligent automation, chatbots, or predictive models, we build 
-                production-ready AI tools that address your unique business challenges.
+                Automations, AI workflows, and smart agents — solving real-world business problems.
+                I build production-ready AI solutions that work.
               </p>
 
               <h3 className="text-xl font-semibold mt-6 border-b mb-2 flex items-center gap-2">

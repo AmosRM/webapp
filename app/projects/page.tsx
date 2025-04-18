@@ -75,7 +75,7 @@ export default function Projects() {
 
           {/* Animated Background Section */}
           <section className="mb-24">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               <AnimatedBackground
                 className="rounded-lg bg-zinc-300/80 dark:bg-zinc-700"
                 opacity={1}
@@ -89,33 +89,38 @@ export default function Projects() {
                 {[
                   {
                     id: 'card-1',
-                    title: <Link href="/projects/ai-image-generator">AI Image Generator</Link>,
-                    description: 'Create stunning visuals with AI-powered image generation.',
+                    title: 'Email-to-Task Automation',
+                    description: 'Turn incoming emails into structured tasks automatically, saving time and avoiding missed action items.',
                   },
                   {
                     id: 'card-2',
-                    title: 'Data Analysis Tool',
-                    description: 'Transform raw data into actionable insights with AI.',
+                    title: 'Customer Support Triage AI',
+                    description: 'Automatically categorize and route support tickets, boosting response speed and efficiency.',
                   },
                   {
                     id: 'card-3',
-                    title: 'Voice Assistant',
-                    description: 'Build custom voice assistants for your business needs.',
+                    title: 'Meeting Note-Taker and Action Point Extractor',
+                    description: 'Summarize meetings and extract clear action items to improve accountability and team follow-ups.',
                   },
                   {
                     id: 'card-4',
-                    title: 'AI Recommendation Engine',
-                    description: 'Personalize user experiences with smart recommendations.',
+                    title: 'Internal Knowledge Assistant',
+                    description: 'Answer employee questions instantly by connecting AI to your internal documents and knowledge bases.',
                   },
                   {
                     id: 'card-5',
-                    title: 'Document Processing',
-                    description: 'Automate document extraction and processing workflows.',
+                    title: 'Social Media Post Generator',
+                    description: 'Convert blog posts into multiple social media posts automatically, expanding your content reach effortlessly.',
                   },
                   {
                     id: 'card-6',
-                    title: 'Sentiment Analysis',
-                    description: 'Analyze customer feedback and social media sentiment.',
+                    title: 'AI Contract Review Assistant',
+                    description: 'Scan contracts for risks, unusual clauses, and missing details to speed up legal reviews and reduce risk.',
+                  },
+                  {
+                    id: 'card-7',
+                    title: 'Personalized Client Report Generator',
+                    description: 'Automate the creation of branded client reports based on performance data, saving hours each month.',
                   },
                 ].map((item, index) => (
                   <div key={index} data-id={item.id}>

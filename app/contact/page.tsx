@@ -59,9 +59,20 @@ export default function Contact() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Simulate a successful contact form submission
-      console.log(values)
+      const response = await fetch('https://formspree.io/f/xgvabpll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
       toast.success('Your message has been sent successfully!')
+      form.reset();
     } catch (error) {
       console.error('Error submitting contact form', error)
       toast.error('Failed to send your message. Please try again.')
