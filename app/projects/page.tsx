@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Menu, X } from "lucide-react";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 
 export default function Projects() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Prevent hydration mismatch
   useEffect(() => {
@@ -55,12 +56,54 @@ export default function Projects() {
                 </Link>
               </nav>
             </div>
-            <button
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            >
-              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          
+          {/* Mobile Menu */}
+          <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} bg-background/95 backdrop-blur-sm border-b`}>
+            <nav className="container mx-auto py-4 flex flex-col space-y-4">
+              <Link 
+                href="/about" 
+                className="px-4 py-2 text-foreground/60 hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link 
+                href="/services" 
+                className="px-4 py-2 text-foreground/60 hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Services
+              </Link>
+              <Link 
+                href="/projects" 
+                className="px-4 py-2 text-foreground/60 hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Projects
+              </Link>
+              <Link 
+                href="/contact" 
+                className="px-4 py-2 text-foreground/60 hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Contact
+              </Link>
+            </nav>
           </div>
         </header>
 
