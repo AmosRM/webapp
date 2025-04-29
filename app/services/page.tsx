@@ -23,12 +23,12 @@ export default function Services() {
       {/* Theme Backgrounds */}
       <div className="fixed inset-0 transition-opacity duration-500 pointer-events-none">
         <div 
-          className={`absolute inset-0 bg-[url('/images/mountains-lightmedium.jpg')] bg-cover bg-center ${
+          className={`absolute inset-0 bg-[url('/images/mountains-light.jpg')] bg-cover bg-center ${
             theme === 'light' ? 'opacity-30' : 'opacity-0'
           }`}
         />
         <div 
-          className={`absolute inset-0 bg-[url('/images/stars-darkmedium.jpg')] bg-cover bg-center ${
+          className={`absolute inset-0 bg-[url('/images/stars-dark.jpg')] bg-cover bg-center ${
             theme === 'dark' ? 'opacity-60' : 'opacity-0'
           }`}
         />

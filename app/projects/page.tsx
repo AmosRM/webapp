@@ -132,38 +132,43 @@ export default function Projects() {
                 {[
                   {
                     id: 'card-1',
-                    title: 'Email-to-Task Automation',
-                    description: 'Turn incoming emails into structured tasks automatically, saving time and avoiding missed action items.',
+                    title: 'Mobile App MVP',
+                    description: 'Rapidly prototype and launch a lean mobile app that proves product–market fit in weeks, not months.',
                   },
                   {
                     id: 'card-2',
-                    title: 'Customer Support Triage AI',
-                    description: 'Automatically categorize and route support tickets, boosting response speed and efficiency.',
+                    title: 'AI Agents',
+                    description: 'Autonomous agents that handle research, planning, and routine tasks so your team can focus on strategy.',
                   },
                   {
                     id: 'card-3',
-                    title: 'Meeting Note-Taker and Action Point Extractor',
-                    description: 'Summarize meetings and extract clear action items to improve accountability and team follow-ups.',
+                    title: 'Social Media Post Generator',
+                    description: 'Turn long-form content into platform-specific posts and visuals—automatically and at scale.',
                   },
                   {
                     id: 'card-4',
-                    title: 'Internal Knowledge Assistant',
-                    description: 'Answer employee questions instantly by connecting AI to your internal documents and knowledge bases.',
+                    title: 'Internal Knowledge Assistant (RAG)',
+                    description: 'A private chatbot that cites your own docs and wikis in real time—answers stay secure on your infrastructure.',
                   },
                   {
                     id: 'card-5',
-                    title: 'Social Media Post Generator',
-                    description: 'Convert blog posts into multiple social media posts automatically, expanding your content reach effortlessly.',
+                    title: 'Email-to-Task Automation',
+                    description: 'Parse incoming emails, extract action items, and push them straight into your task manager—zero inbox wrangling.',
                   },
                   {
                     id: 'card-6',
-                    title: 'AI Contract Review Assistant',
-                    description: 'Scan contracts for risks, unusual clauses, and missing details to speed up legal reviews and reduce risk.',
+                    title: 'Build a Website',
+                    description: 'Launch-ready website in days—professionally designed, optimized, and priced for lean budgets.',
                   },
                   {
                     id: 'card-7',
-                    title: 'Personalized Client Report Generator',
-                    description: 'Automate the creation of branded client reports based on performance data, saving hours each month.',
+                    title: 'Financial Transcript Analysis',
+                    description: 'AI digests earnings calls, extracts KPIs, and flags sentiment shifts so analysts can focus on insight—not decoding.',
+                  },
+                  {
+                    id: 'card-8',
+                    title: 'AI Contract Review Assistant',
+                    description:'Scan contracts for risks, unusual clauses, and missing details to speed up legal reviews and reduce risk.',
                   },
                 ].map((item, index) => (
                   <div key={index} data-id={item.id}>
