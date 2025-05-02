@@ -9,4 +9,4 @@ This repository contains the source code for the Lumino AI Studio website. The s
 *   **Static Content:** Built with Next.js for fast performance.
 *   **Informational Sections:** Details on services like AI education, tool sharing, and project building.
 
-### based on Leverage.io 
+### based on Leverage.to 
