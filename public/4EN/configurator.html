@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ENERGYNEST - ThermalBattery Configurator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #1C3C3C;
+      --teal-light: #2a5454;
+      --orange: #FF8A01;
+      --orange-hover: #e67e00;
+      --green: #62D6A1;
+      --green-dim: #4db888;
+      --bg: #0f1a1a;
+      --surface: #162828;
+      --surface-hover: #1e3434;
+      --border: rgba(255,255,255,0.08);
+      --text: #e8ece8;
+      --text-dim: rgba(255,255,255,0.5);
+      --text-mid: rgba(255,255,255,0.7);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── Top Bar ─── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: var(--teal);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 20;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-logo svg { height: 28px; }
+    .topbar-brand {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+    .topbar-tagline {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+    .topbar-cta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .topbar-cta a {
+      color: var(--text-mid);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .topbar-cta a:hover { color: #fff; }
+
+    /* ─── Main Layout ─── */
+    .main {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ─── Left Panel ─── */
+    .panel {
+      width: 320px;
+      min-width: 320px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .panel::-webkit-scrollbar { width: 4px; }
+    .panel::-webkit-scrollbar-track { background: transparent; }
+    .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+    .panel-section {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-section:last-child { border-bottom: none; }
+
+    .section-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+    .section-desc {
+      font-size: 12px;
+      color: var(--text-mid);
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    /* ─── Industry Chips ─── */
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      padding: 6px 11px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--text-mid);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .chip:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: var(--surface-hover);
+      color: #fff;
+    }
+    .chip.active {
+      border-color: var(--orange);
+      background: rgba(255,138,1,0.12);
+      color: var(--orange);
+    }
+
+    /* ─── Solution Cards ─── */
+    .solution-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .solution-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      font-family: inherit;
+      width: 100%;
+    }
+    .solution-card:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255,255,255,0.15);
+    }
+    .solution-card.active {
+      border-color: var(--green);
+      background: rgba(98,214,161,0.08);
+    }
+    .solution-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .solution-card.active .solution-icon { background: rgba(98,214,161,0.15); }
+    .solution-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #fff;
+    }
+    .solution-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 1px;
+    }
+
+    /* ─── Capacity Slider ─── */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .slider-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--orange);
+      min-width: 80px;
+    }
+    .slider-value span {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, var(--orange) 0%, var(--orange) var(--fill, 0%), rgba(255,255,255,0.1) var(--fill, 0%), rgba(255,255,255,0.1) 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--orange);
+      border: 3px solid var(--bg);
+      box-shadow: 0 0 0 2px var(--orange);
+      cursor: grab;
+      transition: transform 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; }
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 0 2px;
+      margin-left: 92px;
+    }
+    .custom-cap-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .custom-cap-btn {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text);
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .custom-cap-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .custom-cap-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .custom-cap-input {
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+    .custom-cap-input.show { display: flex; }
+    .custom-cap-input input {
+      width: 80px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+    }
+    .custom-cap-input input:focus { border-color: var(--orange); }
+    .custom-cap-input span { font-size: 12px; color: var(--text-dim); }
+
+    /* ─── Thermal State Toggle ─── */
+    .state-toggle {
+      display: flex;
+      gap: 6px;
+      background: rgba(0,0,0,0.25);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+    }
+    .state-btn {
+      flex: 1;
+      padding: 6px 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .state-btn:hover { color: var(--text-mid); }
+    .state-btn.active-charging {
+      background: rgba(255,100,50,0.2);
+      color: #ff6432;
+    }
+    .state-btn.active-discharging {
+      background: rgba(50,130,255,0.2);
+      color: #5090ff;
+    }
+    .state-btn.active-idle {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+
+    /* ─── View Toggle ─── */
+    .view-toggle {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .view-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-mid);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .view-btn:hover { background: var(--surface-hover); color: #fff; }
+    .view-btn.active {
+      border-color: var(--teal-light);
+      background: var(--teal-light);
+      color: #fff;
+    }
+
+    /* ─── Results Panel (right overlay) ─── */
+    .results-bar {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .result-card {
+      background: rgba(22,40,40,0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      min-width: 200px;
+      pointer-events: auto;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .result-card:hover { transform: translateY(-2px); }
+    .result-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .result-value {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .result-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .result-value.green { color: var(--green); }
+    .result-value.orange { color: var(--orange); }
+    .result-value.white { color: #fff; }
+
+    /* ─── 3D Viewport ─── */
+    .viewport {
+      flex: 1;
+      position: relative;
+      background: #0a1414;
+      min-width: 0;
+    }
+    .viewport iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* ─── CTA Bar (bottom of panel) ─── */
+    .cta-section {
+      padding: 14px 20px;
+      background: linear-gradient(to top, rgba(255,138,1,0.06), transparent);
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .cta-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--orange);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .cta-btn:hover {
+      background: var(--orange-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(255,138,1,0.3);
+    }
+    .cta-btn:active { transform: translateY(0); }
+    .cta-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 10px;
+    }
+
+    /* ─── Modal ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 90%;
+      max-width: 440px;
+      padding: 24px;
+      position: relative;
+      animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to { opacity: 1; transform: none; }
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-dim);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .modal h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .modal .modal-sub {
+      font-size: 12px;
+      color: var(--text-mid);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.25);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--orange);
+    }
+    .form-group textarea { resize: vertical; min-height: 50px; }
+    .form-group select option { background: var(--surface); }
+
+    .config-summary {
+      background: rgba(0,0,0,0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .config-summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .config-summary-item .cs-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .config-summary-item .cs-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--orange);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+    .submit-btn:hover { background: var(--orange-hover); }
+
+    .success-msg {
+      display: none;
+      text-align: center;
+      padding: 28px 16px;
+    }
+    .success-msg.show { display: block; }
+    .success-msg .check {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(98,214,161,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 22px;
+      color: var(--green);
+    }
+    .success-msg h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .success-msg p {
+      color: var(--text-mid);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      .panel {
+        width: 100%;
+        min-width: 0;
+        max-height: 50vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .results-bar { top: 10px; right: 10px; }
+      .result-card { padding: 12px 14px; min-width: 160px; }
+      .result-value { font-size: 22px; }
+    }
+
+    /* ─── Collapsible Steps ─── */
+    .panel-section[data-step] .step-header {
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .panel-section[data-step] .step-header .step-chevron {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: transform 0.3s ease;
+      color: var(--text-dim);
+    }
+    .panel-section[data-step].collapsed .step-chevron {
+      transform: rotate(-90deg);
+    }
+    .panel-section[data-step] .step-content {
+      display: grid;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows 0.35s ease, opacity 0.3s ease;
+      opacity: 1;
+    }
+    .panel-section[data-step].collapsed .step-content {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+    .panel-section[data-step] .step-content > .step-inner {
+      overflow: hidden;
+    }
+    .step-summary {
+      font-size: 13px;
+      color: var(--orange);
+      font-weight: 500;
+      margin-top: 4px;
+      display: none;
+    }
+    .panel-section[data-step].collapsed .step-summary {
+      display: block;
+    }
+    .panel-section[data-step].locked {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .panel-section[data-step].locked .step-header {
+      pointer-events: auto;
+      cursor: default;
+    }
+
+    /* Intro pulse on load */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: none; }
+    }
+    .panel-section { animation: fadeInUp 0.5s ease both; }
+    .panel-section:nth-child(2) { animation-delay: 0.08s; }
+    .panel-section:nth-child(3) { animation-delay: 0.16s; }
+    .panel-section:nth-child(4) { animation-delay: 0.24s; }
+    .panel-section:nth-child(5) { animation-delay: 0.32s; }
+  </style>
+</head>
+<body>
+
+<!-- ─── Top Bar ─── -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="8" width="24" height="24" rx="4" fill="#FF8A01"/>
+      <path d="M14 14 L14 26 M10 18 L18 18 M10 22 L18 22" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+      <text x="34" y="27" fill="#fff" font-family="Space Grotesk, sans-serif" font-size="18" font-weight="700" letter-spacing="2">ENERGYNEST</text>
+    </svg>
+  </div>
+  <div class="topbar-cta">
+    <span class="topbar-tagline">ThermalBattery Configurator</span>
+  </div>
+</header>
+
+<!-- ─── Main ─── -->
+<div class="main">
+
+  <!-- Left Config Panel -->
+  <aside class="panel" id="configPanel">
+
+    <!-- Industry -->
+    <div class="panel-section" data-step="1">
+      <div class="step-header" onclick="toggleStep(1)">
+        <div>
+          <div class="section-label">Step 1</div>
+          <div class="section-title">Your Industry</div>
+          <div class="step-summary" id="summaryStep1"></div>
+        </div>
+        <svg class="step-chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="step-content"><div class="step-inner">
+        <div class="section-desc">Select your sector to see tailored energy storage solutions.</div>
+        <div class="chip-grid" id="industryChips">
+          <button class="chip" data-industry="chemicals">Chemicals</button>
+          <button class="chip" data-industry="food">Food & Beverage</button>
+          <button class="chip" data-industry="steel">Steel & Metals</button>
+          <button class="chip" data-industry="cement">Cement</button>
+          <button class="chip" data-industry="pharma">Pharma</button>
+          <button class="chip" data-industry="paper">Paper & Pulp</button>
+          <button class="chip" data-industry="textile">Textiles</button>
+          <button class="chip" data-industry="other">Other</button>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- Solution -->
+    <div class="panel-section collapsed locked" data-step="2">
+      <div class="step-header" onclick="toggleStep(2)">
+        <div>
+          <div class="section-label">Step 2</div>
+          <div class="section-title">Energy Solution</div>
+          <div class="step-summary" id="summaryStep2"></div>
+        </div>
+        <svg class="step-chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="step-content"><div class="step-inner">
+        <div class="section-desc">What challenge are you looking to solve?</div>
+        <div class="solution-cards" id="solutionCards">
+          <button class="solution-card" data-solution="wasteheat">
+            <div class="solution-icon">&#x1F525;</div>
+            <div>
+              <div class="solution-name">Waste Heat Recovery</div>
+              <div class="solution-sub">Capture and reuse process heat</div>
+            </div>
+          </button>
+          <button class="solution-card" data-solution="steam">
+            <div class="solution-icon">&#x2601;</div>
+            <div>
+              <div class="solution-name">Steam Storage</div>
+              <div class="solution-sub">Decouple steam generation from demand</div>
+            </div>
+          </button>
+          <button class="solution-card" data-solution="solar">
+            <div class="solution-icon">&#x2600;</div>
+            <div>
+              <div class="solution-name">Solar Integration</div>
+              <div class="solution-sub">Store solar thermal energy for 24/7 use</div>
+            </div>
+          </button>
+          <button class="solution-card" data-solution="electrification">
+            <div class="solution-icon">&#x26A1;</div>
+            <div>
+              <div class="solution-name">Electrification</div>
+              <div class="solution-sub">Convert renewable power to process heat</div>
+            </div>
+          </button>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- Capacity -->
+    <div class="panel-section collapsed locked" data-step="3">
+      <div class="step-header" onclick="toggleStep(3)">
+        <div>
+          <div class="section-label">Step 3</div>
+          <div class="section-title">Storage Capacity</div>
+          <div class="step-summary" id="summaryStep3"></div>
+        </div>
+        <svg class="step-chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="step-content"><div class="step-inner">
+        <div class="section-desc">Drag to explore different system sizes. The 3D model updates in real time.</div>
+        <div class="slider-row">
+          <div class="slider-value" id="capacityValue">10 <span>MWh</span></div>
+          <input type="range" id="capacitySlider" min="5" max="100" value="10" step="5">
+        </div>
+        <div class="slider-ticks">
+          <span>5</span><span>25</span><span>50</span><span>75</span><span>100</span>
+        </div>
+        <div class="custom-cap-row">
+          <button class="custom-cap-btn" id="customCapBtn" onclick="toggleCustomCapacity()">Custom</button>
+          <div class="custom-cap-input" id="customCapInput">
+            <input type="number" id="customCapValue" min="1" placeholder="e.g. 150" onchange="applyCustomCapacity()" onkeydown="if(event.key==='Enter')applyCustomCapacity()">
+            <span>MWh</span>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- View & State -->
+    <div class="panel-section collapsed locked" data-step="4">
+      <div class="step-header" onclick="toggleStep(4)">
+        <div>
+          <div class="section-label">Visualization</div>
+          <div class="section-title">Explore the System</div>
+        </div>
+        <svg class="step-chevron" viewBox="0 0 20 20" fill="currentColor"><path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="step-content"><div class="step-inner">
+        <div style="margin-bottom: 12px;">
+          <div style="font-size:12px; font-weight:600; color:var(--text-dim); margin-bottom:8px;">Thermal State</div>
+          <div class="state-toggle" id="stateToggle">
+            <button class="state-btn active-idle" data-state="idle">Idle</button>
+            <button class="state-btn" data-state="charging">Charging</button>
+            <button class="state-btn" data-state="discharging">Discharging</button>
+          </div>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btnInternal" onclick="setView('internal')">Internal View</button>
+          <button class="view-btn" id="btnCasing" onclick="setView('casing')">With Casing</button>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <button class="cta-btn" onclick="openModal()">
+        Get Your Custom Assessment
+      </button>
+      <div class="cta-note">Free consultation - No commitment required</div>
+    </div>
+  </aside>
+
+  <!-- 3D Viewport -->
+  <div class="viewport">
+    <iframe id="viewer" src="heat-exchanger.html" allow="autoplay"></iframe>
+
+    <!-- Floating results -->
+    <div class="results-bar" id="resultsBar">
+      <div class="result-card">
+        <div class="result-label">Annual CO2 Reduction</div>
+        <div class="result-value green" id="co2Value">~840</div>
+        <div class="result-sub">tonnes CO2/year</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Cost Savings</div>
+        <div class="result-value orange" id="savingsValue">~320K</div>
+        <div class="result-sub">EUR/year</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Payback Period</div>
+        <div class="result-value white" id="paybackValue">~4</div>
+        <div class="result-sub">years</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Contact Modal ─── -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+
+    <div id="formContent">
+      <h2>Get Your Custom Assessment</h2>
+      <p class="modal-sub">Our engineers will prepare a tailored analysis based on your configuration. Expect a response within 2 business days.</p>
+
+      <div class="config-summary" id="configSummary">
+        <div class="config-summary-item">
+          <span class="cs-label">Industry</span>
+          <span class="cs-value" id="sumIndustry">-</span>
+        </div>
+        <div class="config-summary-item">
+          <span class="cs-label">Solution</span>
+          <span class="cs-value" id="sumSolution">-</span>
+        </div>
+        <div class="config-summary-item">
+          <span class="cs-label">Capacity</span>
+          <span class="cs-value" id="sumCapacity">10 MWh</span>
+        </div>
+        <div class="config-summary-item">
+          <span class="cs-label">Est. Savings</span>
+          <span class="cs-value" id="sumSavings">~320K EUR/yr</span>
+        </div>
+      </div>
+
+      <form id="contactForm" onsubmit="submitForm(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" name="firstName" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" name="lastName" required>
+          </div>
+          <div class="form-group">
+            <label>Work Email *</label>
+            <input type="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" name="phone">
+          </div>
+          <div class="form-group full">
+            <label>Company *</label>
+            <input type="text" name="company" required>
+          </div>
+          <div class="form-group full">
+            <label>Role / Title</label>
+            <input type="text" name="role">
+          </div>
+          <div class="form-group full">
+            <label>Tell us about your energy challenges</label>
+            <textarea name="message" placeholder="e.g., We currently use natural gas for process heat at 350C and want to explore decarbonization options..."></textarea>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn">Send My Configuration</button>
+      </form>
+    </div>
+
+    <div class="success-msg" id="successMsg">
+      <div class="check">&#10003;</div>
+      <h3>Configuration Sent</h3>
+      <p>Thank you! An ENERGYNEST engineer will review your configuration and reach out within 2 business days with a tailored assessment.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── State ───
+  let selectedIndustry = null;
+  let selectedSolution = null;
+  let currentCapacity = 10;
+  let currentState = 'idle';
+  let currentView = 'internal';
+
+  const viewer = document.getElementById('viewer');
+
+  // ─── Accordion Steps ───
+  const stepSections = document.querySelectorAll('.panel-section[data-step]');
+  const completedSteps = new Set();
+
+  function getStepEl(n) {
+    return document.querySelector(`.panel-section[data-step="${n}"]`);
+  }
+
+  function openStep(n) {
+    stepSections.forEach(s => {
+      const sn = parseInt(s.dataset.step);
+      if (sn === n) {
+        s.classList.remove('collapsed');
+      } else {
+        s.classList.add('collapsed');
+      }
+    });
+  }
+
+  function unlockStep(n) {
+    const el = getStepEl(n);
+    if (el) el.classList.remove('locked');
+  }
+
+  function toggleStep(n) {
+    const el = getStepEl(n);
+    if (el.classList.contains('locked')) return;
+    if (el.classList.contains('collapsed')) {
+      openStep(n);
+    } else {
+      el.classList.add('collapsed');
+    }
+  }
+
+  function advanceToStep(n) {
+    unlockStep(n);
+    openStep(n);
+  }
+
+  function sendToViewer(msg) {
+    viewer.contentWindow.postMessage(msg, '*');
+  }
+
+  // ─── Industry Chips ───
+  const industryNames = {
+    chemicals: 'Chemicals', food: 'Food & Beverage', steel: 'Steel & Metals',
+    cement: 'Cement', pharma: 'Pharma', paper: 'Paper & Pulp',
+    textile: 'Textiles', other: 'Other'
+  };
+  const solutionNames = {
+    wasteheat: 'Waste Heat Recovery', steam: 'Steam Storage',
+    solar: 'Solar Integration', electrification: 'Electrification'
+  };
+
+  document.querySelectorAll('#industryChips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#industryChips .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedIndustry = chip.dataset.industry;
+      document.getElementById('summaryStep1').textContent = industryNames[selectedIndustry];
+      updateEstimates();
+      advanceToStep(2);
+    });
+  });
+
+  // ─── Solution Cards ───
+  document.querySelectorAll('#solutionCards .solution-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#solutionCards .solution-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      selectedSolution = card.dataset.solution;
+      document.getElementById('summaryStep2').textContent = solutionNames[selectedSolution];
+      updateEstimates();
+      advanceToStep(3);
+    });
+  });
+
+  // ─── Capacity Slider ───
+  const slider = document.getElementById('capacitySlider');
+  const capDisplay = document.getElementById('capacityValue');
+
+  let capacityTouched = false;
+  slider.addEventListener('input', () => {
+    currentCapacity = parseInt(slider.value);
+    capDisplay.innerHTML = `${currentCapacity} <span>MWh</span>`;
+    const pct = ((currentCapacity - 5) / (100 - 5)) * 100;
+    slider.style.setProperty('--fill', pct + '%');
+    sendToViewer({ type: 'buildForMWh', value: currentCapacity });
+    document.getElementById('summaryStep3').textContent = currentCapacity + ' MWh';
+    updateEstimates();
+    if (!capacityTouched) {
+      capacityTouched = true;
+      unlockStep(4);
+    }
+  });
+  slider.addEventListener('change', () => {
+    // Unlock step 4 but keep step 3 open so user can keep adjusting capacity
+    unlockStep(4);
+    getStepEl(4).classList.remove('collapsed');
+  });
+
+  // Set initial fill
+  slider.style.setProperty('--fill', ((10 - 5) / (100 - 5)) * 100 + '%');
+
+  // ─── Custom Capacity ───
+  function toggleCustomCapacity() {
+    const btn = document.getElementById('customCapBtn');
+    const input = document.getElementById('customCapInput');
+    const isActive = btn.classList.toggle('active');
+    if (isActive) {
+      input.classList.add('show');
+      document.getElementById('customCapValue').focus();
+    } else {
+      input.classList.remove('show');
+      // Reset to slider value
+      currentCapacity = parseInt(slider.value);
+      capDisplay.innerHTML = `${currentCapacity} <span>MWh</span>`;
+      sendToViewer({ type: 'buildForMWh', value: currentCapacity });
+      document.getElementById('summaryStep3').textContent = currentCapacity + ' MWh';
+      updateEstimates();
+    }
+  }
+  window.toggleCustomCapacity = toggleCustomCapacity;
+
+  function applyCustomCapacity() {
+    const val = parseInt(document.getElementById('customCapValue').value);
+    if (!val || val < 1) return;
+    currentCapacity = val;
+    capDisplay.innerHTML = `${currentCapacity} <span>MWh</span>`;
+    // If within slider range, sync slider
+    if (val <= 100 && val >= 5) {
+      slider.value = val;
+      const pct = ((val - 5) / (100 - 5)) * 100;
+      slider.style.setProperty('--fill', pct + '%');
+    } else {
+      slider.value = 100;
+      slider.style.setProperty('--fill', '100%');
+    }
+    sendToViewer({ type: 'buildForMWh', value: currentCapacity });
+    document.getElementById('summaryStep3').textContent = currentCapacity + ' MWh';
+    updateEstimates();
+    if (!capacityTouched) {
+      capacityTouched = true;
+      unlockStep(4);
+    }
+  }
+  window.applyCustomCapacity = applyCustomCapacity;
+
+  // When using slider, deactivate custom mode
+  slider.addEventListener('input', () => {
+    document.getElementById('customCapBtn').classList.remove('active');
+    document.getElementById('customCapInput').classList.remove('show');
+  });
+
+  // ─── Thermal State ───
+  document.querySelectorAll('#stateToggle .state-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#stateToggle .state-btn').forEach(b => {
+        b.className = 'state-btn';
+      });
+      const state = btn.dataset.state;
+      btn.classList.add(`active-${state}`);
+      currentState = state;
+      sendToViewer({ type: 'setThermalState', value: state });
+    });
+  });
+
+  // ─── View Toggle ───
+  function setView(view) {
+    currentView = view;
+    document.getElementById('btnInternal').classList.toggle('active', view === 'internal');
+    document.getElementById('btnCasing').classList.toggle('active', view === 'casing');
+    sendToViewer({ type: view === 'casing' ? 'showCasing' : 'hideCasing' });
+  }
+
+  // ─── Estimates Engine ───
+  // Simplified multipliers for illustration. Real numbers from ENERGYNEST engineering.
+  const industryMultipliers = {
+    chemicals: 1.15, food: 0.95, steel: 1.3, cement: 1.25,
+    pharma: 1.0, paper: 1.1, textile: 0.9, other: 1.0
+  };
+  const solutionMultipliers = {
+    wasteheat: 1.0, steam: 1.1, solar: 0.85, electrification: 1.2
+  };
+
+  function updateEstimates() {
+    const im = industryMultipliers[selectedIndustry] || 1.0;
+    const sm = solutionMultipliers[selectedSolution] || 1.0;
+    const cap = currentCapacity;
+
+    // Base: ~84 tonnes CO2 per MWh capacity per year
+    const co2 = Math.round(cap * 84 * im * sm);
+    // Base: ~32K EUR savings per MWh per year
+    const savings = Math.round(cap * 32 * im * sm);
+    // Payback: roughly 3-6 years depending on size (larger = faster payback)
+    const payback = Math.max(2.5, 5.5 - (cap / 80) * 1.5);
+    const paybackRound = payback.toFixed(1);
+
+    // Format
+    const co2Str = co2 >= 1000 ? `~${(co2/1000).toFixed(1)}K` : `~${co2}`;
+    const savStr = savings >= 1000 ? `~${(savings/1000).toFixed(1)}M` : `~${savings}K`;
+
+    document.getElementById('co2Value').textContent = co2Str;
+    document.getElementById('savingsValue').textContent = savStr + ' EUR';
+    document.getElementById('paybackValue').textContent = `~${paybackRound}`;
+  }
+
+  // ─── Modal ───
+  function openModal() {
+    document.getElementById('sumIndustry').textContent = industryNames[selectedIndustry] || 'Not selected';
+    document.getElementById('sumSolution').textContent = solutionNames[selectedSolution] || 'Not selected';
+    document.getElementById('sumCapacity').textContent = currentCapacity + ' MWh';
+    document.getElementById('sumSavings').textContent = document.getElementById('savingsValue').textContent + '/yr';
+
+    document.getElementById('formContent').style.display = '';
+    document.getElementById('successMsg').classList.remove('show');
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  function submitForm(e) {
+    e.preventDefault();
+    // In production, send to backend / CRM
+    document.getElementById('formContent').style.display = 'none';
+    document.getElementById('successMsg').classList.add('show');
+  }
+</script>
+
+</body>
+</html>

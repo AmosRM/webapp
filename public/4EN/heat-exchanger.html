@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ENERGYNEST ThermalBattery</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    canvas { display: block; }
+    #hx-canvas-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #d0d0d0;
+    }
+  </style>
+</head>
+<body>
+  <div id="hx-canvas-container"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const container = document.getElementById('hx-canvas-container');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xc8c8c8);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 300);
+    camera.position.set(-14, 10, 17);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 2.5, 0);
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.enabled = true;
+
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    dirLight.position.set(8, 30, 10);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.camera.left = -15;
+    dirLight.shadow.camera.right = 15;
+    dirLight.shadow.camera.top = 35;
+    dirLight.shadow.camera.bottom = -5;
+    dirLight.shadow.camera.far = 80;
+    scene.add(dirLight);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(-8, 10, -5);
+    scene.add(fillLight);
+
+    // Materials (shared across all units)
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0x909090, roughness: 0.4, metalness: 0.7 });
+    const tubeMat = new THREE.MeshStandardMaterial({ color: 0xb8b8b8, roughness: 0.35, metalness: 0.65 });
+    const darkSteelMat = new THREE.MeshStandardMaterial({ color: 0x6e6e6e, roughness: 0.5, metalness: 0.7 });
+    const lightSteelMat = new THREE.MeshStandardMaterial({ color: 0xa0a0a0, roughness: 0.35, metalness: 0.7 });
+
+    // Casing materials
+    const whitePanelMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.5, metalness: 0.05 });
+    const yellowPanelMat = new THREE.MeshStandardMaterial({ color: 0xf0c820, roughness: 0.4, metalness: 0.05 });
+    const blueFrameMat = new THREE.MeshStandardMaterial({ color: 0x2a6496, roughness: 0.35, metalness: 0.5 });
+    const roofMat = new THREE.MeshStandardMaterial({ color: 0xe8e8e8, roughness: 0.4, metalness: 0.1 });
+
+    // Load logo texture
+    const textureLoader = new THREE.TextureLoader();
+    let logoTexture = null;
+    textureLoader.load('logo.png', (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      logoTexture = tex;
+      if (casingVisible) rebuildCasing(currentStacks, currentRows);
+    });
+
+    // === DIMENSIONS ===
+    const frameLength = 16;
+    const frameHeight = 4.5;
+    const frameWidth = 3.8;
+    const legHeight = 0.7;
+    const beamSize = 0.14;
+    const tubeRadius = 0.22;
+    const tubeRows = 7;
+    const tubeColsWide = 6;
+    const tubeColsNarrow = 5;
+    const tubeSpacingY = 0.52;
+    const tubeSpacingZ = 0.58;
+
+    // Unit stacking height (top of frame to top of frame)
+    const unitHeight = legHeight + frameHeight;
+
+    // Shared geometries
+    const straightTubeGeo = new THREE.CylinderGeometry(tubeRadius, tubeRadius,
+      (frameLength - 0.6), 16);
+    straightTubeGeo.rotateZ(Math.PI / 2);
+
+    function createBeam(from, to, size, mat) {
+      const dir = new THREE.Vector3().subVectors(to, from);
+      const len = dir.length();
+      const geo = new THREE.BoxGeometry(size, size, len);
+      const mesh = new THREE.Mesh(geo, mat || steelMat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      const mid = new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5);
+      mesh.position.copy(mid);
+      mesh.lookAt(to);
+      return mesh;
+    }
+
+    function buildUnit() {
+      const group = new THREE.Group();
+
+      const numBays = 5;
+      const postXPositions = [];
+      for (let i = 0; i <= numBays; i++) {
+        postXPositions.push(-frameLength / 2 + i * (frameLength / numBays));
+      }
+      const zFront = -frameWidth / 2;
+      const zBack = frameWidth / 2;
+      const yBot = legHeight;
+      const yTop = legHeight + frameHeight;
+
+      // Vertical posts
+      postXPositions.forEach(x => {
+        group.add(createBeam(new THREE.Vector3(x, yBot, zFront), new THREE.Vector3(x, yTop, zFront), beamSize, lightSteelMat));
+        group.add(createBeam(new THREE.Vector3(x, yBot, zBack), new THREE.Vector3(x, yTop, zBack), beamSize, lightSteelMat));
+      });
+
+      // Horizontal beams along length
+      [zFront, zBack].forEach(z => {
+        group.add(createBeam(new THREE.Vector3(-frameLength / 2, yBot, z), new THREE.Vector3(frameLength / 2, yBot, z), beamSize, lightSteelMat));
+        group.add(createBeam(new THREE.Vector3(-frameLength / 2, yTop, z), new THREE.Vector3(frameLength / 2, yTop, z), beamSize, lightSteelMat));
+      });
+
+      // Cross beams (width)
+      postXPositions.forEach(x => {
+        group.add(createBeam(new THREE.Vector3(x, yBot, zFront), new THREE.Vector3(x, yBot, zBack), beamSize, lightSteelMat));
+        group.add(createBeam(new THREE.Vector3(x, yTop, zFront), new THREE.Vector3(x, yTop, zBack), beamSize, lightSteelMat));
+      });
+
+      // Diagonal braces (N-pattern)
+      for (let i = 0; i < numBays; i++) {
+        const x1 = postXPositions[i];
+        const x2 = postXPositions[i + 1];
+        [zFront, zBack].forEach(z => {
+          if (i % 2 === 0) {
+            group.add(createBeam(new THREE.Vector3(x1, yBot, z), new THREE.Vector3(x2, yTop, z), beamSize * 0.7, lightSteelMat));
+          } else {
+            group.add(createBeam(new THREE.Vector3(x1, yTop, z), new THREE.Vector3(x2, yBot, z), beamSize * 0.7, lightSteelMat));
+          }
+        });
+      }
+
+      // Legs and feet
+      postXPositions.forEach(x => {
+        [zFront, zBack].forEach(z => {
+          const legGeo = new THREE.BoxGeometry(beamSize * 1.8, legHeight, beamSize * 1.8);
+          const leg = new THREE.Mesh(legGeo, steelMat);
+          leg.position.set(x, legHeight / 2, z);
+          leg.castShadow = true;
+          group.add(leg);
+
+          const footGeo = new THREE.BoxGeometry(0.5, 0.06, 0.5);
+          const foot = new THREE.Mesh(footGeo, darkSteelMat);
+          foot.position.set(x, 0.03, z);
+          foot.receiveShadow = true;
+          group.add(foot);
+        });
+      });
+
+      // Bottom runners
+      [zFront, zBack].forEach(z => {
+        group.add(createBeam(new THREE.Vector3(-frameLength / 2, 0.06, z), new THREE.Vector3(frameLength / 2, 0.06, z), beamSize * 0.9, darkSteelMat));
+      });
+
+      // Tubes (staggered)
+      const tubeStartX = -frameLength / 2 + 0.3;
+      const tubeEndX = frameLength / 2 - 0.3;
+      const tubeLength = tubeEndX - tubeStartX;
+      const tubeBundleHeight = (tubeRows - 1) * tubeSpacingY;
+      const tubeBundleWidth = (tubeColsWide - 1) * tubeSpacingZ;
+      const tubeBaseY = legHeight + (frameHeight - tubeBundleHeight) / 2;
+      const tubeBaseZ = -tubeBundleWidth / 2;
+      const halfOffset = tubeSpacingZ / 2;
+
+      const tubePositions = [];
+      for (let row = 0; row < tubeRows; row++) {
+        const isOffsetRow = row % 2 === 1;
+        const cols = isOffsetRow ? tubeColsNarrow : tubeColsWide;
+        const zOffset = isOffsetRow ? halfOffset : 0;
+        const rowPositions = [];
+        for (let col = 0; col < cols; col++) {
+          const y = tubeBaseY + row * tubeSpacingY;
+          const z = tubeBaseZ + zOffset + col * tubeSpacingZ;
+          rowPositions.push({ y, z });
+          const tube = new THREE.Mesh(straightTubeGeo, tubeMat);
+          tube.position.set((tubeStartX + tubeEndX) / 2, y, z);
+          tube.castShadow = true;
+          group.add(tube);
+        }
+        tubePositions.push(rowPositions);
+      }
+
+      // U-bends (left end)
+      function addUBend(y1, z1, y2, z2, xPos, direction) {
+        const bendReach = Math.abs(y2 - y1) * 0.55;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(xPos, y1, z1),
+          new THREE.Vector3(xPos + direction * bendReach * 0.6, y1, z1),
+          new THREE.Vector3(xPos + direction * bendReach, (y1 + y2) / 2, (z1 + z2) / 2),
+          new THREE.Vector3(xPos + direction * bendReach * 0.6, y2, z2),
+          new THREE.Vector3(xPos, y2, z2),
+        ]);
+        const bendGeo = new THREE.TubeGeometry(curve, 24, tubeRadius, 12, false);
+        const bendMesh = new THREE.Mesh(bendGeo, tubeMat);
+        bendMesh.castShadow = true;
+        group.add(bendMesh);
+      }
+
+      for (let pairIdx = 0; pairIdx < 3; pairIdx++) {
+        const rowA = pairIdx * 2;
+        const rowB = pairIdx * 2 + 1;
+        const posA = tubePositions[rowA];
+        const posB = tubePositions[rowB];
+        for (let col = 0; col < posB.length; col++) {
+          addUBend(posA[col].y, posA[col].z, posB[col].y, posB[col].z, tubeStartX, -1);
+        }
+      }
+
+      // Tube sheet (right end)
+      const sheetThickness = 0.12;
+      const sheetGeo = new THREE.BoxGeometry(sheetThickness, frameHeight - 0.4, frameWidth - 0.4);
+      const tubeSheet = new THREE.Mesh(sheetGeo, darkSteelMat);
+      tubeSheet.position.set(tubeEndX + sheetThickness / 2, legHeight + frameHeight / 2, 0);
+      tubeSheet.castShadow = true;
+      group.add(tubeSheet);
+
+      // Header manifolds + stubs
+      const headerRadius = 0.22;
+      const stubRadius = tubeRadius * 0.5;
+      const stubHeight = 0.35;
+      const headerX = tubeStartX - 0.6;
+
+      const topRow = tubePositions[tubeRows - 1];
+      const botRow = tubePositions[0];
+      const topTubeY = topRow[0].y;
+      const botTubeY = botRow[0].y;
+
+      // Top manifold
+      const topManifoldZ1 = topRow[0].z - 0.3;
+      const topManifoldZ2 = topRow[topRow.length - 1].z + 0.3;
+      const topManifoldY = topTubeY + stubHeight + headerRadius;
+      const topManifoldGeo = new THREE.CylinderGeometry(headerRadius, headerRadius, Math.abs(topManifoldZ2 - topManifoldZ1), 16);
+      const topManifold = new THREE.Mesh(topManifoldGeo, steelMat);
+      topManifold.position.set(headerX, topManifoldY, (topManifoldZ1 + topManifoldZ2) / 2);
+      topManifold.rotation.x = Math.PI / 2;
+      topManifold.castShadow = true;
+      group.add(topManifold);
+
+      const stubGeo = new THREE.CylinderGeometry(stubRadius, stubRadius, stubHeight + headerRadius, 8);
+      topRow.forEach(pos => {
+        const stub = new THREE.Mesh(stubGeo, tubeMat);
+        stub.position.set(headerX, pos.y + (stubHeight + headerRadius) / 2, pos.z);
+        stub.castShadow = true;
+        group.add(stub);
+      });
+
+      // Bottom manifold
+      const botManifoldZ1 = botRow[0].z - 0.3;
+      const botManifoldZ2 = botRow[botRow.length - 1].z + 0.3;
+      const botManifoldY = botTubeY - stubHeight - headerRadius;
+      const botManifoldGeo = new THREE.CylinderGeometry(headerRadius, headerRadius, Math.abs(botManifoldZ2 - botManifoldZ1), 16);
+      const botManifold = new THREE.Mesh(botManifoldGeo, steelMat);
+      botManifold.position.set(headerX, botManifoldY, (botManifoldZ1 + botManifoldZ2) / 2);
+      botManifold.rotation.x = Math.PI / 2;
+      botManifold.castShadow = true;
+      group.add(botManifold);
+
+      botRow.forEach(pos => {
+        const stub = new THREE.Mesh(stubGeo, tubeMat);
+        stub.position.set(headerX, pos.y - (stubHeight + headerRadius) / 2, pos.z);
+        stub.castShadow = true;
+        group.add(stub);
+      });
+
+      // Inlet pipe
+      const inletCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(headerX, topManifoldY, topManifoldZ1),
+        new THREE.Vector3(headerX - 0.3, topManifoldY + 0.4, topManifoldZ1),
+        new THREE.Vector3(headerX - 0.6, yTop + 0.6, topManifoldZ1),
+        new THREE.Vector3(headerX - 1.0, yTop + 1.0, topManifoldZ1),
+      ]);
+      const inletGeo = new THREE.TubeGeometry(inletCurve, 20, headerRadius, 12, false);
+      const inletPipe = new THREE.Mesh(inletGeo, steelMat);
+      inletPipe.castShadow = true;
+      inletPipe.userData.isExternalPipe = true;
+      group.add(inletPipe);
+
+      // Outlet pipe
+      const outletCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(headerX, botManifoldY, botManifoldZ1),
+        new THREE.Vector3(headerX - 0.3, botManifoldY - 0.3, botManifoldZ1),
+        new THREE.Vector3(headerX - 0.6, yBot - 0.3, botManifoldZ1),
+        new THREE.Vector3(headerX - 1.0, yBot - 0.6, botManifoldZ1),
+      ]);
+      const outletGeo = new THREE.TubeGeometry(outletCurve, 20, headerRadius, 12, false);
+      const outletPipe = new THREE.Mesh(outletGeo, steelMat);
+      outletPipe.castShadow = true;
+      outletPipe.userData.isExternalPipe = true;
+      group.add(outletPipe);
+
+      return group;
+    }
+
+    // === GRID MANAGEMENT ===
+    const gridGroup = new THREE.Group();
+    scene.add(gridGroup);
+
+    let currentStacks = 0;
+    let currentRows = 0;
+    const rowSpacing = frameWidth + 0.6;
+
+    let gridAnims = [];
+    let cameraAnim = null;
+
+    function stopGridAnims() {
+      gridAnims.forEach(a => a.pause());
+      gridAnims = [];
+      if (cameraAnim) { cameraAnim.pause(); cameraAnim = null; }
+    }
+
+    function animateCamera(targetPos, targetLookAt, duration, easing) {
+      if (cameraAnim) cameraAnim.pause();
+      const from = {
+        cx: camera.position.x, cy: camera.position.y, cz: camera.position.z,
+        tx: controls.target.x, ty: controls.target.y, tz: controls.target.z,
+      };
+      const to = {
+        cx: targetPos.x, cy: targetPos.y, cz: targetPos.z,
+        tx: targetLookAt.x, ty: targetLookAt.y, tz: targetLookAt.z,
+      };
+      cameraAnim = anime({
+        targets: from,
+        cx: to.cx, cy: to.cy, cz: to.cz,
+        tx: to.tx, ty: to.ty, tz: to.tz,
+        duration: duration || 800,
+        easing: easing || 'easeInOutQuart',
+        update: () => {
+          camera.position.set(from.cx, from.cy, from.cz);
+          controls.target.set(from.tx, from.ty, from.tz);
+        },
+      });
+    }
+
+    // Module registry: key "row,stack" -> Three.Group
+    const moduleRegistry = new Map();
+
+    function disposeUnit(unit) {
+      unit.traverse(obj => { if (obj.isMesh) obj.geometry.dispose(); });
+      gridGroup.remove(unit);
+    }
+
+    function animateUnitIn(unit, delay) {
+      const targetY = unit.userData.targetY;
+      // Start below and scaled down, like the casing build
+      unit.position.y = targetY - 3;
+      unit.scale.set(1, 0.01, 1);
+
+      gridAnims.push(anime({
+        targets: unit.position,
+        y: targetY,
+        duration: 600,
+        delay: delay,
+        easing: 'easeOutCubic',
+      }));
+      gridAnims.push(anime({
+        targets: unit.scale,
+        y: 1,
+        duration: 600,
+        delay: delay,
+        easing: 'easeOutCubic',
+      }));
+    }
+
+    function animateUnitOut(unit, delay, onComplete) {
+      gridAnims.push(anime({
+        targets: unit.position,
+        y: unit.position.y - 20,
+        duration: 400,
+        delay: delay,
+        easing: 'easeInCubic',
+        complete: () => {
+          disposeUnit(unit);
+          if (onComplete) onComplete();
+        }
+      }));
+    }
+
+    function computeCamera(stackCount, rowCount) {
+      const midY = ((stackCount - 1) * unitHeight) / 2 + unitHeight / 2;
+      const midZ = ((rowCount - 1) * rowSpacing) / 2;
+      const totalHeight = stackCount * unitHeight;
+      const totalDepth = rowCount * rowSpacing;
+      const totalLength = frameLength + 4;
+      const maxExtent = Math.max(totalLength, totalDepth, totalHeight);
+      const fovRad = THREE.MathUtils.degToRad(camera.fov / 2);
+      const modules = stackCount * rowCount;
+      const zoomFactor = modules >= 15 ? 2.3 : modules >= 8 ? 1.7 : 1.5;
+      const dist = (maxExtent / 2) / Math.tan(fovRad) * zoomFactor;
+      const elevAngle = 0.45;
+
+      // Use current orbit angle for camera placement
+      const newCamPos = new THREE.Vector3(
+        dist * Math.sin(orbitAngle) * Math.cos(elevAngle),
+        midY + dist * Math.sin(elevAngle),
+        dist * Math.cos(orbitAngle) * Math.cos(elevAngle)
+      );
+      const newTarget = new THREE.Vector3(0, midY, 0);
+      return { camPos: newCamPos, target: newTarget, midZ, dist };
+    }
+
+    function buildForScenario(stacks, rows) {
+      stopGridAnims();
+
+      const toAdd = [];
+      const toRemove = [];
+      const toKeep = new Set();
+
+      for (let r = 0; r < rows; r++) {
+        for (let s = 0; s < stacks; s++) {
+          const key = r + ',' + s;
+          if (moduleRegistry.has(key)) {
+            toKeep.add(key);
+          } else {
+            toAdd.push({ r, s, key });
+          }
+        }
+      }
+      moduleRegistry.forEach((unit, key) => {
+        if (!toKeep.has(key)) toRemove.push({ unit, key });
+      });
+
+      // Animate out removed units
+      toRemove.sort((a, b) => {
+        const [ra, sa] = a.key.split(',').map(Number);
+        const [rb, sb] = b.key.split(',').map(Number);
+        if (rb !== ra) return rb - ra;
+        return sb - sa;
+      });
+      toRemove.forEach(({ unit, key }, i) => {
+        moduleRegistry.delete(key);
+        animateUnitOut(unit, i * 50);
+      });
+
+      // Add new units
+      toAdd.forEach(({ r, s, key }) => {
+        const unit = buildUnit();
+        const targetY = s * unitHeight;
+        const targetZ = r * rowSpacing;
+        unit.position.set(0, targetY, targetZ);
+        unit.userData.targetY = targetY;
+        unit.userData.targetZ = targetZ;
+        unit.userData.stackIndex = s;
+        unit.userData.rowIndex = r;
+        gridGroup.add(unit);
+        moduleRegistry.set(key, unit);
+      });
+
+      currentStacks = stacks;
+      currentRows = rows;
+
+      // Update centering
+      const midZ = ((rows - 1) * rowSpacing) / 2;
+      gridGroup.position.z = -midZ;
+
+      // Camera
+      const cam = computeCamera(stacks, rows);
+      // Update orbit radius for auto-orbit
+      currentOrbitDist = cam.dist;
+      currentOrbitTargetY = cam.target.y;
+      animateCamera(cam.camPos, cam.target, 800, 'easeInOutQuart');
+
+      // Rebuild casing if visible
+      rebuildCasing(stacks, rows);
+      setExternalPipesVisible(!casingVisible);
+
+      // Animate in new units with drop-from-above
+      if (toAdd.length > 0) {
+        // Sort bottom-up: lowest stack first, then by row — builds from ground up
+        toAdd.sort((a, b) => a.s !== b.s ? a.s - b.s : a.r - b.r);
+        toAdd.forEach(({ key }, i) => {
+          const unit = moduleRegistry.get(key);
+          animateUnitIn(unit, i * 150);
+        });
+      }
+    }
+
+    // Ground
+    const groundGeo = new THREE.PlaneGeometry(200, 200);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0xb0b0b0, roughness: 0.8 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // === MWh LAYOUT MAPPING ===
+    const mwhTable = [
+      { mwh: 5,  stacks: 1, rows: 1 },
+      { mwh: 10, stacks: 2, rows: 1 },
+      { mwh: 15, stacks: 3, rows: 1 },
+      { mwh: 20, stacks: 4, rows: 1 },
+      { mwh: 25, stacks: 5, rows: 1 },
+      { mwh: 30, stacks: 3, rows: 2 },
+      { mwh: 40, stacks: 4, rows: 2 },
+      { mwh: 50, stacks: 5, rows: 2 },
+      { mwh: 60, stacks: 4, rows: 3 },
+      { mwh: 70, stacks: 5, rows: 3 },
+      { mwh: 80, stacks: 4, rows: 4 },
+      { mwh: 90, stacks: 5, rows: 4 },
+      { mwh: 100, stacks: 5, rows: 4 },
+    ];
+
+    function getLayoutForMWh(mwh) {
+      if (mwh > 100) return { stacks: 5, rows: 5 };
+
+      let closest = mwhTable[0];
+      let closestDist = Math.abs(mwh - closest.mwh);
+      for (let i = 1; i < mwhTable.length; i++) {
+        const d = Math.abs(mwh - mwhTable[i].mwh);
+        if (d < closestDist) {
+          closestDist = d;
+          closest = mwhTable[i];
+        }
+      }
+      return { stacks: closest.stacks, rows: closest.rows };
+    }
+
+    // === OUTER CASING ===
+    const casingGroup = new THREE.Group();
+    casingGroup.visible = false;
+    scene.add(casingGroup);
+
+    let casingVisible = false;
+
+    // Base support material
+    const redBaseMat = new THREE.MeshStandardMaterial({ color: 0x8b2500, roughness: 0.5, metalness: 0.3 });
+
+    function rebuildCasing(stackCount, rowCount) {
+      while (casingGroup.children.length > 0) {
+        const child = casingGroup.children[0];
+        casingGroup.remove(child);
+        child.traverse(obj => { if (obj.isMesh) { obj.geometry.dispose(); if (obj.material && obj.material !== whitePanelMat && obj.material !== yellowPanelMat && obj.material !== blueFrameMat && obj.material !== roofMat && obj.material !== redBaseMat && obj.material !== steelMat && obj.material !== lightSteelMat) obj.material.dispose(); }});
+      }
+
+      const margin = 0.6;
+      const totalH = stackCount * unitHeight + margin;
+      const totalD = rowCount * rowSpacing - 0.6 + frameWidth + margin * 2;
+      const totalL = frameLength + 4;
+      const midZ = 0;
+      const baseY = -0.2;
+      const midY = baseY + totalH / 2;
+
+      const left = -totalL / 2;
+      const right = totalL / 2;
+      const front = midZ - totalD / 2;
+      const back = midZ + totalD / 2;
+      const top = baseY + totalH;
+      const bot = baseY;
+      const panelThick = 0.07;
+      const frameW = 0.14;
+      const cornerW = 0.18;
+
+      function addTagged(mesh, type) {
+        mesh.userData.casingType = type;
+        casingGroup.add(mesh);
+        return mesh;
+      }
+      function addTaggedGroup(group, type) {
+        group.userData.casingType = type;
+        casingGroup.add(group);
+        return group;
+      }
+
+      // === FLOOR / BASE ===
+      const railCount = Math.max(4, Math.ceil(totalL / 2.5));
+      for (let i = 0; i < railCount; i++) {
+        const x = left + (i / (railCount - 1)) * totalL;
+        const railGeo = new THREE.BoxGeometry(0.22, 0.18, totalD + 0.3);
+        const rail = new THREE.Mesh(railGeo, redBaseMat);
+        rail.position.set(x, bot - 0.09, midZ);
+        rail.castShadow = true;
+        rail.receiveShadow = true;
+        addTagged(rail, 'base');
+      }
+      [front - 0.05, back + 0.05].forEach(z => {
+        const bGeo = new THREE.BoxGeometry(totalL + 0.4, 0.12, 0.16);
+        const b = new THREE.Mesh(bGeo, redBaseMat);
+        b.position.set(0, bot - 0.06, z);
+        b.castShadow = true;
+        addTagged(b, 'base');
+      });
+
+      // === CORNER POSTS ===
+      const corners = [[left, front], [left, back], [right, front], [right, back]];
+      corners.forEach(([x, z]) => {
+        const geo = new THREE.BoxGeometry(cornerW, totalH, cornerW);
+        const mesh = new THREE.Mesh(geo, blueFrameMat);
+        mesh.position.set(x, midY, z);
+        mesh.castShadow = true;
+        addTagged(mesh, 'frame');
+      });
+
+      // === TOP EDGE BEAMS ===
+      [front, back].forEach(z => {
+        const geo = new THREE.BoxGeometry(totalL, frameW, frameW);
+        const mesh = new THREE.Mesh(geo, blueFrameMat);
+        mesh.position.set(0, top, z);
+        mesh.castShadow = true;
+        addTagged(mesh, 'frame');
+      });
+      [left, right].forEach(x => {
+        const geo = new THREE.BoxGeometry(frameW, frameW, totalD);
+        const mesh = new THREE.Mesh(geo, blueFrameMat);
+        mesh.position.set(x, top, midZ);
+        mesh.castShadow = true;
+        addTagged(mesh, 'frame');
+      });
+
+      // === BOTTOM EDGE BEAMS ===
+      [front, back].forEach(z => {
+        const geo = new THREE.BoxGeometry(totalL, frameW, frameW);
+        const mesh = new THREE.Mesh(geo, blueFrameMat);
+        mesh.position.set(0, bot, z);
+        mesh.castShadow = true;
+        addTagged(mesh, 'frame');
+      });
+      [left, right].forEach(x => {
+        const geo = new THREE.BoxGeometry(frameW, frameW, totalD);
+        const mesh = new THREE.Mesh(geo, blueFrameMat);
+        mesh.position.set(x, bot, midZ);
+        mesh.castShadow = true;
+        addTagged(mesh, 'frame');
+      });
+
+      // === INTERMEDIATE VERTICAL POSTS ===
+      const numIntPosts = Math.max(3, Math.ceil(totalL / 3.5));
+      const postSpacing = totalL / (numIntPosts + 1);
+      for (let i = 1; i <= numIntPosts; i++) {
+        const x = left + i * postSpacing;
+        [front, back].forEach(z => {
+          const geo = new THREE.BoxGeometry(frameW, totalH, frameW);
+          const mesh = new THREE.Mesh(geo, blueFrameMat);
+          mesh.position.set(x, midY, z);
+          mesh.castShadow = true;
+          addTagged(mesh, 'frame');
+        });
+      }
+
+      // Mid-height horizontal beams at stack divisions
+      for (let s = 1; s < stackCount; s++) {
+        const y = s * unitHeight + baseY;
+        [front, back].forEach(z => {
+          const geo = new THREE.BoxGeometry(totalL, frameW * 0.8, frameW * 0.8);
+          const mesh = new THREE.Mesh(geo, blueFrameMat);
+          mesh.position.set(0, y, z);
+          mesh.castShadow = true;
+          addTagged(mesh, 'frame');
+        });
+      }
+
+      // === Corrugated wall helper ===
+      const ribMat = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.5, metalness: 0.1 });
+
+      function addCorrugatedWall(pos, wallW, wallH, rotY, ribDir, ribSpan) {
+        const group = new THREE.Group();
+        const panelGeo = new THREE.BoxGeometry(wallW, wallH, panelThick);
+        const panel = new THREE.Mesh(panelGeo, whitePanelMat);
+        panel.castShadow = true;
+        panel.receiveShadow = true;
+        group.add(panel);
+
+        const ribCount = Math.max(3, Math.floor(wallW / 0.5));
+        const ribW = 0.06;
+        const ribD = 0.03;
+        for (let i = 0; i < ribCount; i++) {
+          const offset = -wallW / 2 + (wallW / (ribCount + 1)) * (i + 1);
+          const ribGeo = new THREE.BoxGeometry(ribW, wallH * 0.88, ribD);
+          const rib = new THREE.Mesh(ribGeo, ribMat);
+          rib.position.set(offset, 0, panelThick / 2 + ribD / 2);
+          group.add(rib);
+        }
+
+        group.position.copy(pos);
+        group.rotation.y = rotY;
+        return group;
+      }
+
+      // --- Walls ---
+      const wallFront = addCorrugatedWall(
+        new THREE.Vector3(0, midY, front - panelThick / 2 - 0.01),
+        totalL - frameW, totalH - frameW, Math.PI, 'x', totalL
+      );
+      wallFront.userData.casingType = 'wall';
+      wallFront.userData.slideDir = { x: 0, y: 0, z: -1 };
+      casingGroup.add(wallFront);
+
+      const wallBack = addCorrugatedWall(
+        new THREE.Vector3(0, midY, back + panelThick / 2 + 0.01),
+        totalL - frameW, totalH - frameW, 0, 'x', totalL
+      );
+      wallBack.userData.casingType = 'wall';
+      wallBack.userData.slideDir = { x: 0, y: 0, z: 1 };
+      casingGroup.add(wallBack);
+
+      const wallRight = addCorrugatedWall(
+        new THREE.Vector3(right + panelThick / 2 + 0.01, midY, midZ),
+        totalD - frameW, totalH - frameW, Math.PI / 2, 'z', totalD
+      );
+      wallRight.userData.casingType = 'wall';
+      wallRight.userData.slideDir = { x: 1, y: 0, z: 0 };
+      casingGroup.add(wallRight);
+
+      const wallLeft = addCorrugatedWall(
+        new THREE.Vector3(left - panelThick / 2 - 0.01, midY, midZ),
+        totalD - frameW, totalH - frameW, -Math.PI / 2, 'z', totalD
+      );
+      wallLeft.userData.casingType = 'wall';
+      wallLeft.userData.slideDir = { x: -1, y: 0, z: 0 };
+      casingGroup.add(wallLeft);
+
+      // === LOGOS ===
+      if (logoTexture) {
+        const logoAspect = logoTexture.image ? logoTexture.image.width / logoTexture.image.height : 2.5;
+        const logoMatBase = { map: logoTexture, transparent: true, roughness: 0.5, metalness: 0.0, side: THREE.DoubleSide };
+        const logoOffset = 0.06;
+
+        const endLogoH = Math.min(totalH * 0.35, 2.5);
+        const endLogoW = Math.min(endLogoH * logoAspect, totalD * 0.7);
+        const endLogoFinalH = endLogoW / logoAspect;
+        const endLogoGeo = new THREE.PlaneGeometry(endLogoW, endLogoFinalH);
+
+        const sideLogoH = Math.min(totalH * 0.28, 2.2);
+        const sideLogoW = Math.min(sideLogoH * logoAspect, totalL * 0.25);
+        const sideLogoFinalH = sideLogoW / logoAspect;
+        const sideLogoGeo = new THREE.PlaneGeometry(sideLogoW, sideLogoFinalH);
+
+        const logo1 = new THREE.Mesh(endLogoGeo, new THREE.MeshStandardMaterial(logoMatBase));
+        logo1.position.set(right + panelThick + logoOffset, midY, midZ);
+        logo1.rotation.y = Math.PI / 2;
+        addTagged(logo1, 'logo');
+
+        const logo2 = new THREE.Mesh(endLogoGeo, new THREE.MeshStandardMaterial(logoMatBase));
+        logo2.position.set(left - panelThick - logoOffset, midY, midZ);
+        logo2.rotation.y = -Math.PI / 2;
+        addTagged(logo2, 'logo');
+
+        const logo3 = new THREE.Mesh(sideLogoGeo, new THREE.MeshStandardMaterial(logoMatBase));
+        logo3.position.set(0, midY, front - panelThick - logoOffset);
+        logo3.rotation.y = Math.PI;
+        addTagged(logo3, 'logo');
+
+        const logo4 = new THREE.Mesh(sideLogoGeo, new THREE.MeshStandardMaterial(logoMatBase));
+        logo4.position.set(0, midY, back + panelThick + logoOffset);
+        addTagged(logo4, 'logo');
+      }
+
+      // === ROOF ===
+      const roofGeo = new THREE.BoxGeometry(totalL + 0.3, 0.08, totalD + 0.3);
+      const roofPanel = new THREE.Mesh(roofGeo, roofMat);
+      roofPanel.position.set(0, top + 0.04, midZ);
+      roofPanel.castShadow = true;
+      roofPanel.receiveShadow = true;
+      addTagged(roofPanel, 'roof');
+
+      for (let i = 0; i < 3; i++) {
+        const zz = front + (totalD / 4) * (i + 1);
+        const ridgeGeo = new THREE.BoxGeometry(totalL + 0.2, 0.06, 0.1);
+        const ridge = new THREE.Mesh(ridgeGeo, blueFrameMat);
+        ridge.position.set(0, top + 0.11, zz - totalD / 4);
+        addTagged(ridge, 'roof');
+      }
+
+      // === EXTERNAL PIPING ===
+      const pipeRadius = 0.22;
+      const pipeMat = new THREE.MeshStandardMaterial({ color: 0xdcdcdc, roughness: 0.25, metalness: 0.6 });
+      const capGeo = new THREE.SphereGeometry(pipeRadius * 1.1, 12, 8);
+
+      const topPipeY = top + 0.4;
+      const topPipeX = left - 0.5;
+      const topPipeFrontZ = front;
+      const topPipeBackZ = back;
+      const topPipeLen = topPipeBackZ - topPipeFrontZ;
+      const topPipeGeo = new THREE.CylinderGeometry(pipeRadius, pipeRadius, topPipeLen, 16);
+      topPipeGeo.rotateX(Math.PI / 2);
+      const topPipe = new THREE.Mesh(topPipeGeo, pipeMat);
+      topPipe.position.set(topPipeX, topPipeY, (topPipeFrontZ + topPipeBackZ) / 2);
+      topPipe.castShadow = true;
+      addTagged(topPipe, 'pipe');
+
+      const capFront = new THREE.Mesh(capGeo, pipeMat);
+      capFront.position.set(topPipeX, topPipeY, topPipeFrontZ);
+      addTagged(capFront, 'pipe');
+      const capBack = new THREE.Mesh(capGeo, pipeMat);
+      capBack.position.set(topPipeX, topPipeY, topPipeBackZ);
+      addTagged(capBack, 'pipe');
+
+      const elbowRadius = 0.8;
+      const elbowCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(topPipeX, topPipeY, topPipeFrontZ),
+        new THREE.Vector3(topPipeX, topPipeY, topPipeFrontZ - elbowRadius * 0.5),
+        new THREE.Vector3(topPipeX, topPipeY - elbowRadius * 0.5, topPipeFrontZ - elbowRadius),
+        new THREE.Vector3(topPipeX, topPipeY - elbowRadius, topPipeFrontZ - elbowRadius),
+      ]);
+      const elbowGeo = new THREE.TubeGeometry(elbowCurve, 20, pipeRadius, 12, false);
+      const elbowMesh = new THREE.Mesh(elbowGeo, pipeMat);
+      elbowMesh.castShadow = true;
+      addTagged(elbowMesh, 'pipe');
+
+      const downPipeX = topPipeX;
+      const downPipeZ = topPipeFrontZ - elbowRadius;
+      const downPipeTop = topPipeY - elbowRadius;
+      const downPipeBot = bot - 2.0;
+      const downPipeLen = downPipeTop - downPipeBot;
+      const downPipeGeo = new THREE.CylinderGeometry(pipeRadius, pipeRadius, downPipeLen, 16);
+      const downPipe = new THREE.Mesh(downPipeGeo, pipeMat);
+      downPipe.position.set(downPipeX, (downPipeTop + downPipeBot) / 2, downPipeZ);
+      downPipe.castShadow = true;
+      addTagged(downPipe, 'pipe');
+
+      const capBot = new THREE.Mesh(capGeo, pipeMat);
+      capBot.position.set(downPipeX, downPipeBot, downPipeZ);
+      addTagged(capBot, 'pipe');
+
+      const bracketCount = Math.max(2, Math.ceil(topPipeLen / 3.5));
+      for (let i = 0; i < bracketCount; i++) {
+        const z = topPipeFrontZ + (i + 1) * (topPipeLen / (bracketCount + 1));
+        const bGeo = new THREE.BoxGeometry(0.06, 0.35, 0.06);
+        const bt = new THREE.Mesh(bGeo, blueFrameMat);
+        bt.position.set(topPipeX, top + 0.22, z);
+        addTagged(bt, 'pipe');
+      }
+
+      // If casing is visible, animate it in
+      if (casingVisible) {
+        animateCasingIn();
+      }
+    }
+
+    function setExternalPipesVisible(visible) {
+      gridGroup.traverse(obj => {
+        if (obj.isMesh && obj.userData.isExternalPipe) {
+          obj.visible = visible;
+        }
+      });
+    }
+
+    let casingAnims = [];
+    const SLIDE_DISTANCE = 8;
+
+    function stopCasingAnims() {
+      casingAnims.forEach(a => a.pause());
+      casingAnims = [];
+    }
+
+    function snapshotCasingFinals() {
+      casingGroup.children.forEach(child => {
+        child.userData.finalPos = child.position.clone();
+        child.userData.finalScale = child.scale.clone();
+        child.userData.finalRot = child.rotation.clone();
+      });
+    }
+
+    function restoreCasingFinals() {
+      casingGroup.children.forEach(child => {
+        if (child.userData.finalPos) {
+          child.position.copy(child.userData.finalPos);
+          child.scale.copy(child.userData.finalScale);
+          child.rotation.copy(child.userData.finalRot);
+        }
+      });
+    }
+
+    function getCasingByType(type) {
+      return casingGroup.children.filter(c => c.userData.casingType === type);
+    }
+
+    function animateCasingIn() {
+      stopCasingAnims();
+      snapshotCasingFinals();
+
+      const baseItems = getCasingByType('base');
+      const frameItems = getCasingByType('frame');
+      const wallItems = getCasingByType('wall');
+      const logoItems = getCasingByType('logo');
+      const roofItems = getCasingByType('roof');
+      const pipeItems = getCasingByType('pipe');
+
+      baseItems.forEach(c => {
+        c.position.y = c.userData.finalPos.y - 3;
+        c.scale.set(1, 0.01, 1);
+      });
+      frameItems.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+      wallItems.forEach(c => {
+        const dir = c.userData.slideDir || { x: 0, y: 0, z: -1 };
+        c.position.x = c.userData.finalPos.x + dir.x * SLIDE_DISTANCE;
+        c.position.z = c.userData.finalPos.z + dir.z * SLIDE_DISTANCE;
+        c.scale.set(1, 0.01, 1);
+      });
+      logoItems.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+      roofItems.forEach(c => {
+        c.position.y = c.userData.finalPos.y + 8;
+      });
+      pipeItems.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+
+      casingGroup.visible = true;
+
+      casingAnims.push(anime({
+        targets: baseItems.map(c => c.position),
+        y: (el, i) => baseItems[i].userData.finalPos.y,
+        duration: 333,
+        easing: 'easeOutCubic',
+        delay: anime.stagger(27),
+      }));
+      casingAnims.push(anime({
+        targets: baseItems.map(c => c.scale),
+        y: 1,
+        duration: 333,
+        easing: 'easeOutCubic',
+        delay: anime.stagger(27),
+      }));
+
+      casingAnims.push(anime({
+        targets: frameItems.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 467,
+        delay: anime.stagger(17, { start: 200 }),
+        easing: 'easeOutBack',
+      }));
+
+      wallItems.forEach((wall, i) => {
+        const fp = wall.userData.finalPos;
+        casingAnims.push(anime({
+          targets: wall.position,
+          x: fp.x, z: fp.z,
+          duration: 400,
+          delay: 467 + i * 100,
+          easing: 'easeOutCubic',
+        }));
+        casingAnims.push(anime({
+          targets: wall.scale,
+          y: 1,
+          duration: 400,
+          delay: 467 + i * 100,
+          easing: 'easeOutCubic',
+        }));
+      });
+
+      casingAnims.push(anime({
+        targets: logoItems.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 267,
+        delay: anime.stagger(53, { start: 933 }),
+        easing: 'easeOutBack',
+      }));
+
+      casingAnims.push(anime({
+        targets: roofItems.map(c => c.position),
+        y: (el, i) => roofItems[i].userData.finalPos.y,
+        duration: 533,
+        delay: anime.stagger(40, { start: 1067 }),
+        easing: 'easeOutBounce',
+      }));
+
+      casingAnims.push(anime({
+        targets: pipeItems.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 400,
+        delay: anime.stagger(27, { start: 1467 }),
+        easing: 'easeOutElastic(1, 0.6)',
+      }));
+    }
+
+    function animateCasingOut() {
+      stopCasingAnims();
+
+      const pipeItems = getCasingByType('pipe');
+      const logoItems = getCasingByType('logo');
+      const roofItems = getCasingByType('roof');
+      const wallItems = getCasingByType('wall');
+      const frameItems = getCasingByType('frame');
+      const baseItems = getCasingByType('base');
+
+      casingAnims.push(anime({
+        targets: pipeItems.map(c => c.scale),
+        x: 0.01, y: 0.01, z: 0.01,
+        duration: 200,
+        easing: 'easeInCubic',
+        delay: anime.stagger(13),
+      }));
+
+      casingAnims.push(anime({
+        targets: logoItems.map(c => c.scale),
+        x: 0.01, y: 0.01, z: 0.01,
+        duration: 167,
+        delay: anime.stagger(27, { start: 100 }),
+        easing: 'easeInCubic',
+      }));
+
+      casingAnims.push(anime({
+        targets: roofItems.map(c => c.position),
+        y: (el, i) => roofItems[i].position.y + 8,
+        duration: 333,
+        delay: anime.stagger(20, { start: 200 }),
+        easing: 'easeInCubic',
+      }));
+
+      wallItems.forEach((wall, i) => {
+        const dir = wall.userData.slideDir || { x: 0, y: 0, z: -1 };
+        casingAnims.push(anime({
+          targets: wall.position,
+          x: wall.position.x + dir.x * SLIDE_DISTANCE,
+          z: wall.position.z + dir.z * SLIDE_DISTANCE,
+          duration: 333,
+          delay: 333 + i * 67,
+          easing: 'easeInCubic',
+        }));
+      });
+
+      casingAnims.push(anime({
+        targets: frameItems.map(c => c.scale),
+        x: 0.01, y: 0.01, z: 0.01,
+        duration: 267,
+        delay: anime.stagger(10, { start: 533 }),
+        easing: 'easeInCubic',
+      }));
+
+      casingAnims.push(anime({
+        targets: baseItems.map(c => c.position),
+        y: (el, i) => baseItems[i].position.y - 3,
+        duration: 267,
+        delay: anime.stagger(13, { start: 667 }),
+        easing: 'easeInCubic',
+        complete: () => {
+          casingGroup.visible = false;
+          restoreCasingFinals();
+        },
+      }));
+    }
+
+    // === THERMAL STATE ===
+    let thermalAnim = null;
+
+    const thermalStates = {
+      charging:    { r: 0.910, g: 0.310, b: 0.250, er: 0.600, eg: 0.100, eb: 0.050, ei: 0.25 },
+      discharging: { r: 0.478, g: 0.722, b: 0.831, er: 0.102, eg: 0.290, eb: 0.431, ei: 0.15 },
+      idle:        { r: 0.722, g: 0.722, b: 0.722, er: 0.000, eg: 0.000, eb: 0.000, ei: 0.0 },
+    };
+
+    function setThermalState(state) {
+      const target = thermalStates[state];
+      if (!target) return;
+
+      if (thermalAnim) thermalAnim.pause();
+
+      // Set emissive color directly (not animated)
+      tubeMat.emissive.setRGB(target.er, target.eg, target.eb);
+
+      const current = {
+        r: tubeMat.color.r,
+        g: tubeMat.color.g,
+        b: tubeMat.color.b,
+        ei: tubeMat.emissiveIntensity,
+      };
+
+      thermalAnim = anime({
+        targets: current,
+        r: target.r,
+        g: target.g,
+        b: target.b,
+        ei: target.ei,
+        duration: 1200,
+        easing: 'easeInOutSine',
+        update: () => {
+          tubeMat.color.setRGB(current.r, current.g, current.b);
+          tubeMat.emissiveIntensity = current.ei;
+        },
+      });
+    }
+
+    // === AUTO-ORBIT ===
+    let autoOrbit = false;
+    let orbitAngle = Math.atan2(camera.position.x, camera.position.z);
+    const ORBIT_SPEED = 0.0008;
+    let currentOrbitDist = camera.position.length();
+    let currentOrbitTargetY = 2.5;
+
+    // Animate
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (autoOrbit) {
+        orbitAngle += ORBIT_SPEED;
+        const elevAngle = 0.45;
+        camera.position.x = currentOrbitDist * Math.sin(orbitAngle) * Math.cos(elevAngle);
+        camera.position.z = currentOrbitDist * Math.cos(orbitAngle) * Math.cos(elevAngle);
+        camera.position.y = currentOrbitTargetY + currentOrbitDist * Math.sin(elevAngle);
+        camera.lookAt(controls.target);
+      } else {
+        controls.update();
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // ResizeObserver
+    const ro = new ResizeObserver(() => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w === 0 || h === 0) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+    ro.observe(container);
+
+    // === PUBLIC API ===
+    window.ThermalBattery = {
+      buildForMWh(mwh) {
+        const { stacks, rows } = getLayoutForMWh(mwh);
+        buildForScenario(stacks, rows);
+      },
+      setThermalState(state) {
+        setThermalState(state);
+      },
+      setSOC(value) {
+        // Reserved for future SOC visualization — no-op
+      },
+      showCasing() {
+        if (!casingVisible) {
+          casingVisible = true;
+          setExternalPipesVisible(false);
+          animateCasingIn();
+        }
+      },
+      hideCasing() {
+        if (casingVisible) {
+          casingVisible = false;
+          setExternalPipesVisible(true);
+          animateCasingOut();
+        }
+      },
+      pauseOrbit() {
+        autoOrbit = false;
+      },
+      resumeOrbit() {
+        // Recalculate angle from current camera position
+        orbitAngle = Math.atan2(camera.position.x, camera.position.z);
+        autoOrbit = true;
+      },
+    };
+
+    // Listen for postMessage commands from parent (configurator)
+    window.addEventListener('message', (e) => {
+      const d = e.data;
+      if (!d || !d.type) return;
+      const TB = window.ThermalBattery;
+      if (d.type === 'buildForMWh') TB.buildForMWh(d.value);
+      else if (d.type === 'setThermalState') TB.setThermalState(d.value);
+      else if (d.type === 'showCasing') TB.showCasing();
+      else if (d.type === 'hideCasing') TB.hideCasing();
+    });
+
+    // Default: show a 2-stack, 1-row system on load
+    buildForScenario(2, 1);
+  </script>
+</body>
+</html>

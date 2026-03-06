@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ENERGYNEST - ThermalBattery Configurator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --en-dark: #0D3B3B;
+      --en-green: #0D3B3B;
+      --en-orange: #E8612D;
+      --en-teal: #3ECEB0;
+      --en-gray: #F5F5F5;
+      --en-text: #333;
+      --en-text-light: #666;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fff;
+      color: var(--en-text);
+    }
+
+    /* --- Header --- */
+    .site-header {
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      padding: 0 48px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .site-logo img {
+      height: 32px;
+    }
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+    .site-nav a {
+      text-decoration: none;
+      color: var(--en-dark);
+      font-size: 15px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .site-nav a:hover {
+      color: var(--en-teal);
+    }
+    .site-nav a.active {
+      color: var(--en-orange);
+    }
+    .nav-chevron {
+      width: 10px;
+      height: 10px;
+      opacity: 0.5;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .header-right .lang {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--en-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .header-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--en-dark);
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .header-icon:hover { opacity: 1; }
+
+    /* --- Hero Banner --- */
+    .hero-banner {
+      position: relative;
+      height: 420px;
+      background: linear-gradient(135deg, #0D3B3B 0%, #145252 50%, #0D3B3B 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%230D3B3B"/><circle cx="200" cy="300" r="400" fill="%23145252" opacity="0.3"/><circle cx="900" cy="200" r="350" fill="%231a5a5a" opacity="0.2"/><circle cx="600" cy="500" r="300" fill="%23145252" opacity="0.15"/></svg>') center/cover;
+    }
+    .hero-accent-left {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 140px;
+      height: 6px;
+      background: var(--en-teal);
+      border-radius: 0 3px 3px 0;
+    }
+    .hero-accent-right {
+      position: absolute;
+      right: 0;
+      top: 35%;
+      width: 100px;
+      height: 6px;
+      background: var(--en-teal);
+      border-radius: 3px 0 0 3px;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: #fff;
+      max-width: 700px;
+      padding: 0 32px;
+    }
+    .hero-content h1 {
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+    .hero-content h1 .highlight {
+      color: var(--en-teal);
+    }
+    .hero-content p {
+      font-size: 17px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 32px;
+    }
+    .hero-cta {
+      display: inline-block;
+      background: var(--en-teal);
+      color: var(--en-dark);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .hero-cta:hover {
+      background: #34b89c;
+      transform: translateY(-1px);
+    }
+
+    /* --- What We Do --- */
+    .what-we-do {
+      background: #fff;
+      padding: 80px 48px 60px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--en-teal);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .what-we-do h2 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--en-dark);
+      line-height: 1.25;
+      margin-bottom: 20px;
+      max-width: 700px;
+    }
+    .what-we-do p {
+      font-size: 16px;
+      color: var(--en-text-light);
+      line-height: 1.7;
+      max-width: 800px;
+    }
+
+    /* --- Configurator Section --- */
+    .configurator-section {
+      background: var(--en-gray);
+      padding: 60px 48px 80px;
+    }
+    .configurator-intro {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+    .configurator-intro h2 {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--en-dark);
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .configurator-intro h2 .highlight {
+      color: var(--en-teal);
+    }
+    .configurator-intro p {
+      font-size: 16px;
+      color: var(--en-text-light);
+    }
+    .configurator-frame {
+      max-width: 1200px;
+      margin: 0 auto;
+      height: 700px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+      background: #fff;
+    }
+    .configurator-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* --- Features --- */
+    .features-section {
+      padding: 80px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .features-section h2 {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--en-dark);
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    .feature-card {
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 12px;
+      padding: 32px 28px;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(62,206,176,0.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .feature-icon svg {
+      width: 24px;
+      height: 24px;
+      color: var(--en-teal);
+    }
+    .feature-card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--en-dark);
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--en-text-light);
+      line-height: 1.6;
+    }
+
+    /* --- Footer --- */
+    .site-footer {
+      background: var(--en-dark);
+      padding: 48px 48px 32px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 32px;
+    }
+    .footer-brand {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .footer-tagline {
+      color: rgba(255,255,255,0.4);
+      font-size: 13px;
+    }
+    .footer-links {
+      display: flex;
+      gap: 48px;
+    }
+    .footer-col h4 {
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .footer-col a {
+      display: block;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover {
+      color: var(--en-teal);
+    }
+    .footer-bottom {
+      max-width: 1100px;
+      margin: 32px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .site-header {
+        padding: 0 20px;
+        height: 60px;
+      }
+      .site-nav { display: none; }
+      .hero-banner { height: 320px; }
+      .hero-content h1 { font-size: 28px; }
+      .hero-content p { font-size: 15px; }
+      .what-we-do {
+        padding: 48px 24px 40px;
+      }
+      .what-we-do h2 { font-size: 26px; }
+      .configurator-section { padding: 40px 16px 60px; }
+      .configurator-frame { height: 520px; }
+      .configurator-intro h2 { font-size: 22px; }
+      .features-section { padding: 48px 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .footer-links { flex-direction: column; gap: 24px; }
+      .site-footer { padding: 36px 24px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <a href="#" class="site-logo">
+      <img src="logo.png" alt="ENERGYNEST">
+    </a>
+    <nav class="site-nav">
+      <a href="#">Our Solutions
+        <svg class="nav-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5L5 6.5L8 3.5"/></svg>
+      </a>
+      <a href="#">Our Projects
+        <svg class="nav-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5L5 6.5L8 3.5"/></svg>
+      </a>
+      <a href="#">Who We Are
+        <svg class="nav-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5L5 6.5L8 3.5"/></svg>
+      </a>
+      <a href="#">Our Technology
+        <svg class="nav-chevron" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5L5 6.5L8 3.5"/></svg>
+      </a>
+      <a href="#" class="active">Configurator</a>
+    </nav>
+    <div class="header-right">
+      <div class="lang">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        EN
+      </div>
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero-banner">
+    <div class="hero-accent-left"></div>
+    <div class="hero-accent-right"></div>
+    <div class="hero-content">
+      <h1>Industrial heat <span class="highlight">cheaper than gas,</span> without the risk</h1>
+      <p>By combining power-to-heat, thermal energy storage and continuous energy market optimization, we deliver reliable heat only when electricity is cheaper than gas.</p>
+      <a href="#configurator" class="hero-cta">Configure Your System</a>
+    </div>
+  </section>
+
+  <!-- What We Do -->
+  <section class="what-we-do">
+    <div class="section-label">What we do</div>
+    <h2>We make industrial heat cheaper, cleaner and lower-risk.</h2>
+    <p>By combining power-to-heat, thermal energy storage and continuous energy market optimization, we deliver reliable heat only when electricity is cheaper than gas. This guarantees that our customers never pay more for heat than they do today.</p>
+  </section>
+
+  <!-- Configurator -->
+  <section class="configurator-section" id="configurator">
+    <div class="configurator-intro">
+      <h2>Find out how much you could <span class="highlight">save</span> by electrifying your heat.</h2>
+      <p>Use our interactive configurator to design your ThermalBattery system in just a few steps.</p>
+    </div>
+    <div class="configurator-frame">
+      <iframe src="configurator.html" allow="autoplay"></iframe>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <h2>Why ThermalBattery?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
+        </div>
+        <h3>Industrial Scale</h3>
+        <p>From 5 MWh to 200+ MWh, sized to fit your facility's thermal demand.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M7 12l3 3 7-7"/></svg>
+        </div>
+        <h3>Carbon Reduction</h3>
+        <p>Cut hundreds to thousands of tonnes of CO2 annually by displacing fossil fuels.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+        </div>
+        <h3>Fast Payback</h3>
+        <p>Typical payback periods of 3-5 years with significant ongoing fuel cost savings.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">ENERGYNEST</div>
+        <div class="footer-tagline">Thermal energy storage for industry</div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Solutions</h4>
+          <a href="#">Our Solutions</a>
+          <a href="#">Our Projects</a>
+          <a href="#">Our Technology</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#">Who We Are</a>
+          <a href="#">Join Us</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 ENERGYNEST. All rights reserved.
+    </div>
+  </footer>
+
+</body>
+</html>
