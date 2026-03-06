@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/4EN",
+      "destination": "/4EN/index.html"
+    },
+    {
+      "source": "/4EN/configurator.html",
+      "destination": "/4EN/configurator.html"
+    },
+    {
+      "source": "/4EN/heat-exchanger.html",
+      "destination": "/4EN/heat-exchanger.html"
+    }
+  ]
+}
