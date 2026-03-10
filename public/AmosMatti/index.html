@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The AI Imperative for Wind Energy Advisory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===========================================
+           THEME
+           =========================================== */
+        :root {
+            --bg-primary: #f6f4f0;
+            --bg-card: #ffffff;
+            --bg-accent: #e8552e;
+            --text-primary: #1a1a1a;
+            --text-secondary: #555555;
+            --text-dimmed: #999999;
+            --text-on-accent: #ffffff;
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --danger: #cc2233;
+
+            --font-display: 'Archivo Black', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+            --title-size: clamp(2.2rem, 6.5vw, 5.5rem);
+            --h2-size: clamp(1.5rem, 4vw, 3rem);
+            --h3-size: clamp(1rem, 1.8vw, 1.35rem);
+            --body-size: clamp(0.85rem, 1.4vw, 1.1rem);
+            --small-size: clamp(0.7rem, 1vw, 0.9rem);
+            --label-size: clamp(0.65rem, 0.9vw, 0.8rem);
+
+            --slide-padding: clamp(1.5rem, 5vw, 5rem);
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration: 0.7s;
+        }
+
+        /* ===========================================
+           BASE & VIEWPORT LOCK
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        /* ===========================================
+           CANVAS BACKGROUND
+           =========================================== */
+        #bgCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .slide { position: relative; z-index: 1; }
+
+        /* ===========================================
+           SLIDE NUMBER
+           =========================================== */
+        .slide-num {
+            font-family: var(--font-display);
+            font-size: clamp(4rem, 10vw, 9rem);
+            color: rgba(0, 0, 0, 0.04);
+            line-height: 1;
+            position: absolute;
+            top: clamp(0.3rem, 1.5vw, 1.5rem);
+            left: clamp(1rem, 3vw, 3rem);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1 { font-family: var(--font-display); font-size: var(--title-size); line-height: 1.05; letter-spacing: -0.03em; }
+        h2 { font-family: var(--font-display); font-size: var(--h2-size); line-height: 1.12; letter-spacing: -0.02em; }
+        h3 { font-family: var(--font-display); font-size: var(--h3-size); line-height: 1.2; }
+        p, li { font-size: var(--body-size); line-height: 1.55; color: var(--text-secondary); }
+
+        .label {
+            font-size: var(--label-size);
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--bg-accent);
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+        }
+
+        /* ===========================================
+           SPLIT LAYOUT
+           =========================================== */
+        .split { display: flex; height: 100vh; height: 100dvh; }
+        .split-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: var(--slide-padding);
+            position: relative;
+            z-index: 1;
+        }
+        .split-left .main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+        .split-right {
+            width: clamp(160px, 32vw, 380px);
+            background: var(--bg-accent);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: clamp(1.5rem, 3vw, 3rem);
+            position: relative;
+        }
+        .split-right::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.12) 100%);
+        }
+        .split-right .card-content { position: relative; z-index: 1; }
+        .split-right .card-label {
+            font-size: var(--label-size);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 0.4rem;
+        }
+        .split-right .card-stat {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5.5vw, 4rem);
+            color: var(--text-on-accent);
+            line-height: 1;
+            margin-bottom: 0.2rem;
+        }
+        .split-right .card-desc {
+            font-size: var(--small-size);
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .footer-info {
+            font-size: var(--label-size);
+            color: var(--text-dimmed);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        /* ===========================================
+           BIG STATEMENT
+           =========================================== */
+        .big-statement {
+            text-align: center;
+            max-width: 950px;
+            margin: 0 auto;
+        }
+        .big-statement h2 {
+            font-size: clamp(1.6rem, 5vw, 3.8rem);
+            line-height: 1.12;
+            margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .big-statement .highlight { color: var(--bg-accent); }
+        .big-statement .sub {
+            font-size: clamp(0.85rem, 1.6vw, 1.2rem);
+            color: var(--text-secondary);
+            font-style: italic;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity var(--duration) var(--ease), transform var(--duration) var(--ease);
+        }
+        .reveal-right {
+            opacity: 0;
+            transform: translateX(25px);
+            transition: opacity var(--duration) var(--ease), transform var(--duration) var(--ease);
+        }
+        .slide.visible .reveal,
+        .slide.visible .reveal-right {
+            opacity: 1;
+            transform: translate(0);
+        }
+
+        .d1 { transition-delay: 0.1s !important; }
+        .d2 { transition-delay: 0.2s !important; }
+        .d3 { transition-delay: 0.3s !important; }
+        .d4 { transition-delay: 0.4s !important; }
+        .d5 { transition-delay: 0.5s !important; }
+        .d6 { transition-delay: 0.6s !important; }
+        .d7 { transition-delay: 0.7s !important; }
+        .d8 { transition-delay: 0.8s !important; }
+
+        /* ===========================================
+           COMPONENTS
+           =========================================== */
+
+        /* Feature cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: clamp(0.8rem, 1.5vw, 1.4rem);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover { border-color: rgba(232, 85, 46, 0.2); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .feature-card h3 {
+            font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+            margin-bottom: clamp(0.2rem, 0.5vh, 0.4rem);
+        }
+        .feature-card p {
+            font-size: clamp(0.72rem, 1.05vw, 0.88rem);
+            line-height: 1.5;
+            margin-bottom: clamp(0.3rem, 0.8vh, 0.6rem);
+        }
+        .feature-card .feature-stat {
+            font-family: var(--font-display);
+            font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+            color: var(--bg-accent);
+        }
+
+        /* Stat cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: clamp(0.8rem, 1.5vw, 1.4rem);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .stat-card .stat-value {
+            font-family: var(--font-display);
+            font-size: clamp(1.3rem, 2.8vw, 2rem);
+            color: var(--bg-accent);
+            margin-bottom: 0.25rem;
+        }
+        .stat-card .stat-label {
+            font-size: clamp(0.65rem, 0.95vw, 0.82rem);
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Quote block */
+        .quote-block {
+            border-left: 3px solid var(--bg-accent);
+            padding-left: clamp(0.8rem, 2vw, 1.5rem);
+            margin: clamp(0.5rem, 1.5vh, 1rem) 0;
+        }
+        .quote-block p {
+            font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+        .quote-block strong { color: var(--text-primary); font-style: normal; }
+        .quote-block .attribution {
+            font-size: var(--small-size);
+            color: var(--text-dimmed);
+            font-style: normal;
+            margin-top: 0.3rem;
+        }
+
+        /* Full-screen quote */
+        .full-quote {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .full-quote blockquote {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
+        }
+        .full-quote .highlight { color: var(--bg-accent); }
+        .full-quote .attribution {
+            font-size: clamp(0.8rem, 1.3vw, 1rem);
+            color: var(--text-dimmed);
+            font-family: var(--font-body);
+            letter-spacing: 0.1em;
+        }
+
+        /* Principle cards */
+        .principle-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--bg-accent);
+            border-radius: 0 8px 8px 0;
+            padding: clamp(0.7rem, 1.4vw, 1.2rem);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .principle-card h3 { font-size: clamp(0.85rem, 1.3vw, 1.1rem); margin-bottom: clamp(0.15rem, 0.4vh, 0.3rem); }
+        .principle-card p { font-size: clamp(0.72rem, 1vw, 0.88rem); line-height: 1.5; }
+
+        /* Close */
+        .close-content {
+            text-align: center;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        .close-content h2 {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            line-height: 1.2;
+            margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
+        }
+        .close-content .close-emphasis {
+            font-size: clamp(1.8rem, 5vw, 4rem);
+            color: var(--bg-accent);
+            display: block;
+            margin: clamp(0.3rem, 1vh, 0.8rem) 0;
+        }
+        .close-brand {
+            margin-top: clamp(1.5rem, 4vh, 3rem);
+            font-size: var(--small-size);
+            color: var(--text-dimmed);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* ===========================================
+           LEADERBOARD TABLE
+           =========================================== */
+        .leaderboard {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 clamp(0.2rem, 0.4vh, 0.35rem);
+        }
+        .leaderboard th {
+            font-size: var(--label-size);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-dimmed);
+            text-align: left;
+            padding: 0 clamp(0.5rem, 1vw, 1rem) clamp(0.3rem, 0.6vh, 0.5rem);
+        }
+        .leaderboard th:last-child { text-align: right; }
+        .leaderboard td {
+            background: var(--bg-card);
+            padding: clamp(0.5rem, 0.9vh, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+            font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .leaderboard td:first-child {
+            border-left: 1px solid var(--border-subtle);
+            border-radius: 6px 0 0 6px;
+        }
+        .leaderboard td:last-child {
+            border-right: 1px solid var(--border-subtle);
+            border-radius: 0 6px 6px 0;
+            text-align: right;
+        }
+        .leaderboard .rank {
+            font-family: var(--font-display);
+            font-size: clamp(0.85rem, 1.2vw, 1rem);
+            color: var(--bg-accent);
+            width: 2.5em;
+        }
+        .leaderboard .model-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .leaderboard .company-tag {
+            font-size: var(--label-size);
+            color: var(--text-dimmed);
+            margin-left: 0.4em;
+        }
+        .leaderboard .score {
+            font-family: var(--font-display);
+            font-size: clamp(0.85rem, 1.2vw, 1rem);
+            color: var(--bg-accent);
+        }
+        .leaderboard tr.highlight-row td {
+            background: rgba(232, 85, 46, 0.06);
+            border-color: rgba(232, 85, 46, 0.15);
+        }
+
+        /* ===========================================
+           WORKFLOW DIAGRAM
+           =========================================== */
+        .workflow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+        .wf-node {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: clamp(0.5rem, 1vh, 0.8rem) clamp(1rem, 2vw, 1.8rem);
+            font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .wf-node.accent {
+            background: var(--bg-accent);
+            color: var(--text-on-accent);
+            border-color: var(--bg-accent);
+        }
+        .wf-arrow {
+            width: 2px;
+            height: clamp(12px, 1.5vh, 20px);
+            background: var(--bg-accent);
+            position: relative;
+        }
+        .wf-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 5px solid var(--bg-accent);
+        }
+        .wf-branch {
+            display: flex;
+            gap: clamp(0.5rem, 1.5vw, 1.5rem);
+            align-items: center;
+        }
+        .wf-branch-arrow {
+            width: 2px;
+            height: clamp(10px, 1.2vh, 16px);
+            background: var(--bg-accent);
+            position: relative;
+        }
+        .wf-branch-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            border-top: 4px solid var(--bg-accent);
+        }
+        .wf-branch-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+        .wf-node.small {
+            font-size: clamp(0.65rem, 0.95vw, 0.82rem);
+            padding: clamp(0.35rem, 0.7vh, 0.55rem) clamp(0.6rem, 1.2vw, 1rem);
+        }
+
+        /* ===========================================
+           ABOUT ME
+           =========================================== */
+        .about-card {
+            display: flex;
+            align-items: center;
+            gap: clamp(2rem, 4vw, 4rem);
+            max-width: 800px;
+        }
+        .about-avatar {
+            width: clamp(120px, 18vw, 220px);
+            height: clamp(120px, 18vw, 220px);
+            border-radius: 50%;
+            background: var(--bg-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            color: var(--text-on-accent);
+            letter-spacing: -0.03em;
+            object-fit: cover;
+            object-position: center 30%;
+        }
+        .about-details h2 {
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+        }
+        .about-details .about-tagline {
+            font-size: var(--h3-size);
+            color: var(--text-secondary);
+            margin-bottom: clamp(0.5rem, 1.2vh, 1rem);
+        }
+        .about-tags {
+            display: flex;
+            gap: clamp(0.4rem, 0.8vw, 0.8rem);
+            flex-wrap: wrap;
+        }
+        .about-tag {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 100px;
+            padding: clamp(0.3rem, 0.5vh, 0.5rem) clamp(0.8rem, 1.5vw, 1.2rem);
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .about-tag.accent {
+            background: var(--bg-accent);
+            border-color: var(--bg-accent);
+            color: var(--text-on-accent);
+        }
+
+        /* ===========================================
+           VIBE CODING EXAMPLES
+           =========================================== */
+        .vibe-example {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: clamp(0.6rem, 1.2vw, 1rem);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .vibe-prompt {
+            font-size: clamp(0.72rem, 1.05vw, 0.88rem);
+            color: var(--text-secondary);
+            font-style: italic;
+            line-height: 1.45;
+            padding-left: clamp(0.6rem, 1vw, 0.8rem);
+            border-left: 2px solid var(--bg-accent);
+        }
+        .vibe-result {
+            font-family: var(--font-display);
+            font-size: clamp(0.7rem, 1vw, 0.85rem);
+            color: var(--bg-accent);
+            margin-top: clamp(0.3rem, 0.6vh, 0.5rem);
+        }
+
+        /* ===========================================
+           PROGRESS BAR & NAV DOTS
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: var(--bg-accent);
+            z-index: 100;
+            transition: width 0.3s var(--ease);
+            box-shadow: 0 0 12px rgba(232, 85, 46, 0.35);
+        }
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.8rem, 1.5vw, 1.5rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--bg-accent);
+            box-shadow: 0 0 8px rgba(232, 85, 46, 0.3);
+        }
+        .nav-dot:hover { background: var(--text-secondary); }
+
+        /* ===========================================
+           RESPONSIVE
+           =========================================== */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+            .nav-dots { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --body-size: clamp(0.6rem, 0.9vw, 0.78rem);
+            }
+        }
+        @media (max-width: 768px) {
+            .split { flex-direction: column; }
+            .split-right { width: 100%; height: 30vh; min-height: 120px; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .about-card { flex-direction: column; text-align: center; }
+            .about-tags { justify-content: center; }
+            .nav-dots { display: none; }
+            .wf-branch { flex-direction: column; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            #bgCanvas { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated background -->
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="progress-bar" id="progressBar"></div>
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- ======================================
+         SLIDE 1 — THE AI IMPERATIVE (kept as original)
+         ====================================== -->
+    <section class="slide" data-slide="1">
+        <div class="split">
+            <div class="split-left">
+                <div class="slide-num">01</div>
+                <div class="main">
+                    <div class="label reveal d1">Wind Energy Advisory</div>
+                    <h1 class="reveal d2">The AI<br>Imperative</h1>
+                </div>
+                <div class="footer-info reveal d4">Amos &mdash; March 2026</div>
+            </div>
+            <div class="split-right reveal-right d3" style="display: flex; align-items: center; justify-content: center; position: relative;">
+                <img src="logos/PWlogo.svg" alt="Peak Wind" style="max-height: 80%; max-width: 80%; height: clamp(2rem, 16vh, 8rem); width: auto; opacity: 0.90; display: block; margin: 0 auto; position: relative;">
+                <div class="card-content"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 2 — INTRODUCE MYSELF
+         ====================================== -->
+    <section class="slide" data-slide="2">
+        <div class="slide-num">02</div>
+        <div class="slide-content">
+            <div class="about-card reveal d1" style="margin: 0 auto;">
+                <img src="AR.jpeg" alt="Amos Rossman" class="about-avatar reveal d2" style="object-fit: cover;">
+                <div class="about-details">
+                    <div class="label reveal d2">About Me</div>
+                    <h2 class="reveal d3">Amos Rossman</h2>
+                    <div class="about-tags reveal d4">
+                        <span class="about-tag">Father of 3</span>
+                        <span class="about-tag">Run</span>
+                        <span class="about-tag">Hike</span>
+                        <span class="about-tag">Bike</span>
+                        <span class="about-tag accent">Lumino AI Studio</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 3 — THE AI LANDSCAPE
+         ====================================== -->
+    <section class="slide" data-slide="3">
+        <div class="slide-num">03</div>
+        <div class="slide-content">
+            <div class="label reveal d1">The AI Landscape</div>
+            <h2 class="reveal d2" style="margin-bottom: clamp(0.6rem, 1.5vh, 1rem);">Where Is AI Now</h2>
+
+            <table class="leaderboard reveal d3">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Model</th>
+                        <th>Overall</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight-row">
+                        <td class="rank">1</td>
+                        <td><span class="model-name">Claude Opus 4.6</span> <span class="company-tag">Anthropic</span></td>
+                        <td class="score">1</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td class="rank">2</td>
+                        <td><span class="model-name">Claude Opus 4.6 Thinking</span> <span class="company-tag">Anthropic</span></td>
+                        <td class="score">2</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td class="rank">3</td>
+                        <td><span class="model-name">Gemini 3.1 Pro Preview</span> <span class="company-tag">Google</span></td>
+                        <td class="score">3</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">4</td>
+                        <td><span class="model-name">Grok 4.20 Beta1</span> <span class="company-tag">xAI</span></td>
+                        <td class="score">4</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">5</td>
+                        <td><span class="model-name">Gemini 3 Pro</span> <span class="company-tag">Google</span></td>
+                        <td class="score">5</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">6</td>
+                        <td><span class="model-name">GPT-5.4 High</span> <span class="company-tag">OpenAI</span></td>
+                        <td class="score">6</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">7</td>
+                        <td><span class="model-name">GPT-5.2 Chat Latest</span> <span class="company-tag">OpenAI</span></td>
+                        <td class="score">7</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">8</td>
+                        <td><span class="model-name">Gemini 3 Flash</span> <span class="company-tag">Google</span></td>
+                        <td class="score">8</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">9</td>
+                        <td><span class="model-name">Grok 4.1 Thinking</span> <span class="company-tag">xAI</span></td>
+                        <td class="score">9</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">10</td>
+                        <td><span class="model-name">Claude Opus 4.5 Thinking</span> <span class="company-tag">Anthropic</span></td>
+                        <td class="score">10</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p class="reveal d4" style="text-align: center; margin-top: clamp(0.5rem, 1vh, 0.8rem); font-size: var(--small-size); color: var(--text-dimmed);">Source: Chatbot Arena &mdash; lmarena.ai &bull; March 2026 &bull; Head-to-head human preference rankings</p>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 4 — WHAT AI CAN ACTUALLY DO RIGHT NOW
+         ====================================== -->
+    <section class="slide" data-slide="4">
+        <div class="slide-num">04</div>
+        <div class="slide-content">
+            <div class="label reveal d1">what AI can actually do right now</div>
+            <h2 class="reveal d2" style="margin-bottom: clamp(0.6rem, 1.5vh, 1rem); max-width: 800px;">AI tools and capabilities</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card reveal d3">
+                    <h3>Read &amp; Reason Over Massive Documents</h3>
+                    <p>Claude processes ~500 pages in one pass. Feed an entire PPA + EIA + regulatory text &mdash; get conflict analysis in minutes.</p>
+                    <div class="feature-stat">Banner Health: 8 hours &rarr; minutes</div>
+                </div>
+                <div class="feature-card reveal d4">
+                    <h3>Search Your Company&rsquo;s Own Knowledge</h3>
+                    <p>RAG: like giving AI an open-book exam on YOUR documents. Technical reports, site assessments, contracts &mdash; instant, sourced answers.</p>
+                    <div class="feature-stat">40&ndash;71% less hallucination</div>
+                </div>
+                <div class="feature-card reveal d5">
+                    <h3>Write Working Software</h3>
+                    <p>GitHub Copilot: 20M+ users, writes 46% of active users&rsquo; code. Non-developers are building functional business apps.</p>
+                    <div class="feature-stat">&ldquo;Compare turbine performance against warranty specs&rdquo; &rarr; working app</div>
+                </div>
+                <div class="feature-card reveal d6">
+                    <h3>Control a Computer (Early but Real)</h3>
+                    <p>AI navigates browsers, fills forms, downloads reports. Not production-ready for high-stakes yet &mdash; but automating data gathering across 5 SCADA platforms? Getting close.</p>
+                    <div class="feature-stat">Chatbot &rarr; Copilot &rarr; Agent</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 5 — WHAT CHANGED IN THE LAST 12 MONTHS
+         ====================================== -->
+    <section class="slide" data-slide="5">
+        <div class="slide-num">05</div>
+        <div class="slide-content">
+            <div class="label reveal d1" style="margin-top: clamp(0.8rem, 4vh, 2.5rem);">The Inflection Point</div>
+            <h2 class="reveal d2" style="margin-bottom: clamp(0.8rem, 2vh, 1.5rem); max-width: 850px;">Why is this important <span style="color: var(--bg-accent);">NOW.</span></h2>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.6rem, 1.2vw, 1.2rem);">
+                <div class="principle-card reveal d3" style="border-left-width: 4px;">
+                    <h3>Cost Collapse In One Year</h3>
+                    <div style="display: flex; flex-direction: column; gap: clamp(0.3rem, 0.6vh, 0.5rem); margin-top: clamp(0.3rem, 0.6vh, 0.4rem);">
+                        <div class="stat-card" style="padding: clamp(0.5rem, 1vw, 0.8rem);">
+                            <div class="stat-value" style="font-size: clamp(1rem, 2vw, 1.6rem);">50x</div>
+                            <div class="stat-label">GPT-4-class: $20/M tokens (2024) &rarr; $0.40/M (2025)</div>
+                        </div>
+                        <div class="stat-card" style="padding: clamp(0.5rem, 1vw, 0.8rem);">
+                            <div class="stat-value" style="font-size: clamp(1rem, 2vw, 1.6rem);">3.2x</div>
+                            <div class="stat-label">Enterprise AI spend: $11.5B &rarr; $37B</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="principle-card reveal d4" style="border-left-width: 4px;">
+                    <h3>Opus 4.6 &mdash; #1 in the World</h3>
+                    <p style="margin-top: clamp(0.3rem, 0.6vh, 0.4rem);">Anthropic&rsquo;s latest model tops the Arena leaderboard. AI coding agents now ship from every major lab &mdash; models went from chat assistants to autonomous builders.</p>
+                    <img src="CC.png" alt="Claude Code" style="height: clamp(1.8rem, 3.5vw, 2.8rem); width: auto; margin-top: clamp(0.5rem, 1vh, 0.8rem); opacity: 0.85; display: block; margin-left: auto; margin-right: auto;">
+                </div>
+                <div class="principle-card reveal d5" style="border-left-width: 4px;">
+                    <h3>Matt Shumer</h3>
+                    <p style="margin-top: clamp(0.3rem, 0.6vh, 0.4rem);">&ldquo;We just mass-produced intelligence. We haven&rsquo;t even begun to see what happens when you give every knowledge worker a team of AI agents.&rdquo;</p>
+                    <p style="margin-top: clamp(0.4rem, 0.8vh, 0.6rem); font-size: var(--small-size); color: var(--text-dimmed);">CEO, HyperWrite AI</p>
+                    <a href="https://shumer.dev/something-big-is-happening" target="_blank" rel="noopener" style="display: inline-block; margin-top: clamp(0.3rem, 0.6vh, 0.5rem); font-size: var(--label-size); color: var(--bg-accent); text-decoration: none; font-weight: 600;">Read the article &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 6 — HOW I USE AI — THE AGENT PARADIGM
+         ====================================== -->
+    <section class="slide" data-slide="6">
+        <div class="slide-num">06</div>
+        <div class="slide-content">
+            <div class="label reveal d1">The Agent Paradigm</div>
+            <h2 class="reveal d2" style="margin-bottom: clamp(0.8rem, 2vh, 1.5rem); max-width: 850px;">How I use it</h2>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 3vw, 3rem); align-items: center;">
+
+                <!-- LEFT: LLM Council Agent diagram -->
+                <div class="reveal d3" style="border: 2px solid rgba(0,0,0,0.15); border-radius: 10px; padding: clamp(1rem, 2vw, 1.8rem); position: relative;">
+                    <div style="position: absolute; top: clamp(-0.6rem, -0.8vh, -0.5rem); left: clamp(0.8rem, 1.5vw, 1.5rem); background: var(--bg-primary); padding: 0 0.5rem;">
+                        <span style="font-family: var(--font-display); font-size: clamp(0.7rem, 1.1vw, 0.9rem); letter-spacing: 0.1em; text-transform: uppercase;">LLM Council Agent</span>
+                    </div>
+
+                    <div style="display: flex; align-items: start; gap: clamp(0.3rem, 0.6vw, 0.5rem); margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+
+                        <!-- Stage 1 -->
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                            <div style="font-family: var(--font-display); font-size: var(--label-size); letter-spacing: 0.15em; text-transform: uppercase; color: var(--bg-accent); margin-bottom: clamp(0.3rem, 0.5vh, 0.4rem);">Stage 1</div>
+                            <div style="border: 1.5px solid var(--text-primary); border-radius: 5px; padding: clamp(0.4rem, 0.8vw, 0.7rem); text-align: center; width: 100%;">
+                                <div style="font-family: var(--font-display); font-size: clamp(0.7rem, 1vw, 0.88rem);">Research Council</div>
+                            </div>
+                            <div style="width: 1.5px; height: clamp(8px, 1vh, 12px); background: var(--text-primary);"></div>
+                            <div style="font-size: clamp(0.58rem, 0.8vw, 0.7rem); color: var(--text-secondary); text-align: center; line-height: 1.45; font-family: 'SF Mono', 'Fira Code', monospace;">Gemini Report<br>Claude Report<br>ChatGPT Report</div>
+                            <div style="width: 1.5px; height: clamp(6px, 0.7vh, 8px); background: var(--text-primary); position: relative;">
+                                <div style="position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid var(--text-primary);"></div>
+                            </div>
+                            <div style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); color: var(--bg-accent); font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; margin-top: 5px;">synthesis.md</div>
+                        </div>
+
+                        <!-- Arrow -->
+                        <div style="display: flex; align-items: center; padding-top: clamp(1.5rem, 3vh, 2.5rem);">
+                            <div style="width: clamp(0.8rem, 1.5vw, 1.5rem); height: 1.5px; background: var(--text-primary); position: relative;">
+                                <div style="position: absolute; right: -3px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 5px solid var(--text-primary);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 -->
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                            <div style="font-family: var(--font-display); font-size: var(--label-size); letter-spacing: 0.15em; text-transform: uppercase; color: var(--bg-accent); margin-bottom: clamp(0.3rem, 0.5vh, 0.4rem);">Stage 2</div>
+                            <div style="border: 1.5px solid var(--text-primary); border-radius: 5px; padding: clamp(0.4rem, 0.8vw, 0.7rem); text-align: center; width: 100%;">
+                                <div style="font-family: var(--font-display); font-size: clamp(0.7rem, 1vw, 0.88rem);">Idea Decomposer</div>
+                                <div style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); color: var(--text-secondary);">+ PRD Writer</div>
+                            </div>
+                            <div style="width: 1.5px; height: clamp(8px, 1vh, 12px); background: var(--text-primary);"></div>
+                            <div style="font-size: clamp(0.58rem, 0.8vw, 0.7rem); color: var(--text-secondary); text-align: center; line-height: 1.45; font-family: 'SF Mono', 'Fira Code', monospace;">ideas.json<br>/idea_01/prd.md<br>/idea_02/prd.md<br>&hellip;</div>
+                        </div>
+
+                        <!-- Arrow -->
+                        <div style="display: flex; align-items: center; padding-top: clamp(1.5rem, 3vh, 2.5rem);">
+                            <div style="width: clamp(0.8rem, 1.5vw, 1.5rem); height: 1.5px; background: var(--text-primary); position: relative;">
+                                <div style="position: absolute; right: -3px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 5px solid var(--text-primary);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 -->
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                            <div style="font-family: var(--font-display); font-size: var(--label-size); letter-spacing: 0.15em; text-transform: uppercase; color: var(--bg-accent); margin-bottom: clamp(0.3rem, 0.5vh, 0.4rem);">Stage 3</div>
+                            <div style="border: 1.5px solid var(--text-primary); border-radius: 5px; padding: clamp(0.4rem, 0.8vw, 0.7rem); text-align: center; width: 100%;">
+                                <div style="font-family: var(--font-display); font-size: clamp(0.7rem, 1vw, 0.88rem);">Vibe Code</div>
+                                <div style="font-size: clamp(0.6rem, 0.85vw, 0.75rem); color: var(--text-secondary);">Builder</div>
+                            </div>
+                            <div style="width: 1.5px; height: clamp(8px, 1vh, 12px); background: var(--text-primary);"></div>
+                            <div style="font-size: clamp(0.58rem, 0.8vw, 0.7rem); color: var(--text-secondary); text-align: center; line-height: 1.45; font-family: 'SF Mono', 'Fira Code', monospace;">/idea_01/mvp/<br>/idea_02/mvp/<br>&hellip;</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RIGHT: Image -->
+                <div class="reveal d4" style="display: flex; align-items: center; justify-content: center;">
+                    <img src="logos/Anth.jpeg" alt="Anthropic" style="width: 100%; max-height: clamp(14rem, 30vh, 22rem); border-radius: 8px; object-fit: cover;">
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 7 — VIBE CODING
+         ====================================== -->
+    <section class="slide" data-slide="7">
+        <div class="slide-num">07</div>
+        <div class="slide-content">
+            <div class="label reveal d1">Vibe Coding</div>
+            <h2 class="reveal d2" style="margin-bottom: clamp(0.8rem, 2vh, 1.5rem); max-width: 850px;">Imagine and <span style="color: var(--bg-accent);"> Build</span></h2>
+
+            <div class="quote-block reveal d3" style="margin-bottom: clamp(0.5rem, 1.2vh, 0.8rem);">
+                <p>&ldquo;I really am mostly <strong>programming in English</strong> now.&rdquo;</p>
+                <div class="attribution">&mdash; Andrej Karpathy</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(0.5rem, 1vw, 0.8rem); margin-bottom: clamp(0.5rem, 1.2vh, 0.8rem);">
+                <div class="vibe-example reveal d4">
+                    <div class="vibe-prompt">&ldquo;Build me a dashboard that shows availability trends for our fleet, filterable by turbine model and region&rdquo;</div>
+                    <div class="vibe-result">&rarr; Working prototype in hours</div>
+                </div>
+                <div class="vibe-example reveal d5">
+                    <div class="vibe-prompt">&ldquo;Create a tool that scans our contract database and alerts when warranty deadlines approach&rdquo;</div>
+                    <div class="vibe-result">&rarr; Functional in a day</div>
+                </div>
+                <div class="vibe-example reveal d6">
+                    <div class="vibe-prompt">&ldquo;Make an internal app where engineers can query our historical site assessment data in natural language&rdquo;</div>
+                    <div class="vibe-result">&rarr; RAG knowledge engine, built by your team</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: clamp(1rem, 2vw, 2rem); align-items: center;" class="reveal d7">
+                <div class="stat-grid" style="flex: 1; grid-template-columns: repeat(3, 1fr);">
+                </div>
+            </div>
+            <p class="reveal d8" style="text-align: center; margin-top: clamp(0.3rem, 0.8vh, 0.5rem); font-size: var(--small-size); color: var(--text); font-style: italic;">The bottleneck for internal tools is no longer developer availability. It&rsquo;s imagination.</p>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 8 — LIVE TOOL
+         ====================================== -->
+    <section class="slide" data-slide="8">
+        <div class="slide-num">08</div>
+        <div class="slide-content" style="padding: clamp(0.5rem, 1.5vw, 1.5rem);">
+            <iframe src="fowf-optimizer.html" style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>
+        </div>
+    </section>
+
+    <!-- ======================================
+         SLIDE 9 — THE QUESTION
+         ====================================== -->
+    <section class="slide" data-slide="9">
+        <div class="slide-num">09</div>
+        <div class="slide-content">
+            <div class="full-quote">
+                <blockquote class="reveal d2" style="font-size: clamp(1.8rem, 5vw, 4rem); margin-top: clamp(0.5rem, 2vh, 1.5rem);">
+                    Back to <span class="highlight">Me</span>
+                </blockquote>
+                <div class="close-brand reveal d4" style="margin-top: clamp(2rem, 5vh, 4rem);">Amos Rossman &nbsp;&bull;&nbsp; Lumino AI Studio &nbsp;&bull;&nbsp; Q&amp;A</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================
+       JAVASCRIPT
+       ====================================== -->
+    <script>
+        /* ===========================================
+           ANIMATED BACKGROUND
+           =========================================== */
+        class BackgroundCanvas {
+            constructor() {
+                this.canvas = document.getElementById('bgCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.resize();
+                this.init();
+                this.animate();
+
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                const count = Math.floor((this.canvas.width * this.canvas.height) / 25000);
+                this.particles = [];
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 0.15,
+                        vy: (Math.random() - 0.5) * 0.15,
+                        r: Math.random() * 1.2 + 0.3
+                    });
+                }
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (const p of this.particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0) p.x = this.canvas.width;
+                    if (p.x > this.canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = this.canvas.height;
+                    if (p.y > this.canvas.height) p.y = 0;
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    this.ctx.fillStyle = 'rgba(232, 85, 46, 0.06)';
+                    this.ctx.fill();
+                }
+
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        const dx = this.particles[i].x - this.particles[j].x;
+                        const dy = this.particles[i].y - this.particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 120) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                            this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                            this.ctx.strokeStyle = `rgba(232, 85, 46, ${0.04 * (1 - dist / 120)})`;
+                            this.ctx.lineWidth = 0.5;
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        /* ===========================================
+           COUNTER ANIMATION
+           =========================================== */
+        class CounterAnimator {
+            constructor() {
+                this.animated = new Set();
+                this.observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !this.animated.has(entry.target)) {
+                            this.animated.add(entry.target);
+                            this.animateValue(entry.target);
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                document.querySelectorAll('.stat-value, .card-stat, .score').forEach(el => {
+                    this.observer.observe(el);
+                });
+            }
+
+            animateValue(el) {
+                const text = el.textContent;
+                const match = text.match(/^([\$\u20AC]?)([\d,.]+)(\+?)(.*)/);
+                if (!match) return;
+
+                const prefix = match[1];
+                const numStr = match[2].replace(/,/g, '');
+                const plus = match[3];
+                const suffix = match[4];
+                const target = parseFloat(numStr);
+
+                if (isNaN(target)) return;
+
+                const isDecimal = numStr.includes('.');
+                const decimals = isDecimal ? (numStr.split('.')[1] || '').length : 0;
+                const duration = 1200;
+                const start = performance.now();
+
+                const step = (now) => {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = target * eased;
+
+                    let formatted;
+                    if (isDecimal) {
+                        formatted = current.toFixed(decimals);
+                    } else {
+                        formatted = Math.floor(current).toLocaleString('en-US');
+                    }
+
+                    el.textContent = prefix + formatted + plus + suffix;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        el.textContent = text;
+                    }
+                };
+
+                el.textContent = prefix + '0' + suffix;
+                requestAnimationFrame(step);
+            }
+        }
+
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.totalSlides = this.slides.length;
+                this.currentSlide = 0;
+                this.isAnimating = false;
+                this.touchStartY = 0;
+                this.createNavDots();
+                this.bindEvents();
+                this.setupIntersectionObserver();
+                this.updateProgress();
+            }
+
+            createNavDots() {
+                const nav = document.getElementById('navDots');
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('aria-label', `Slide ${i + 1}`);
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    nav.appendChild(dot);
+                });
+                this.dots = nav.querySelectorAll('.nav-dot');
+            }
+
+            bindEvents() {
+                document.addEventListener('keydown', (e) => {
+                    if (['ArrowDown', 'ArrowRight', ' '].includes(e.key)) {
+                        e.preventDefault(); this.next();
+                    } else if (['ArrowUp', 'ArrowLeft'].includes(e.key)) {
+                        e.preventDefault(); this.prev();
+                    }
+                });
+
+                document.addEventListener('touchstart', (e) => {
+                    this.touchStartY = e.touches[0].clientY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    const diff = this.touchStartY - e.changedTouches[0].clientY;
+                    if (Math.abs(diff) > 50) diff > 0 ? this.next() : this.prev();
+                }, { passive: true });
+
+                let scrollTimeout;
+                document.documentElement.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        this.currentSlide = Math.round(document.documentElement.scrollTop / window.innerHeight);
+                        this.updateUI();
+                    }, 100);
+                }, { passive: true });
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('visible');
+                    });
+                }, { threshold: 0.3 });
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            goToSlide(i) {
+                if (i < 0 || i >= this.totalSlides || this.isAnimating) return;
+                this.isAnimating = true;
+                this.currentSlide = i;
+                this.slides[i].scrollIntoView({ behavior: 'smooth' });
+                this.updateUI();
+                setTimeout(() => { this.isAnimating = false; }, 600);
+            }
+
+            next() { this.goToSlide(this.currentSlide + 1); }
+            prev() { this.goToSlide(this.currentSlide - 1); }
+
+            updateUI() {
+                document.getElementById('progressBar').style.width =
+                    ((this.currentSlide + 1) / this.totalSlides * 100) + '%';
+                this.dots?.forEach((d, i) => d.classList.toggle('active', i === this.currentSlide));
+            }
+
+            updateProgress() { this.updateUI(); }
+        }
+
+        /* Boot everything */
+        document.addEventListener('DOMContentLoaded', () => {
+            new BackgroundCanvas();
+            new SlidePresentation();
+            new CounterAnimator();
+        });
+    </script>
+</body>
+</html>

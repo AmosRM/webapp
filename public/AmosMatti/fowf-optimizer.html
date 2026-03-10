@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FOWF Layout Optimizer — Peak Wind</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: #0a0e17;
+    color: #c8d6e5;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #root { padding: 10px 14px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; flex-shrink: 0; }
+  .header h1 { font-size: 16px; font-weight: 700; color: #00e5ff; letter-spacing: 0.05em; text-transform: uppercase; }
+  .header .sub { font-size: 10px; color: #4a6785; margin-top: 2px; letter-spacing: 0.08em; }
+  .header-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    border-radius: 5px; padding: 5px 10px; font-size: 9px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; font-weight: 600;
+    transition: all 0.2s; outline: none;
+  }
+  .btn:hover { filter: brightness(1.2); }
+  .btn-reset { background: #1a2744; border: 1px solid #4a6785; color: #4a6785; }
+  .btn-optimize { background: #003d4d; border: 1px solid #00e5ff; color: #00e5ff; }
+  .btn-optimize:disabled { background: #1a2744; border-color: #4a6785; color: #4a6785; cursor: default; }
+  .btn-replay { background: #1a2730; border: 1px solid #44cc88; color: #44cc88; }
+  .btn-replay:disabled { background: #1a2744; border-color: #4a6785; color: #4a6785; cursor: default; }
+  .btn-pareto { background: #2a1a44; border: 1px solid #aa66ff; color: #aa66ff; }
+  .btn-pareto:disabled { background: #1a2744; border-color: #4a6785; color: #4a6785; cursor: default; }
+  .btn-export { background: #1a2744; border: 1px solid #5a7a95; color: #5a7a95; padding: 3px 8px; font-size: 8px; }
+  .algo-select {
+    background: #0d1321; border: 1px solid #1a3355; color: #00e5ff; border-radius: 4px;
+    padding: 5px 8px; font-size: 9px; font-family: inherit; outline: none; cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+  .algo-select option { background: #0d1321; color: #c8d6e5; }
+  .main { display: flex; gap: 12px; flex: 1; min-height: 0; overflow: hidden; }
+  .map-wrap {
+    flex: 1; background: #0d1321; border-radius: 8px; border: 1px solid #1a2744;
+    position: relative; overflow: hidden; min-height: 0;
+  }
+  .map-wrap svg { width: 100%; height: 100%; display: block; }
+  .layer-toggles { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .layer-btn {
+    border-radius: 4px; padding: 3px 8px; font-size: 9px; cursor: pointer;
+    font-family: inherit; letter-spacing: 0.05em; outline: none;
+  }
+  .panel { width: 270px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; overflow-y: auto; min-height: 0; }
+  .panel::-webkit-scrollbar { width: 4px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: #1a2744; border-radius: 2px; }
+  .card { background: #0d1321; border: 1px solid #1a2744; border-radius: 6px; padding: 8px 10px; }
+  .card-label { font-size: 8px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 3px; }
+  .card-value { font-size: 16px; font-weight: 700; }
+  .card-sub { font-size: 9px; color: #5a7a95; margin-top: 1px; }
+  .npv-card {
+    background: linear-gradient(135deg, #0d1321 0%, #0a1a2e 100%);
+    border: 1px solid #1a3355; border-radius: 6px; padding: 10px 12px;
+  }
+  .npv-label { font-size: 8px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 4px; }
+  .npv-value { font-size: 24px; font-weight: 700; color: #00e5ff; line-height: 1; }
+  .npv-delta { font-size: 11px; margin-top: 4px; font-weight: 600; }
+  .capex-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .capex-row .lbl { font-size: 10px; color: #8899aa; }
+  .capex-row .val { font-size: 11px; font-weight: 600; }
+  .divider { background: #1a2744; height: 1px; margin: 4px 0; }
+  .how-to { font-size: 9px; color: #4a6785; line-height: 1.4; }
+  .how-to strong { color: #5a7a95; }
+  .citation { color: #2a5a7a; font-size: 8px; }
+  .slider-section { display: flex; flex-direction: column; gap: 4px; }
+  .slider-row { display: flex; align-items: center; gap: 6px; }
+  .slider-row label { font-size: 8px; color: #5a7a95; min-width: 62px; letter-spacing: 0.05em; }
+  .slider-row input[type="range"] {
+    flex: 1; accent-color: #00e5ff; height: 3px;
+    -webkit-appearance: none; background: #1a2744; border-radius: 2px; outline: none;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+    background: #00e5ff; cursor: pointer;
+  }
+  .slider-row .slider-val { font-size: 9px; color: #8899aa; min-width: 50px; text-align: right; }
+  .replay-bar {
+    position: absolute; bottom: 36px; left: 10px; right: 10px;
+    background: #0a0e17ee; border: 1px solid #1a3355; border-radius: 6px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .replay-bar .rb-label { font-size: 9px; color: #44cc88; letter-spacing: 0.08em; white-space: nowrap; }
+  .replay-bar input[type="range"] {
+    flex: 1; accent-color: #44cc88; height: 3px;
+    -webkit-appearance: none; background: #1a2744; border-radius: 2px; outline: none;
+  }
+  .replay-bar input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+    background: #44cc88; cursor: pointer;
+  }
+  .replay-bar .rb-step { font-size: 10px; color: #8899aa; min-width: 40px; text-align: center; }
+  .replay-btn {
+    background: none; border: 1px solid #44cc88; color: #44cc88; border-radius: 4px;
+    padding: 2px 8px; font-size: 10px; cursor: pointer; font-family: inherit;
+  }
+  .shared-anchor { animation: pulse-shared 1.5s ease-in-out infinite; }
+  @keyframes pulse-shared {
+    0%, 100% { r: 3.5; opacity: 0.9; }
+    50% { r: 5; opacity: 1; }
+  }
+  /* Pareto modal */
+  .pareto-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: #0a0e17dd; z-index: 100; display: flex; align-items: center; justify-content: center;
+  }
+  .pareto-modal {
+    background: #0d1321; border: 1px solid #1a3355; border-radius: 12px;
+    padding: 20px; width: 700px; max-width: 90vw; max-height: 85vh; overflow-y: auto;
+  }
+  .pareto-modal h2 { font-size: 14px; color: #aa66ff; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .pareto-close {
+    float: right; background: none; border: 1px solid #4a6785; color: #4a6785;
+    border-radius: 4px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 10px;
+  }
+  .pareto-status { font-size: 10px; color: #5a7a95; margin-bottom: 10px; }
+  @media (max-width: 900px) {
+    html, body { height: auto; overflow: auto; }
+    #root { height: auto; overflow: visible; }
+    .main { flex-direction: column; }
+    .panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<script>
+"use strict";
+const { useState, useCallback, useEffect, useRef, useMemo, createElement: h } = React;
+
+// =============================================================================
+// CONSTANTS  (Step 1: fixed values per Hietanen et al. 2024)
+// =============================================================================
+const SITE_W = 6000, SITE_H = 5000, N_TURBINES = 20;
+const ROTOR_D = 236, RATED_POWER = 15, HUB_HEIGHT = 150;
+const CUT_IN = 3, CUT_OUT = 25;
+const MOORING_LINES = 5, MOORING_LENGTH = 800;
+const WATER_DEPTH = 120, DRAFT = 20;
+const HOURS_PER_YEAR = 8760, LIFETIME = 25;
+const DEF_CABLE_COST = 600, DEF_DRAG_ANCHOR = 150000, DEF_DRILLED_ANCHOR = 400000;
+const DEF_ELEC_PRICE = 105.6, DEF_INTEREST = 0.07;
+const SHARED_ANCHOR_THRESHOLD = 120;
+
+// Step 1: new electrical constants
+const CABLE_CAPACITY_MW = 66;
+const CABLE_RESISTANCE = 0.0151; // ohm/km, 630mm^2 Cu
+const CABLE_VOLTAGE = 66;        // kV
+const D_MIN_MOORING = 80;        // meters, min distance between mooring endpoints
+
+// Step 2: Asymmetric 3+2 mooring angles (degrees)
+// 3 lines clustered toward dominant wave ~240 deg, 2 on opposite side
+const MOORING_ANGLES_DEG = [210, 240, 270, 30, 120];
+
+const WIND_ROSE = [
+  [0, 0.06, 9.0], [30, 0.07, 9.5], [60, 0.05, 8.5],
+  [90, 0.04, 7.5], [120, 0.03, 7.0], [150, 0.05, 8.0],
+  [180, 0.08, 10.0], [210, 0.15, 11.5], [240, 0.18, 12.0],
+  [270, 0.14, 11.0], [300, 0.09, 10.0], [330, 0.06, 9.5],
+];
+
+// =============================================================================
+// IEA 15MW POWER CURVE (tabulated from definition report, NREL/TP-5000-75698)
+// =============================================================================
+const IEA15_POWER_CURVE = [
+  [0, 0], [3, 0.09], [3.5, 0.21], [4, 0.42], [4.5, 0.71], [5, 1.08],
+  [5.5, 1.55], [6, 2.13], [6.5, 2.82], [7, 3.64], [7.5, 4.60],
+  [8, 5.70], [8.5, 6.96], [9, 8.36], [9.5, 9.90], [10, 11.56],
+  [10.59, 13.82], [10.8, 14.35], [11, 14.70], [11.4, 15.0],
+  [12, 15.0], [13, 15.0], [14, 15.0], [15, 15.0], [16, 15.0],
+  [17, 15.0], [18, 15.0], [19, 15.0], [20, 15.0], [21, 15.0],
+  [22, 15.0], [23, 15.0], [24, 15.0], [25, 15.0], [25.01, 0],
+];
+
+function powerFromCurve(ws) {
+  if (ws < CUT_IN || ws > CUT_OUT) return 0;
+  for (let i = 1; i < IEA15_POWER_CURVE.length; i++) {
+    const [w0, p0] = IEA15_POWER_CURVE[i - 1];
+    const [w1, p1] = IEA15_POWER_CURVE[i];
+    if (ws >= w0 && ws <= w1) {
+      const t = (ws - w0) / (w1 - w0);
+      return p0 + t * (p1 - p0);
+    }
+  }
+  return 0;
+}
+
+// =============================================================================
+// CORE PHYSICS
+// =============================================================================
+function annuityFactor(rate) { return (1 - Math.pow(1 + rate, -LIFETIME)) / rate; }
+
+function isBedrockZone(x, y) {
+  const cx1 = SITE_W * 0.3, cy1 = SITE_H * 0.7, r1 = 1200;
+  const cx2 = SITE_W * 0.7, cy2 = SITE_H * 0.3, r2 = 900;
+  return Math.hypot(x - cx1, y - cy1) < r1 || Math.hypot(x - cx2, y - cy2) < r2;
+}
+
+function computeWakeDeficit(upX, upY, dnX, dnY, windDir) {
+  const dirRad = ((270 - windDir) * Math.PI) / 180;
+  const cosD = Math.cos(dirRad), sinD = Math.sin(dirRad);
+  const dx = dnX - upX, dy = dnY - upY;
+  const streamwise = dx * cosD + dy * sinD;
+  if (streamwise <= 0) return 0;
+  const crosswind = Math.abs(-dx * sinD + dy * cosD);
+  const ct = 0.82, k = 0.04;
+  const sigma = k * streamwise + ROTOR_D / Math.sqrt(8);
+  const deficit = (1 - Math.sqrt(1 - ct / (8 * (sigma / ROTOR_D) ** 2))) *
+    Math.exp(-0.5 * (crosswind / sigma) ** 2);
+  return Math.max(0, Math.min(deficit, 0.6));
+}
+
+// Step 3: computeAEP returns {total, perTurbine}
+function computeAEP(turbines) {
+  const perTurbine = new Array(turbines.length).fill(0);
+  for (const [dir, freq, speed] of WIND_ROSE) {
+    for (let i = 0; i < turbines.length; i++) {
+      let def2 = 0;
+      for (let j = 0; j < turbines.length; j++) {
+        if (i === j) continue;
+        const d = computeWakeDeficit(turbines[j].x, turbines[j].y, turbines[i].x, turbines[i].y, dir);
+        def2 += d * d;
+      }
+      const eff = speed * (1 - Math.sqrt(def2));
+      perTurbine[i] += powerFromCurve(eff) * freq * HOURS_PER_YEAR;
+    }
+  }
+  let total = 0;
+  for (let i = 0; i < perTurbine.length; i++) total += perTurbine[i];
+  return { total, perTurbine };
+}
+
+function computeWakeLossAtPoint(px, py, turbines) {
+  let totalDef2 = 0;
+  for (const [dir, freq] of WIND_ROSE) {
+    let def2 = 0;
+    for (const t of turbines) {
+      const d = computeWakeDeficit(t.x, t.y, px, py, dir);
+      def2 += d * d;
+    }
+    totalDef2 += freq * Math.sqrt(def2);
+  }
+  return totalDef2;
+}
+
+// =============================================================================
+// Step 2: MOORING HELPERS
+// =============================================================================
+function getMooringEndpoints(turbine) {
+  const endpoints = [];
+  for (let m = 0; m < MOORING_LINES; m++) {
+    const angle = MOORING_ANGLES_DEG[m] * Math.PI / 180;
+    endpoints.push({
+      x: turbine.x + MOORING_LENGTH * Math.cos(angle),
+      y: turbine.y + MOORING_LENGTH * Math.sin(angle),
+    });
+  }
+  return endpoints;
+}
+
+// =============================================================================
+// Step 4: CABLE ROUTING — Esau-Williams savings heuristic
+// =============================================================================
+const KAPPA = Math.floor(CABLE_CAPACITY_MW / RATED_POWER); // = 4
+
+function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+  // Returns true if segment AB intersects segment CD (proper intersection only)
+  const dABx = bx - ax, dABy = by - ay;
+  const dCDx = dx - cx, dCDy = dy - cy;
+  const denom = dABx * dCDy - dABy * dCDx;
+  if (Math.abs(denom) < 1e-10) return false; // parallel
+  const dACx = cx - ax, dACy = cy - ay;
+  const t = (dACx * dCDy - dACy * dCDx) / denom;
+  const u = (dACx * dABy - dACy * dABx) / denom;
+  // Use small epsilon to avoid detecting shared endpoints as crossings
+  return t > 0.01 && t < 0.99 && u > 0.01 && u < 0.99;
+}
+
+function computeCableRouting(turbines, oss) {
+  const n = turbines.length;
+  if (n === 0) return [];
+
+  // Esau-Williams CMST heuristic
+  // Each turbine starts as its own component connected directly to OSS
+  // component[i] = component id for turbine i
+  const component = new Array(n);
+  for (let i = 0; i < n; i++) component[i] = i;
+
+  // Each component has a "gate node" = the node closest to OSS in the string
+  // Initially every turbine is its own gate node
+  const gateNode = new Array(n);
+  for (let i = 0; i < n; i++) gateNode[i] = i;
+
+  // Track edges in the tree: adjacency list
+  const adj = new Array(n);
+  for (let i = 0; i < n; i++) adj[i] = [];
+
+  // Component size (number of turbines)
+  const compSize = new Array(n).fill(1);
+
+  // Each component connects to OSS via its gate node
+  // edges list for final output
+  const edges = [];
+
+  // Helper: find component representative (with path compression)
+  function findComp(i) {
+    while (component[i] !== i) {
+      component[i] = component[component[i]];
+      i = component[i];
+    }
+    return i;
+  }
+
+  // Helper: get all turbines in a component
+  function getCompTurbines(compId) {
+    const result = [];
+    for (let i = 0; i < n; i++) {
+      if (findComp(i) === compId) result.push(i);
+    }
+    return result;
+  }
+
+  // Helper: trace the string from a node to the gate, returns ordered list
+  function getStringOrder(compId) {
+    // BFS from gate node through the component
+    const members = getCompTurbines(compId);
+    if (members.length <= 1) return members;
+    const visited = new Set();
+    const order = [];
+    const queue = [gateNode[compId]];
+    visited.add(gateNode[compId]);
+    while (queue.length > 0) {
+      const cur = queue.shift();
+      order.push(cur);
+      for (const nb of adj[cur]) {
+        if (!visited.has(nb) && findComp(nb) === compId) {
+          visited.add(nb);
+          queue.push(nb);
+        }
+      }
+    }
+    return order;
+  }
+
+  // Helper: find the leaf node furthest from OSS (tail of the string)
+  function getTailNode(compId) {
+    const members = getCompTurbines(compId);
+    if (members.length <= 1) return members[0];
+    // Leaf = node with degree 1 in component (excluding gate if it has degree 1 to OSS only)
+    // Actually, find the node furthest from gate via BFS
+    const visited = new Set();
+    let last = gateNode[compId];
+    const queue = [gateNode[compId]];
+    visited.add(gateNode[compId]);
+    while (queue.length > 0) {
+      const cur = queue.shift();
+      last = cur;
+      for (const nb of adj[cur]) {
+        if (!visited.has(nb) && findComp(nb) === compId) {
+          visited.add(nb);
+          queue.push(nb);
+        }
+      }
+    }
+    return last;
+  }
+
+  // Check if merging would create a crossing with existing edges
+  function wouldCross(fromIdx, toIdx, existingEdges) {
+    const ax = turbines[fromIdx].x, ay = turbines[fromIdx].y;
+    const bx = turbines[toIdx].x, by = turbines[toIdx].y;
+    for (const e of existingEdges) {
+      let cx, cy, dx, dy;
+      if (e.to === -1) {
+        cx = oss.x; cy = oss.y;
+      } else {
+        cx = turbines[e.to].x; cy = turbines[e.to].y;
+      }
+      dx = turbines[e.from].x; dy = turbines[e.from].y;
+      if (e.from === fromIdx || e.from === toIdx) continue;
+      if (e.to === fromIdx || e.to === toIdx) continue;
+      if (segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy)) return true;
+    }
+    return false;
+  }
+
+  // Iterative merging
+  let improved = true;
+  while (improved) {
+    improved = false;
+    let bestSaving = 0, bestI = -1, bestJ = -1;
+
+    // Build current edge list for crossing check
+    const currentEdges = [];
+    const seenComps = new Set();
+    for (let i = 0; i < n; i++) {
+      const ci = findComp(i);
+      if (!seenComps.has(ci)) {
+        seenComps.add(ci);
+        // Gate to OSS edge
+        currentEdges.push({ from: gateNode[ci], to: -1 });
+      }
+    }
+    // Inter-turbine edges
+    for (let i = 0; i < n; i++) {
+      for (const nb of adj[i]) {
+        if (i < nb) currentEdges.push({ from: i, to: nb });
+      }
+    }
+
+    // For each pair of components, compute savings
+    const compIds = [...seenComps];
+    for (let ci = 0; ci < compIds.length; ci++) {
+      for (let cj = ci + 1; cj < compIds.length; cj++) {
+        const compI = compIds[ci], compJ = compIds[cj];
+        if (compSize[compI] + compSize[compJ] > KAPPA) continue;
+
+        // Gate nodes
+        const gi = gateNode[compI], gj = gateNode[compJ];
+        // Tail nodes (we can connect tail of one to gate of another)
+        const ti = getTailNode(compI), tj = getTailNode(compJ);
+
+        // Try connecting: gate_i to gate_j (one becomes tail of merged)
+        // Savings = dist(gi, OSS) + dist(gj, OSS) - dist(gi, gj)
+        // But we should try gate-to-gate connection
+        const dGiOSS = Math.hypot(turbines[gi].x - oss.x, turbines[gi].y - oss.y);
+        const dGjOSS = Math.hypot(turbines[gj].x - oss.x, turbines[gj].y - oss.y);
+        const dGiGj = Math.hypot(turbines[gi].x - turbines[gj].x, turbines[gi].y - turbines[gj].y);
+
+        const saving = dGiOSS + dGjOSS - dGiGj;
+        if (saving > bestSaving) {
+          // Check crossing
+          if (!wouldCross(gi, gj, currentEdges)) {
+            bestSaving = saving;
+            bestI = compI;
+            bestJ = compJ;
+          }
+        }
+      }
+    }
+
+    if (bestSaving > 0 && bestI >= 0) {
+      improved = true;
+      const gi = gateNode[bestI], gj = gateNode[bestJ];
+
+      // Connect gi to gj
+      adj[gi].push(gj);
+      adj[gj].push(gi);
+
+      // Decide new gate: the one further from OSS loses its OSS connection
+      // New gate = whichever gate is closer to OSS
+      const dGiOSS = Math.hypot(turbines[gi].x - oss.x, turbines[gi].y - oss.y);
+      const dGjOSS = Math.hypot(turbines[gj].x - oss.x, turbines[gj].y - oss.y);
+
+      const newGate = dGiOSS <= dGjOSS ? gi : gj;
+      const mergedComp = findComp(newGate);
+      const otherComp = mergedComp === findComp(gi) ? findComp(gj) : findComp(gi);
+
+      // Merge: set all of otherComp to mergedComp
+      const newSize = compSize[mergedComp] + compSize[otherComp];
+      for (let i = 0; i < n; i++) {
+        if (findComp(i) === otherComp) component[i] = mergedComp;
+      }
+      compSize[mergedComp] = newSize;
+      gateNode[mergedComp] = newGate;
+    }
+  }
+
+  // Build final edge list
+  // For each component, add gate->OSS edge
+  const finalComps = new Set();
+  for (let i = 0; i < n; i++) finalComps.add(findComp(i));
+
+  for (const ci of finalComps) {
+    const g = gateNode[ci];
+    const d = Math.hypot(turbines[g].x - oss.x, turbines[g].y - oss.y);
+    edges.push({ from: g, to: -1, dist: d });
+  }
+
+  // Add inter-turbine edges
+  for (let i = 0; i < n; i++) {
+    for (const nb of adj[i]) {
+      if (i < nb) {
+        const d = Math.hypot(turbines[i].x - turbines[nb].x, turbines[i].y - turbines[nb].y);
+        edges.push({ from: i, to: nb, dist: d });
+      }
+    }
+  }
+
+  return edges;
+}
+
+// =============================================================================
+// Step 4 helpers: build tree from edges for loss calculations
+// =============================================================================
+function buildTreeFromEdges(edges, nTurbines) {
+  // Build adjacency from edges. OSS is node -1.
+  // We need to find parent of each turbine in the tree rooted at OSS
+  const adjMap = new Map(); // node -> [neighbors]
+  const ossNeighbors = [];
+
+  for (const e of edges) {
+    if (e.to === -1) {
+      // from connects to OSS
+      ossNeighbors.push(e.from);
+      if (!adjMap.has(e.from)) adjMap.set(e.from, []);
+      adjMap.get(e.from).push(-1);
+    } else {
+      if (!adjMap.has(e.from)) adjMap.set(e.from, []);
+      if (!adjMap.has(e.to)) adjMap.set(e.to, []);
+      adjMap.get(e.from).push(e.to);
+      adjMap.get(e.to).push(e.from);
+    }
+  }
+
+  // BFS from OSS to assign parents
+  const parent = new Array(nTurbines).fill(-2); // -2 = unvisited, -1 = parent is OSS
+  const children = new Map(); // node -> [child nodes]
+  const queue = [];
+
+  for (const n of ossNeighbors) {
+    parent[n] = -1; // parent is OSS
+    queue.push(n);
+    if (!children.has(-1)) children.set(-1, []);
+    children.get(-1).push(n);
+  }
+
+  let qi = 0;
+  while (qi < queue.length) {
+    const cur = queue[qi++];
+    const neighbors = adjMap.get(cur) || [];
+    for (const nb of neighbors) {
+      if (nb === -1) continue; // OSS
+      if (parent[nb] !== -2) continue; // already visited
+      parent[nb] = cur;
+      if (!children.has(cur)) children.set(cur, []);
+      children.get(cur).push(nb);
+      queue.push(nb);
+    }
+  }
+
+  // getDownstream: returns all turbine indices downstream of (and including) node
+  function getDownstream(node) {
+    const result = [node];
+    const stack = [node];
+    while (stack.length > 0) {
+      const cur = stack.pop();
+      const ch = children.get(cur) || [];
+      for (const c of ch) {
+        result.push(c);
+        stack.push(c);
+      }
+    }
+    return result;
+  }
+
+  return { parent, children, getDownstream };
+}
+
+// =============================================================================
+// Step 5: Per-section electrical losses (Eq. 13-14)
+// =============================================================================
+function computeElectricalLosses(edges, treeInfo, perTurbineAEP, turbines, oss) {
+  // For each edge, compute cumulative power flowing through it,
+  // then P_loss = 3 * (P_cum / (sqrt(3) * U * 1000))^2 * R * L_km
+  // P_cum in MW (average), we need to convert AEP to average power
+  let totalLoss = 0; // MWh/yr
+
+  for (const e of edges) {
+    // Determine which node is "downstream" (further from OSS)
+    let downstreamNode;
+    if (e.to === -1) {
+      downstreamNode = e.from;
+    } else {
+      // One of from/to is parent of the other
+      if (treeInfo.parent[e.from] === e.to || (e.to === -1 && treeInfo.parent[e.from] === -1)) {
+        downstreamNode = e.from;
+      } else {
+        downstreamNode = e.to;
+      }
+    }
+
+    // Sum AEP of all downstream turbines
+    const downstream = treeInfo.getDownstream(downstreamNode);
+    let cumAEP = 0; // MWh/yr
+    for (const idx of downstream) cumAEP += perTurbineAEP[idx];
+
+    // Average power in MW
+    const P_avg = cumAEP / HOURS_PER_YEAR;
+
+    // Cable length in km
+    let p1x, p1y;
+    if (e.to === -1) { p1x = oss.x; p1y = oss.y; }
+    else { p1x = turbines[e.to].x; p1y = turbines[e.to].y; }
+    const p2x = turbines[e.from].x, p2y = turbines[e.from].y;
+    const L_km = Math.hypot(p1x - p2x, p1y - p2y) / 1000;
+
+    // I = P / (sqrt(3) * U) where U in kV, P in MW => I in kA
+    // P_loss = 3 * I^2 * R * L = 3 * (P/(sqrt3*U))^2 * R * L  [MW]
+    // With P in MW, U in kV: I = P*1000 / (sqrt(3) * U * 1000) = P / (sqrt(3) * U) [kA]
+    // P_loss = 3 * (P_avg / (Math.sqrt(3) * CABLE_VOLTAGE))^2 * CABLE_RESISTANCE * L_km  [MW]
+    const I = P_avg / (Math.sqrt(3) * CABLE_VOLTAGE); // kA
+    const P_loss_MW = 3 * I * I * CABLE_RESISTANCE * L_km; // MW
+
+    // Annual loss in MWh
+    totalLoss += P_loss_MW * HOURS_PER_YEAR;
+  }
+
+  return totalLoss; // MWh/yr
+}
+
+// =============================================================================
+// Step 6: Availability loss (Eq. 15-16)
+// =============================================================================
+function computeAvailabilityLoss(edges, treeInfo, perTurbineAEP, turbines, oss) {
+  // Per cable section: FR_i * sum(AEP of downstream turbines)
+  // FR_i from Eq. 16: failure rate depends on cable length
+  let totalLoss = 0; // MWh/yr
+
+  for (const e of edges) {
+    let p1x, p1y;
+    if (e.to === -1) { p1x = oss.x; p1y = oss.y; }
+    else { p1x = turbines[e.to].x; p1y = turbines[e.to].y; }
+    const p2x = turbines[e.from].x, p2y = turbines[e.from].y;
+    const L_km = Math.hypot(p1x - p2x, p1y - p2y) / 1000;
+
+    // Failure rate (from existing formula, Eq. 16)
+    const FR = L_km < 9.33 ? 0.0094 : 0.0037 * L_km - 0.025;
+
+    // Determine downstream node
+    let downstreamNode;
+    if (e.to === -1) {
+      downstreamNode = e.from;
+    } else {
+      if (treeInfo.parent[e.from] === e.to || (e.to === -1 && treeInfo.parent[e.from] === -1)) {
+        downstreamNode = e.from;
+      } else {
+        downstreamNode = e.to;
+      }
+    }
+
+    const downstream = treeInfo.getDownstream(downstreamNode);
+    let downstreamAEP = 0;
+    for (const idx of downstream) downstreamAEP += perTurbineAEP[idx];
+
+    totalLoss += FR * downstreamAEP;
+  }
+
+  return totalLoss; // MWh/yr
+}
+
+// =============================================================================
+// SHARED ANCHOR DETECTION (Paper Sec. 2.3) — Step 2: updated angles
+// =============================================================================
+function computeAnchorsWithSharing(turbines, params) {
+  const { dragAnchorCost, drilledAnchorCost } = params;
+  const rawAnchors = [];
+  for (let ti = 0; ti < turbines.length; ti++) {
+    const t = turbines[ti];
+    for (let m = 0; m < MOORING_LINES; m++) {
+      const angle = MOORING_ANGLES_DEG[m] * Math.PI / 180;
+      rawAnchors.push({
+        x: t.x + MOORING_LENGTH * Math.cos(angle),
+        y: t.y + MOORING_LENGTH * Math.sin(angle),
+        turbineIdx: ti, lineIdx: m, merged: false, mergedInto: -1,
+      });
+    }
+  }
+
+  const merged = rawAnchors.map(a => ({ ...a }));
+  const groups = [];
+  const assigned = new Set();
+
+  for (let i = 0; i < merged.length; i++) {
+    if (assigned.has(i)) continue;
+    const group = [i];
+    assigned.add(i);
+    for (let j = i + 1; j < merged.length; j++) {
+      if (assigned.has(j)) continue;
+      if (merged[i].turbineIdx === merged[j].turbineIdx) continue;
+      const d = Math.hypot(merged[i].x - merged[j].x, merged[i].y - merged[j].y);
+      if (d < SHARED_ANCHOR_THRESHOLD) {
+        group.push(j);
+        assigned.add(j);
+        merged[j].merged = true;
+        merged[j].mergedInto = i;
+      }
+    }
+    groups.push(group);
+  }
+
+  let totalCost = 0, nDrag = 0, nDrilled = 0, nShared = 0;
+  const anchorPoints = [];
+  for (const group of groups) {
+    let cx = 0, cy = 0;
+    for (const idx of group) { cx += merged[idx].x; cy += merged[idx].y; }
+    cx /= group.length; cy /= group.length;
+    const bed = isBedrockZone(cx, cy);
+    const cost = bed ? drilledAnchorCost : dragAnchorCost;
+    totalCost += cost;
+    if (bed) nDrilled++; else nDrag++;
+    if (group.length > 1) nShared++;
+    anchorPoints.push({ x: cx, y: cy, shared: group.length > 1, bedrock: bed, groupSize: group.length });
+  }
+
+  let costNoSharing = 0;
+  for (const a of rawAnchors) {
+    costNoSharing += isBedrockZone(a.x, a.y) ? drilledAnchorCost : dragAnchorCost;
+  }
+
+  return {
+    totalCost, nDrag, nDrilled, nShared,
+    nTotal: groups.length,
+    nRaw: rawAnchors.length,
+    anchorPoints, rawAnchors: merged,
+    savings: (costNoSharing - totalCost) / 1e6,
+    costNoSharing: costNoSharing / 1e6,
+  };
+}
+
+// =============================================================================
+// FULL METRICS COMPUTATION — Steps 3,5,6,7 integrated
+// =============================================================================
+function computeAll(turbines, oss, params) {
+  const { cableCostPerM, elecPrice, interestRate } = params;
+  const ANNUITY = annuityFactor(interestRate);
+
+  // Step 3: AEP returns {total, perTurbine}
+  const aepResult = computeAEP(turbines);
+  const aepTotal = aepResult.total;       // MWh
+  const perTurbineAEP = aepResult.perTurbine; // MWh per turbine
+
+  const anchorResult = computeAnchorsWithSharing(turbines, params);
+
+  const edges = computeCableRouting(turbines, oss);
+  const hDepth = WATER_DEPTH - DRAFT, lDyn = 2.782 * hDepth;
+  let totalLength = 0;
+  for (const e of edges) {
+    const p1 = e.to === -1 ? oss : turbines[e.to], p2 = turbines[e.from];
+    totalLength += 1.05 * Math.hypot(p1.x - p2.x, p1.y - p2.y) + 2 * (lDyn - 2 * hDepth);
+  }
+  const cableCAPEX = totalLength * cableCostPerM;
+
+  let failureCost = 0;
+  for (const e of edges) {
+    const p1 = e.to === -1 ? oss : turbines[e.to], p2 = turbines[e.from];
+    const L = Math.hypot(p1.x - p2.x, p1.y - p2.y) / 1000;
+    failureCost += (L < 9.33 ? 0.0094 : 0.0037 * L - 0.025) * L * 1000 * cableCostPerM;
+  }
+
+  // Step 5 & 6: build tree, compute losses
+  const treeInfo = buildTreeFromEdges(edges, turbines.length);
+  const elecLossMWh = computeElectricalLosses(edges, treeInfo, perTurbineAEP, turbines, oss);
+  const availLossMWh = computeAvailabilityLoss(edges, treeInfo, perTurbineAEP, turbines, oss);
+
+  // Step 7: combined eta
+  const aepPot = aepTotal; // MWh (potential AEP before electrical/availability losses)
+  const etaElec = aepPot > 0 ? elecLossMWh / aepPot : 0;
+  const etaAvail = aepPot > 0 ? availLossMWh / aepPot : 0;
+  const etaTot = 1 - (1 - etaElec) * (1 - etaAvail);
+  const aepActual = (1 - etaTot) * aepPot; // MWh
+
+  const revenue = aepActual * elecPrice / 1000; // kEUR
+
+  const anchorCost = anchorResult.totalCost;
+  const npv = (revenue - failureCost / 1000) * ANNUITY - (anchorCost + cableCAPEX) / 1000;
+  const totalCAPEX = (anchorCost + cableCAPEX) / 1e6;
+
+  return {
+    aep: aepPot / 1000, // GWh (potential)
+    aepActual: aepActual / 1000, // GWh (after losses)
+    revenue: revenue / 1000,
+    anchorCost: anchorCost / 1e6, cableCAPEX: cableCAPEX / 1e6,
+    cableLength: totalLength / 1000, failureCost: failureCost / 1e6,
+    npv: npv / 1000, totalCAPEX,
+    nDrag: anchorResult.nDrag, nDrilled: anchorResult.nDrilled,
+    nShared: anchorResult.nShared, nAnchors: anchorResult.nTotal,
+    nRawAnchors: anchorResult.nRaw, anchorSavings: anchorResult.savings,
+    anchorPoints: anchorResult.anchorPoints,
+    rawAnchors: anchorResult.rawAnchors,
+    edges,
+    revenueAnnuity: (revenue * ANNUITY) / 1000,
+    failureAnnuity: (failureCost / 1000 * ANNUITY) / 1e3,
+    elecLoss: elecLossMWh / 1000,   // GWh
+    availLoss: availLossMWh / 1000,  // GWh
+    etaElec, etaAvail, etaTot,
+  };
+}
+
+// =============================================================================
+// LAYOUT GENERATORS
+// =============================================================================
+function generateGridLayout(n) {
+  const cols = Math.ceil(Math.sqrt(n * SITE_W / SITE_H));
+  const rows = Math.ceil(n / cols);
+  const mx = MOORING_LENGTH + 200, my = MOORING_LENGTH + 200;
+  const spx = (SITE_W - 2 * mx) / Math.max(cols - 1, 1);
+  const spy = (SITE_H - 2 * my) / Math.max(rows - 1, 1);
+  const t = [];
+  for (let i = 0; i < n; i++) t.push({ x: mx + (i % cols) * spx, y: my + Math.floor(i / cols) * spy, id: i });
+  return t;
+}
+
+// =============================================================================
+// OPTIMIZATION ALGORITHMS — Step 2: mooring endpoint distance check
+// =============================================================================
+const MARGIN = MOORING_LENGTH + 100;
+
+function isValidLayout(cand, idx) {
+  // Centroid distance check (fast pre-filter)
+  for (let j = 0; j < cand.length; j++) {
+    if (j === idx) continue;
+    if (Math.hypot(cand[idx].x - cand[j].x, cand[idx].y - cand[j].y) < MOORING_LENGTH) return false;
+  }
+  // Step 2: mooring endpoint pair distance check > D_MIN_MOORING
+  const epI = getMooringEndpoints(cand[idx]);
+  for (let j = 0; j < cand.length; j++) {
+    if (j === idx) continue;
+    const epJ = getMooringEndpoints(cand[j]);
+    for (const a of epI) {
+      for (const b of epJ) {
+        if (Math.hypot(a.x - b.x, a.y - b.y) < D_MIN_MOORING) return false;
+      }
+    }
+  }
+  return true;
+}
+
+function clampPos(x, y) {
+  return [Math.max(MARGIN, Math.min(SITE_W - MARGIN, x)), Math.max(MARGIN, Math.min(SITE_H - MARGIN, y))];
+}
+
+// Random Search
+function optimizeRandom(turbines, oss, params, iterations) {
+  let best = turbines.map(t => ({ ...t }));
+  let bestNPV = computeAll(best, oss, params).npv;
+  for (let iter = 0; iter < iterations; iter++) {
+    const idx = Math.floor(Math.random() * best.length);
+    const cand = best.map(t => ({ ...t }));
+    const range = 300 * Math.exp(-iter / iterations);
+    const [nx, ny] = clampPos(cand[idx].x + (Math.random() - 0.5) * range * 2, cand[idx].y + (Math.random() - 0.5) * range * 2);
+    cand[idx].x = nx; cand[idx].y = ny;
+    if (!isValidLayout(cand, idx)) continue;
+    const npv = computeAll(cand, oss, params).npv;
+    if (npv > bestNPV) { best = cand; bestNPV = npv; }
+  }
+  return best;
+}
+
+// Simulated Annealing
+function optimizeSA(turbines, oss, params, iterations, stepNum, totalSteps) {
+  let current = turbines.map(t => ({ ...t }));
+  let currentNPV = computeAll(current, oss, params).npv;
+  let best = current.map(t => ({ ...t }));
+  let bestNPV = currentNPV;
+
+  const globalProgress = stepNum / totalSteps;
+  const T0 = 8.0;
+  const Tf = 0.01;
+  const T = T0 * Math.pow(Tf / T0, globalProgress);
+
+  for (let iter = 0; iter < iterations; iter++) {
+    const idx = Math.floor(Math.random() * current.length);
+    const cand = current.map(t => ({ ...t }));
+    const range = (150 + 250 * (T / T0));
+    const [nx, ny] = clampPos(cand[idx].x + (Math.random() - 0.5) * range * 2, cand[idx].y + (Math.random() - 0.5) * range * 2);
+    cand[idx].x = nx; cand[idx].y = ny;
+    if (!isValidLayout(cand, idx)) continue;
+
+    const npv = computeAll(cand, oss, params).npv;
+    const delta = npv - currentNPV;
+
+    if (delta > 0 || Math.random() < Math.exp(delta / T)) {
+      current = cand;
+      currentNPV = npv;
+      if (npv > bestNPV) { best = current.map(t => ({ ...t })); bestNPV = npv; }
+    }
+  }
+  return best;
+}
+
+// Genetic Algorithm
+function optimizeGA(turbines, oss, params, iterations) {
+  const POP_SIZE = 8;
+  const OFFSPRING = 6;
+
+  let pop = [turbines.map(t => ({ ...t }))];
+  for (let p = 1; p < POP_SIZE; p++) {
+    const ind = turbines.map(t => ({ ...t }));
+    const nPerturb = 3 + Math.floor(Math.random() * 3);
+    for (let k = 0; k < nPerturb; k++) {
+      const idx = Math.floor(Math.random() * ind.length);
+      const [nx, ny] = clampPos(ind[idx].x + (Math.random() - 0.5) * 400, ind[idx].y + (Math.random() - 0.5) * 400);
+      ind[idx].x = nx; ind[idx].y = ny;
+    }
+    pop.push(ind);
+  }
+
+  let fitness = pop.map(ind => computeAll(ind, oss, params).npv);
+
+  for (let gen = 0; gen < iterations; gen++) {
+    const children = [];
+    for (let c = 0; c < OFFSPRING; c++) {
+      const p1 = tournamentSelect(pop, fitness);
+      const p2 = tournamentSelect(pop, fitness);
+      const child = p1.map((t, i) => Math.random() < 0.5 ? { ...t } : { ...p2[i] });
+      const nMut = 1 + Math.floor(Math.random() * 2);
+      for (let k = 0; k < nMut; k++) {
+        const idx = Math.floor(Math.random() * child.length);
+        const range = 200 * Math.exp(-gen / iterations);
+        const [nx, ny] = clampPos(child[idx].x + (Math.random() - 0.5) * range * 2, child[idx].y + (Math.random() - 0.5) * range * 2);
+        child[idx].x = nx; child[idx].y = ny;
+      }
+      children.push(child);
+    }
+
+    const childFit = children.map(ind => computeAll(ind, oss, params).npv);
+
+    const all = [...pop, ...children];
+    const allFit = [...fitness, ...childFit];
+    const indices = allFit.map((f, i) => i).sort((a, b) => allFit[b] - allFit[a]);
+    pop = indices.slice(0, POP_SIZE).map(i => all[i]);
+    fitness = indices.slice(0, POP_SIZE).map(i => allFit[i]);
+  }
+
+  return pop[0];
+}
+
+function tournamentSelect(pop, fitness) {
+  const i = Math.floor(Math.random() * pop.length);
+  const j = Math.floor(Math.random() * pop.length);
+  return fitness[i] >= fitness[j] ? pop[i] : pop[j];
+}
+
+// Dispatch
+function optimizeStep(turbines, oss, params, iterations, algo, stepNum, totalSteps) {
+  switch (algo) {
+    case 'sa': return optimizeSA(turbines, oss, params, iterations, stepNum, totalSteps);
+    case 'ga': return optimizeGA(turbines, oss, params, Math.ceil(iterations / 8));
+    default: return optimizeRandom(turbines, oss, params, iterations);
+  }
+}
+
+// =============================================================================
+// PARETO FRONT EXPLORER
+// =============================================================================
+function runParetoExploration(turbines, oss, params, onProgress, onDone) {
+  const WEIGHT_STEPS = 12;
+  const ITERS_PER = 15;
+  const solutions = [];
+  let wIdx = 0;
+
+  function tick() {
+    const wAEP = wIdx / (WEIGHT_STEPS - 1);
+    let best = turbines.map(t => ({ ...t }));
+    let bestScore = -Infinity;
+
+    for (let iter = 0; iter < ITERS_PER; iter++) {
+      const cand = best.map(t => ({ ...t }));
+      const nMoves = 2 + Math.floor(Math.random() * 3);
+      for (let k = 0; k < nMoves; k++) {
+        const idx = Math.floor(Math.random() * cand.length);
+        const range = 250 * Math.exp(-iter / ITERS_PER);
+        const [nx, ny] = clampPos(cand[idx].x + (Math.random() - 0.5) * range * 2, cand[idx].y + (Math.random() - 0.5) * range * 2);
+        cand[idx].x = nx; cand[idx].y = ny;
+      }
+      const m = computeAll(cand, oss, params);
+      const score = wAEP * m.aep / 1000 - (1 - wAEP) * m.totalCAPEX / 100;
+      if (score > bestScore) { best = cand; bestScore = score; }
+    }
+
+    const m = computeAll(best, oss, params);
+    solutions.push({
+      aep: m.aep, capex: m.totalCAPEX, npv: m.npv,
+      wAEP, layout: best.map(t => ({ ...t })),
+      anchorCost: m.anchorCost, cableCAPEX: m.cableCAPEX,
+    });
+
+    wIdx++;
+    onProgress(wIdx, WEIGHT_STEPS, solutions);
+    if (wIdx < WEIGHT_STEPS) {
+      requestAnimationFrame(tick);
+    } else {
+      const pareto = filterPareto(solutions);
+      onDone(pareto, solutions);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+function filterPareto(solutions) {
+  return solutions.filter((s, i) => {
+    for (let j = 0; j < solutions.length; j++) {
+      if (j === i) continue;
+      if (solutions[j].aep >= s.aep && solutions[j].capex <= s.capex &&
+          (solutions[j].aep > s.aep || solutions[j].capex < s.capex)) return false;
+    }
+    return true;
+  });
+}
+
+// =============================================================================
+// EXPORT FUNCTIONS
+// =============================================================================
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCSV(turbines, metrics, params) {
+  let csv = 'Turbine,X_m,Y_m\n';
+  turbines.forEach((t, i) => { csv += `${i + 1},${t.x.toFixed(1)},${t.y.toFixed(1)}\n`; });
+  csv += '\nMetric,Value,Unit\n';
+  csv += `NPV,${metrics.npv.toFixed(2)},MEUR\n`;
+  csv += `AEP_potential,${metrics.aep.toFixed(2)},GWh\n`;
+  csv += `AEP_actual,${metrics.aepActual.toFixed(2)},GWh\n`;
+  csv += `Electrical Loss,${metrics.elecLoss.toFixed(2)},GWh\n`;
+  csv += `Availability Loss,${metrics.availLoss.toFixed(2)},GWh\n`;
+  csv += `eta_elec,${(metrics.etaElec * 100).toFixed(2)},%\n`;
+  csv += `eta_avail,${(metrics.etaAvail * 100).toFixed(2)},%\n`;
+  csv += `eta_total,${(metrics.etaTot * 100).toFixed(2)},%\n`;
+  csv += `Cable CAPEX,${metrics.cableCAPEX.toFixed(2)},MEUR\n`;
+  csv += `Cable Length,${metrics.cableLength.toFixed(2)},km\n`;
+  csv += `Anchor Cost,${metrics.anchorCost.toFixed(2)},MEUR\n`;
+  csv += `Anchor Sharing Savings,${metrics.anchorSavings.toFixed(2)},MEUR\n`;
+  csv += `Total Anchors (shared),${metrics.nAnchors},count\n`;
+  csv += `Total Anchors (raw),${metrics.nRawAnchors},count\n`;
+  csv += `Shared Anchors,${metrics.nShared},count\n`;
+  csv += `Failure OPEX,${metrics.failureCost.toFixed(4)},MEUR/yr\n`;
+  csv += `\nCable,From,To,Length_m\n`;
+  metrics.edges.forEach((e, i) => {
+    const p1 = e.to === -1 ? { x: params.ossX, y: params.ossY } : turbines[e.to];
+    const p2 = turbines[e.from];
+    csv += `${i + 1},${e.from + 1},${e.to === -1 ? 'OSS' : e.to + 1},${Math.hypot(p1.x - p2.x, p1.y - p2.y).toFixed(1)}\n`;
+  });
+  csv += '\nAnchor,X_m,Y_m,Shared,Bedrock\n';
+  metrics.anchorPoints.forEach((a, i) => {
+    csv += `${i + 1},${a.x.toFixed(1)},${a.y.toFixed(1)},${a.shared},${a.bedrock}\n`;
+  });
+  downloadFile(csv, 'fowf_layout.csv', 'text/csv');
+}
+
+function exportJSON(turbines, metrics, params) {
+  const data = {
+    project: 'FOWF Layout Optimization',
+    reference: 'Hietanen et al. (2024), WES 9, 417-438',
+    parameters: {
+      nTurbines: N_TURBINES, ratedPower_MW: RATED_POWER, rotorDiameter_m: ROTOR_D,
+      siteWidth_m: SITE_W, siteHeight_m: SITE_H, waterDepth_m: WATER_DEPTH,
+      mooringLines: MOORING_LINES, mooringLength_m: MOORING_LENGTH,
+      cableCostPerM_EUR: params.cableCostPerM, elecPrice_EUR_MWh: params.elecPrice,
+      discountRate: params.interestRate, lifetime_yr: LIFETIME,
+      cableCapacity_MW: CABLE_CAPACITY_MW, cableResistance_ohm_km: CABLE_RESISTANCE,
+      cableVoltage_kV: CABLE_VOLTAGE,
+    },
+    turbines: turbines.map((t, i) => ({ id: i + 1, x_m: +t.x.toFixed(1), y_m: +t.y.toFixed(1) })),
+    oss: { x_m: params.ossX, y_m: params.ossY },
+    results: {
+      npv_MEUR: +metrics.npv.toFixed(2),
+      aep_potential_GWh: +metrics.aep.toFixed(2),
+      aep_actual_GWh: +metrics.aepActual.toFixed(2),
+      elecLoss_GWh: +metrics.elecLoss.toFixed(2),
+      availLoss_GWh: +metrics.availLoss.toFixed(2),
+      eta_elec: +metrics.etaElec.toFixed(4),
+      eta_avail: +metrics.etaAvail.toFixed(4),
+      eta_total: +metrics.etaTot.toFixed(4),
+      cableCAPEX_MEUR: +metrics.cableCAPEX.toFixed(2),
+      cableLength_km: +metrics.cableLength.toFixed(2),
+      anchorCost_MEUR: +metrics.anchorCost.toFixed(2),
+      anchorSharingSavings_MEUR: +metrics.anchorSavings.toFixed(2),
+      nAnchorsTotal: metrics.nAnchors,
+      nAnchorsRaw: metrics.nRawAnchors,
+      nSharedAnchors: metrics.nShared,
+      failureOPEX_MEUR_yr: +metrics.failureCost.toFixed(4),
+    },
+    cables: metrics.edges.map((e, i) => ({
+      id: i + 1, from: e.from + 1, to: e.to === -1 ? 'OSS' : e.to + 1, dist_m: +e.dist.toFixed(1),
+    })),
+    anchors: metrics.anchorPoints.map((a, i) => ({
+      id: i + 1, x_m: +a.x.toFixed(1), y_m: +a.y.toFixed(1), shared: a.shared, bedrock: a.bedrock,
+    })),
+  };
+  downloadFile(JSON.stringify(data, null, 2), 'fowf_layout.json', 'application/json');
+}
+
+// =============================================================================
+// SVG SCALING
+// =============================================================================
+const SVG_W = 800, SVG_H = 660, PAD = 50;
+const sX = x => PAD + (x / SITE_W) * (SVG_W - 2 * PAD);
+const sY = y => PAD + (y / SITE_H) * (SVG_H - 2 * PAD);
+const uX = s => ((s - PAD) / (SVG_W - 2 * PAD)) * SITE_W;
+const uY = s => ((s - PAD) / (SVG_H - 2 * PAD)) * SITE_H;
+
+const bedrockCells = (() => {
+  const cells = [], step = 80;
+  for (let x = 0; x < SITE_W; x += step)
+    for (let y = 0; y < SITE_H; y += step)
+      if (isBedrockZone(x + step / 2, y + step / 2))
+        cells.push({ x: sX(x), y: sY(y), w: sX(x + step) - sX(x), h: sY(y + step) - sY(y) });
+  return cells;
+})();
+
+function wakeColor(val) {
+  const t = Math.max(0, Math.min(1, val));
+  let r, g, b;
+  if (t < 0.25) { const s = t / 0.25; r = 0; g = Math.round(s * 180); b = Math.round(180 + s * 75); }
+  else if (t < 0.5) { const s = (t - 0.25) / 0.25; r = 0; g = Math.round(180 + s * 75); b = Math.round(255 - s * 255); }
+  else if (t < 0.75) { const s = (t - 0.5) / 0.25; r = Math.round(s * 255); g = 255; b = 0; }
+  else { const s = (t - 0.75) / 0.25; r = 255; g = Math.round(255 - s * 200); b = 0; }
+  return `rgb(${r},${g},${b})`;
+}
+
+// =============================================================================
+// WATERFALL CHART — Step 7: added electrical and availability loss bars
+// =============================================================================
+function WaterfallChart({ metrics }) {
+  const W = 260, H = 140, padL = 40, padR = 10, padT = 14, padB = 18;
+  const chartH = H - padT - padB;
+  const revenue = metrics.revenueAnnuity;
+  const cCost = -metrics.cableCAPEX;
+  const aCost = -metrics.anchorCost;
+  const elecL = -(metrics.elecLoss * 105.6 / 1e3) * annuityFactor(DEF_INTEREST); // approx revenue loss
+  const availL = -(metrics.availLoss * 105.6 / 1e3) * annuityFactor(DEF_INTEREST);
+  const fCost = -metrics.failureAnnuity;
+  const npv = metrics.npv;
+
+  const bars = [
+    { label: 'Revenue', val: revenue, color: '#44cc88' },
+    { label: 'Cable', val: cCost, color: '#f5a623' },
+    { label: 'Anchor', val: aCost, color: '#ff6b6b' },
+    { label: 'Elec', val: elecL, color: '#aa88ff' },
+    { label: 'Avail', val: availL, color: '#ff88aa' },
+    { label: 'Failure', val: fCost, color: '#ff4466' },
+    { label: 'NPV', val: npv, color: '#00e5ff', isTotal: true },
+  ];
+
+  const maxVal = revenue;
+  const minVal = Math.min(0, npv, revenue + cCost + aCost + elecL + availL + fCost);
+  const range = maxVal - minVal || 1;
+  const scale = chartH / range;
+  const zeroY = padT + maxVal * scale;
+  const barW = (W - padL - padR) / bars.length;
+
+  let running = 0;
+  const rects = bars.map((b, i) => {
+    const x = padL + i * barW + 2, w = barW - 4;
+    let y1, y2;
+    if (b.isTotal) { y1 = zeroY; y2 = zeroY - b.val * scale; }
+    else { y1 = zeroY - running * scale; y2 = zeroY - (running + b.val) * scale; running += b.val; }
+    return { ...b, x, w, top: Math.min(y1, y2), height: Math.abs(y2 - y1), mid: x + w / 2 };
+  });
+
+  const connectors = [];
+  for (let i = 0; i < rects.length - 2; i++) {
+    const endY = rects[i].val >= 0 ? rects[i].top : rects[i].top + rects[i].height;
+    connectors.push({ x1: rects[i].x + rects[i].w, y1: endY, x2: rects[i + 1].x, y2: endY });
+  }
+
+  return h('div', { className: 'card' },
+    h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'NPV WATERFALL (\u20ACM)'),
+    h('svg', { viewBox: `0 0 ${W} ${H}`, style: { width: '100%', display: 'block' } },
+      h('line', { x1: padL, y1: zeroY, x2: W - padR, y2: zeroY, stroke: '#2a3a55', strokeWidth: 0.5 }),
+      connectors.map((c, i) => h('line', { key: 'cn' + i, ...c, stroke: '#2a3a55', strokeWidth: 0.5, strokeDasharray: '2 2' })),
+      rects.map((r, i) => h('g', { key: 'wb' + i },
+        h('rect', { x: r.x, y: r.top, width: r.w, height: Math.max(1, r.height), fill: r.color, opacity: 0.8, rx: 2 }),
+        h('text', { x: r.mid, y: r.top - 3, textAnchor: 'middle', fill: r.color, fontSize: 6, fontFamily: 'inherit', fontWeight: 600 },
+          (r.val >= 0 ? '+' : '') + r.val.toFixed(1)),
+        h('text', { x: r.mid, y: H - 3, textAnchor: 'middle', fill: '#5a7a95', fontSize: 6, fontFamily: 'inherit' }, r.label),
+      )),
+      h('line', { x1: padL, y1: padT, x2: padL, y2: H - padB, stroke: '#2a3a55', strokeWidth: 0.5 }),
+      [0, Math.round(maxVal / 2), Math.round(maxVal)].map((v, i) =>
+        h('text', { key: 'yl' + i, x: padL - 4, y: zeroY - v * scale + 3, textAnchor: 'end', fill: '#4a6785', fontSize: 7, fontFamily: 'inherit' }, v)),
+    ),
+  );
+}
+
+// =============================================================================
+// Step 8: CONVERGENCE CHART
+// =============================================================================
+const ALGO_COLORS = { sa: '#00e5ff', ga: '#44cc88', random: '#ff8800' };
+const ALGO_LABELS = { sa: 'SA', ga: 'GA', random: 'Random' };
+
+function ConvergenceChart({ npvHistories }) {
+  if (!npvHistories || npvHistories.length === 0) return null;
+
+  const W = 260, H = 120, padL = 42, padR = 10, padT = 14, padB = 22;
+  const cW = W - padL - padR, cH = H - padT - padB;
+
+  // Find global min/max across all histories
+  let gMin = Infinity, gMax = -Infinity, maxLen = 0;
+  for (const hist of npvHistories) {
+    for (const v of hist.data) {
+      if (v < gMin) gMin = v;
+      if (v > gMax) gMax = v;
+    }
+    if (hist.data.length > maxLen) maxLen = hist.data.length;
+  }
+
+  if (maxLen < 2 || gMin === gMax) return null;
+  const yRange = gMax - gMin || 1;
+
+  const lines = npvHistories.map((hist, hi) => {
+    const color = ALGO_COLORS[hist.algo] || '#ffffff';
+    const pts = hist.data.map((v, i) => {
+      const x = padL + (i / (maxLen - 1)) * cW;
+      const y = padT + cH - ((v - gMin) / yRange) * cH;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    return { color, d: 'M' + pts.join('L'), label: ALGO_LABELS[hist.algo] || hist.algo };
+  });
+
+  return h('div', { className: 'card' },
+    h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'CONVERGENCE (\u20ACM NPV)'),
+    h('svg', { viewBox: `0 0 ${W} ${H}`, style: { width: '100%', display: 'block' } },
+      // Grid lines
+      Array.from({ length: 4 }).map((_, i) => {
+        const y = padT + i * cH / 3;
+        const v = gMax - i * yRange / 3;
+        return h('g', { key: 'cg' + i },
+          h('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: '#1a2744', strokeWidth: 0.5 }),
+          h('text', { x: padL - 4, y: y + 3, textAnchor: 'end', fill: '#4a6785', fontSize: 7, fontFamily: 'inherit' },
+            v.toFixed(1)),
+        );
+      }),
+      // X axis labels
+      h('text', { x: padL + cW / 2, y: H - 3, textAnchor: 'middle', fill: '#5a7a95', fontSize: 7, fontFamily: 'inherit' }, 'Optimization Step'),
+      // Lines
+      lines.map((l, i) =>
+        h('path', { key: 'cl' + i, d: l.d, fill: 'none', stroke: l.color, strokeWidth: 1.5, opacity: 0.8 })
+      ),
+      // Legend
+      lines.map((l, i) =>
+        h('g', { key: 'lg' + i, transform: `translate(${padL + 4 + i * 55}, ${padT + 2})` },
+          h('line', { x1: 0, y1: 4, x2: 12, y2: 4, stroke: l.color, strokeWidth: 2 }),
+          h('text', { x: 15, y: 7, fill: l.color, fontSize: 7, fontFamily: 'inherit' }, l.label),
+        )
+      ),
+    ),
+  );
+}
+
+// =============================================================================
+// PARETO CHART
+// =============================================================================
+function ParetoChart({ pareto, allSolutions, onSelect }) {
+  if (!allSolutions || allSolutions.length === 0) return null;
+  const W = 600, H = 300, padL = 55, padR = 20, padT = 20, padB = 35;
+  const cW = W - padL - padR, cH = H - padT - padB;
+
+  const aepMin = Math.min(...allSolutions.map(s => s.aep)) * 0.98;
+  const aepMax = Math.max(...allSolutions.map(s => s.aep)) * 1.02;
+  const capMin = Math.min(...allSolutions.map(s => s.capex)) * 0.95;
+  const capMax = Math.max(...allSolutions.map(s => s.capex)) * 1.05;
+
+  const px = s => padL + ((s.aep - aepMin) / (aepMax - aepMin)) * cW;
+  const py = s => padT + cH - ((s.capex - capMin) / (capMax - capMin)) * cH;
+
+  const sorted = [...pareto].sort((a, b) => a.aep - b.aep);
+  const pathD = sorted.map((s, i) => `${i === 0 ? 'M' : 'L'}${px(s).toFixed(1)},${py(s).toFixed(1)}`).join(' ');
+
+  return h('svg', { viewBox: `0 0 ${W} ${H}`, style: { width: '100%', display: 'block', marginTop: 8 } },
+    Array.from({ length: 5 }).map((_, i) => {
+      const y = padT + i * cH / 4;
+      const v = capMax - i * (capMax - capMin) / 4;
+      return h('g', { key: 'gy' + i },
+        h('line', { x1: padL, y1: y, x2: W - padR, y2: y, stroke: '#1a2744', strokeWidth: 0.5 }),
+        h('text', { x: padL - 6, y: y + 3, textAnchor: 'end', fill: '#4a6785', fontSize: 8, fontFamily: 'inherit' }, v.toFixed(0)),
+      );
+    }),
+    Array.from({ length: 5 }).map((_, i) => {
+      const x = padL + i * cW / 4;
+      const v = aepMin + i * (aepMax - aepMin) / 4;
+      return h('g', { key: 'gx' + i },
+        h('line', { x1: x, y1: padT, x2: x, y2: H - padB, stroke: '#1a2744', strokeWidth: 0.5 }),
+        h('text', { x, y: H - padB + 14, textAnchor: 'middle', fill: '#4a6785', fontSize: 8, fontFamily: 'inherit' }, v.toFixed(0)),
+      );
+    }),
+    h('text', { x: padL + cW / 2, y: H - 4, textAnchor: 'middle', fill: '#5a7a95', fontSize: 9, fontFamily: 'inherit' }, 'AEP (GWh)'),
+    h('text', { x: 12, y: padT + cH / 2, textAnchor: 'middle', fill: '#5a7a95', fontSize: 9, fontFamily: 'inherit',
+      transform: `rotate(-90, 12, ${padT + cH / 2})` }, 'CAPEX (\u20ACM)'),
+    pareto.length > 1 && h('path', { d: pathD, fill: 'none', stroke: '#aa66ff', strokeWidth: 2, opacity: 0.6 }),
+    allSolutions.map((s, i) => {
+      const isPareto = pareto.includes(s);
+      return h('circle', {
+        key: 'ps' + i, cx: px(s), cy: py(s), r: isPareto ? 6 : 4,
+        fill: isPareto ? '#aa66ff' : '#3a5a7a', opacity: isPareto ? 0.9 : 0.5,
+        stroke: isPareto ? '#cc88ff' : 'none', strokeWidth: 1,
+        style: { cursor: 'pointer' },
+        onClick: () => onSelect(s),
+      });
+    }),
+    pareto.map((s, i) =>
+      h('text', { key: 'pl' + i, x: px(s), y: py(s) - 10, textAnchor: 'middle',
+        fill: '#aa66ff', fontSize: 7, fontFamily: 'inherit', fontWeight: 600 },
+        '\u20AC' + s.npv.toFixed(1) + 'M')
+    ),
+  );
+}
+
+// =============================================================================
+// MAIN APP
+// =============================================================================
+function App() {
+  const [turbines, setTurbines] = useState(() => generateGridLayout(N_TURBINES));
+  const [dragging, setDragging] = useState(null);
+  const [optimizing, setOptimizing] = useState(false);
+  const [optimizeCount, setOptimizeCount] = useState(0);
+  const [showMooring, setShowMooring] = useState(true);
+  const [showCables, setShowCables] = useState(true);
+  const [showAnchors, setShowAnchors] = useState(true);
+  const [showBedrock, setShowBedrock] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showShared, setShowShared] = useState(true);
+  const [baselineNPV, setBaselineNPV] = useState(null);
+  const [algo, setAlgo] = useState('sa');
+
+  // Sensitivity
+  const [elecPrice, setElecPrice] = useState(DEF_ELEC_PRICE);
+  const [cableCost, setCableCost] = useState(DEF_CABLE_COST);
+  const [anchorMult, setAnchorMult] = useState(1.0);
+  const [interestRate, setInterestRate] = useState(DEF_INTEREST);
+
+  // Replay
+  const [history, setHistory] = useState([]);
+  const [replayIdx, setReplayIdx] = useState(-1);
+  const [replaying, setReplaying] = useState(false);
+  const replayTimerRef = useRef(null);
+  const [ghostPositions, setGhostPositions] = useState(null);
+
+  // Pareto
+  const [showPareto, setShowPareto] = useState(false);
+  const [paretoRunning, setParetoRunning] = useState(false);
+  const [paretoProgress, setParetoProgress] = useState('');
+  const [paretoFront, setParetoFront] = useState([]);
+  const [paretoAll, setParetoAll] = useState([]);
+
+  // Step 8: convergence histories
+  const [npvHistories, setNpvHistories] = useState([]);
+
+  const svgRef = useRef(null);
+  const animRef = useRef(null);
+  const oss = useMemo(() => ({ x: SITE_W * 0.5, y: SITE_H * 0.95 }), []);
+
+  const params = useMemo(() => ({
+    cableCostPerM: cableCost,
+    dragAnchorCost: DEF_DRAG_ANCHOR * anchorMult,
+    drilledAnchorCost: DEF_DRILLED_ANCHOR * anchorMult,
+    elecPrice, interestRate, ossX: oss.x, ossY: oss.y,
+  }), [cableCost, anchorMult, elecPrice, interestRate]);
+
+  const displayTurbines = replayIdx >= 0 && history.length > 0 ? history[Math.min(replayIdx, history.length - 1)] : turbines;
+  const metrics = useMemo(() => computeAll(displayTurbines, oss, params), [displayTurbines, params]);
+
+  useEffect(() => { if (baselineNPV === null) setBaselineNPV(metrics.npv); }, []);
+
+  const heatmapCells = useMemo(() => {
+    if (!showHeatmap) return [];
+    const step = 150, raw = [];
+    let maxLoss = 0;
+    for (let x = 0; x < SITE_W; x += step)
+      for (let y = 0; y < SITE_H; y += step) {
+        const loss = computeWakeLossAtPoint(x + step / 2, y + step / 2, displayTurbines);
+        raw.push({ x, y, loss });
+        if (loss > maxLoss) maxLoss = loss;
+      }
+    if (maxLoss === 0) return [];
+    return raw.map(r => ({
+      x: sX(r.x), y: sY(r.y), w: sX(r.x + step) - sX(r.x), h: sY(r.y + step) - sY(r.y),
+      color: wakeColor(r.loss / maxLoss), opacity: 0.15 + 0.35 * (r.loss / maxLoss),
+    }));
+  }, [showHeatmap, displayTurbines]);
+
+  // Input handlers
+  const getTouchPos = useCallback((e) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const rect = svg.getBoundingClientRect();
+    const touch = e.touches[0];
+    return {
+      x: Math.max(MARGIN, Math.min(SITE_W - MARGIN, uX((touch.clientX - rect.left) * (SVG_W / rect.width)))),
+      y: Math.max(MARGIN, Math.min(SITE_H - MARGIN, uY((touch.clientY - rect.top) * (SVG_H / rect.height)))),
+    };
+  }, []);
+
+  const handleMouseDown = (e, idx) => { if (replayIdx >= 0) return; e.preventDefault(); setDragging(idx); };
+  const handleMouseMove = useCallback((e) => {
+    if (dragging === null || replayIdx >= 0) return;
+    const svg = svgRef.current, rect = svg.getBoundingClientRect();
+    const nx = Math.max(MARGIN, Math.min(SITE_W - MARGIN, uX((e.clientX - rect.left) * (SVG_W / rect.width))));
+    const ny = Math.max(MARGIN, Math.min(SITE_H - MARGIN, uY((e.clientY - rect.top) * (SVG_H / rect.height))));
+    setTurbines(prev => { const next = [...prev]; next[dragging] = { ...next[dragging], x: nx, y: ny }; return next; });
+  }, [dragging, replayIdx]);
+  const handleTouchMove = useCallback((e) => {
+    if (dragging === null || replayIdx >= 0) return;
+    e.preventDefault();
+    const pos = getTouchPos(e);
+    if (pos) setTurbines(prev => { const next = [...prev]; next[dragging] = { ...next[dragging], ...pos }; return next; });
+  }, [dragging, getTouchPos, replayIdx]);
+  const handleUp = () => setDragging(null);
+
+  // Optimize — Step 8: record NPV per step
+  const totalSteps = 25;
+  const runOptimize = () => {
+    setOptimizing(true); setOptimizeCount(0);
+    setReplayIdx(-1); setReplaying(false);
+    if (replayTimerRef.current) clearInterval(replayTimerRef.current);
+    let current = turbines.map(t => ({ ...t }));
+    const hist = [current.map(t => ({ ...t }))];
+    setGhostPositions(current.map(t => ({ ...t })));
+    let step = 0;
+    const npvData = [computeAll(current, oss, params).npv]; // Step 8: record initial NPV
+    const currentAlgo = algo;
+    const tick = () => {
+      current = optimizeStep(current, oss, params, 100, currentAlgo, step, totalSteps);
+      step++;
+      hist.push(current.map(t => ({ ...t })));
+      const stepNPV = computeAll(current, oss, params).npv;
+      npvData.push(stepNPV);
+      setTurbines(current.map(t => ({ ...t })));
+      setOptimizeCount(step);
+      if (step < totalSteps) animRef.current = requestAnimationFrame(tick);
+      else {
+        setOptimizing(false);
+        setHistory(hist);
+        // Step 8: append convergence history
+        setNpvHistories(prev => [...prev, { algo: currentAlgo, data: [...npvData] }]);
+      }
+    };
+    animRef.current = requestAnimationFrame(tick);
+  };
+
+  // Replay
+  const startReplay = () => {
+    if (history.length === 0) return;
+    setReplaying(true); setReplayIdx(0);
+    let idx = 0;
+    replayTimerRef.current = setInterval(() => {
+      idx++;
+      if (idx >= history.length) { clearInterval(replayTimerRef.current); setReplaying(false); return; }
+      setReplayIdx(idx);
+    }, 300);
+  };
+  const stopReplay = () => { if (replayTimerRef.current) clearInterval(replayTimerRef.current); setReplaying(false); };
+  const exitReplay = () => { stopReplay(); setReplayIdx(-1); setGhostPositions(null); };
+
+  const resetGrid = () => {
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+    stopReplay();
+    setOptimizing(false); setReplayIdx(-1); setHistory([]); setGhostPositions(null);
+    const grid = generateGridLayout(N_TURBINES);
+    setTurbines(grid);
+    setBaselineNPV(computeAll(grid, oss, params).npv);
+    setOptimizeCount(0);
+    setNpvHistories([]); // Step 8: clear convergence
+  };
+
+  // Pareto
+  const runPareto = () => {
+    setParetoRunning(true); setShowPareto(true);
+    setParetoFront([]); setParetoAll([]);
+    runParetoExploration(turbines, oss, params,
+      (step, total) => setParetoProgress(`Exploring weight ${step}/${total}...`),
+      (pareto, all) => { setParetoFront(pareto); setParetoAll(all); setParetoRunning(false); setParetoProgress(''); },
+    );
+  };
+  const selectParetoSolution = (sol) => {
+    setTurbines(sol.layout.map(t => ({ ...t })));
+    setShowPareto(false);
+  };
+
+  const npvDelta = baselineNPV ? metrics.npv - baselineNPV : 0;
+  const capFactor = (metrics.aep * 1000 / (N_TURBINES * RATED_POWER * HOURS_PER_YEAR) * 100).toFixed(1);
+  const hasHistory = history.length > 1;
+  const inReplay = replayIdx >= 0;
+
+  return h('div', { id: 'root' },
+    // Pareto modal
+    showPareto && h('div', { className: 'pareto-overlay', onClick: e => { if (e.target === e.currentTarget && !paretoRunning) setShowPareto(false); } },
+      h('div', { className: 'pareto-modal' },
+        h('button', { className: 'pareto-close', onClick: () => { if (!paretoRunning) setShowPareto(false); } }, '\u2715 CLOSE'),
+        h('h2', null, 'PARETO FRONT: AEP vs CAPEX'),
+        paretoRunning && h('div', { className: 'pareto-status' }, paretoProgress),
+        !paretoRunning && paretoAll.length > 0 && h('div', { className: 'pareto-status' },
+          `${paretoFront.length} Pareto-optimal solutions from ${paretoAll.length} explored. Click a point to load its layout.`),
+        h(ParetoChart, { pareto: paretoFront, allSolutions: paretoAll, onSelect: selectParetoSolution }),
+      ),
+    ),
+
+    // Header
+    h('div', { className: 'header' },
+      h('div', null,
+        h('h1', null, 'Floating Wind Farm Layout Optimizer'),
+        h('p', { className: 'sub' },
+          `TECHNO-ECONOMIC NPV OPTIMIZATION \u00B7 ${N_TURBINES}\u00D7 IEA 15MW \u00B7 SEMI-SUBMERSIBLE \u00B7 ${N_TURBINES * RATED_POWER} MW`),
+      ),
+      h('div', { className: 'header-btns' },
+        h('select', { className: 'algo-select', value: algo, onChange: e => setAlgo(e.target.value) },
+          h('option', { value: 'random' }, 'Random Search'),
+          h('option', { value: 'sa' }, 'Simulated Annealing'),
+          h('option', { value: 'ga' }, 'Genetic Algorithm'),
+        ),
+        h('button', { className: 'btn btn-reset', onClick: resetGrid }, '\u21BA RESET'),
+        h('button', { className: 'btn btn-optimize', onClick: runOptimize, disabled: optimizing || inReplay },
+          optimizing ? `${algo.toUpperCase()} ${optimizeCount}/${totalSteps}` : '\u26A1 OPTIMIZE'),
+        h('button', { className: 'btn btn-replay', onClick: inReplay ? exitReplay : startReplay, disabled: !hasHistory || optimizing },
+          inReplay ? '\u2715 EXIT REPLAY' : '\u25B6 REPLAY'),
+        h('button', { className: 'btn btn-pareto', onClick: runPareto, disabled: optimizing || inReplay || paretoRunning },
+          '\u2022\u2022\u2022 PARETO'),
+        h('button', { className: 'btn btn-export', onClick: () => exportCSV(displayTurbines, metrics, params) }, '\u21E9 CSV'),
+        h('button', { className: 'btn btn-export', onClick: () => exportJSON(displayTurbines, metrics, params) }, '\u21E9 JSON'),
+      ),
+    ),
+
+    // Main
+    h('div', { className: 'main' },
+      // Map
+      h('div', { className: 'map-wrap' },
+        h('svg', {
+          ref: svgRef, viewBox: `0 0 ${SVG_W} ${SVG_H}`,
+          style: { cursor: dragging !== null ? 'grabbing' : 'default' },
+          onMouseMove: handleMouseMove, onMouseUp: handleUp, onMouseLeave: handleUp,
+          onTouchMove: handleTouchMove, onTouchEnd: handleUp, onTouchCancel: handleUp,
+        },
+          h('defs', null,
+            h('radialGradient', { id: 'tGlow', cx: '50%', cy: '50%', r: '50%' },
+              h('stop', { offset: '0%', stopColor: '#00e5ff', stopOpacity: 0.3 }),
+              h('stop', { offset: '100%', stopColor: '#00e5ff', stopOpacity: 0 }),
+            ),
+            h('filter', { id: 'glow' },
+              h('feGaussianBlur', { stdDeviation: 2, result: 'blur' }),
+              h('feMerge', null, h('feMergeNode', { in: 'blur' }), h('feMergeNode', { in: 'SourceGraphic' })),
+            ),
+          ),
+          // Site boundary
+          h('rect', { x: sX(0), y: sY(0), width: sX(SITE_W) - sX(0), height: sY(SITE_H) - sY(0),
+            fill: '#0a1628', stroke: '#1a3355', strokeWidth: 1.5, rx: 4 }),
+          h('rect', {
+            x: sX(MARGIN), y: sY(MARGIN), width: sX(SITE_W - MARGIN) - sX(MARGIN),
+            height: sY(SITE_H - MARGIN) - sY(MARGIN),
+            fill: 'none', stroke: '#1a3355', strokeWidth: 0.5, strokeDasharray: '6 4', rx: 2,
+          }),
+          // Heat map
+          showHeatmap && heatmapCells.map((c, i) =>
+            h('rect', { key: 'hm' + i, x: c.x, y: c.y, width: c.w, height: c.h, fill: c.color, opacity: c.opacity })),
+          // Bedrock
+          showBedrock && bedrockCells.map((c, i) =>
+            h('rect', { key: 'br' + i, x: c.x, y: c.y, width: c.w, height: c.h, fill: '#3d1111', opacity: 0.4 })),
+          // Cables
+          showCables && metrics.edges.map((e, i) => {
+            const p1 = e.to === -1 ? oss : displayTurbines[e.to], p2 = displayTurbines[e.from];
+            return h('line', { key: 'c' + i, x1: sX(p1.x), y1: sY(p1.y), x2: sX(p2.x), y2: sY(p2.y),
+              stroke: '#f5a623', strokeWidth: 1.2, opacity: 0.6 });
+          }),
+          // Mooring lines — Step 2: asymmetric 3+2 angles
+          showMooring && displayTurbines.map((t, ti) =>
+            h('g', { key: 'mo' + ti },
+              Array.from({ length: MOORING_LINES }).map((_, m) => {
+                const angle = MOORING_ANGLES_DEG[m] * Math.PI / 180;
+                const ax = t.x + MOORING_LENGTH * Math.cos(angle), ay = t.y + MOORING_LENGTH * Math.sin(angle);
+                return h('line', { key: 'ml' + ti + '-' + m, x1: sX(t.x), y1: sY(t.y), x2: sX(ax), y2: sY(ay),
+                  stroke: '#2a5a7a', strokeWidth: 0.7, opacity: 0.5 });
+              })
+            )
+          ),
+          // Anchors
+          showAnchors && metrics.anchorPoints.map((a, i) =>
+            h('circle', {
+              key: 'anc' + i, cx: sX(a.x), cy: sY(a.y),
+              r: a.shared && showShared ? 4 : 2.5,
+              fill: a.shared && showShared ? '#ffaa00' : (a.bedrock ? '#ff4444' : '#44cc88'),
+              opacity: 0.8,
+              className: a.shared && showShared ? 'shared-anchor' : '',
+            })
+          ),
+          // Ghost (replay)
+          ghostPositions && inReplay && ghostPositions.map((g, i) =>
+            h('g', { key: 'ghost' + i },
+              h('line', { x1: sX(g.x), y1: sY(g.y), x2: sX(displayTurbines[i].x), y2: sY(displayTurbines[i].y),
+                stroke: '#00e5ff', strokeWidth: 0.6, opacity: 0.25, strokeDasharray: '3 3' }),
+              h('circle', { cx: sX(g.x), cy: sY(g.y), r: 5, fill: 'none', stroke: '#00e5ff', strokeWidth: 0.8, opacity: 0.3, strokeDasharray: '2 2' }),
+            )
+          ),
+          // OSS
+          h('rect', { x: sX(oss.x) - 8, y: sY(oss.y) - 8, width: 16, height: 16,
+            fill: '#f5a623', rx: 2, stroke: '#ffcc00', strokeWidth: 1 }),
+          h('text', { x: sX(oss.x), y: sY(oss.y) + 22, textAnchor: 'middle',
+            fill: '#f5a623', fontSize: 9, fontFamily: 'inherit' }, 'OSS'),
+          // Turbines
+          displayTurbines.map((t, i) =>
+            h('g', { key: 't' + i, style: { cursor: inReplay ? 'default' : 'grab' },
+              onMouseDown: e => handleMouseDown(e, i),
+              onTouchStart: e => { if (!inReplay) { e.preventDefault(); setDragging(i); } },
+            },
+              h('circle', { cx: sX(t.x), cy: sY(t.y), r: 14, fill: 'url(#tGlow)' }),
+              h('circle', { cx: sX(t.x), cy: sY(t.y), r: 6, fill: '#00e5ff', opacity: 0.9,
+                filter: 'url(#glow)', stroke: '#005f73', strokeWidth: 1 }),
+              h('text', { x: sX(t.x), y: sY(t.y) + 3.5, textAnchor: 'middle',
+                fill: '#0a0e17', fontSize: 7, fontWeight: 700, fontFamily: 'inherit' }, i + 1),
+            )
+          ),
+          // Scale bar
+          h('line', { x1: sX(200), y1: sY(SITE_H) + 18, x2: sX(1200), y2: sY(SITE_H) + 18, stroke: '#4a6785', strokeWidth: 1.5 }),
+          h('text', { x: (sX(200) + sX(1200)) / 2, y: sY(SITE_H) + 30, textAnchor: 'middle', fill: '#4a6785', fontSize: 9, fontFamily: 'inherit' }, '1 km'),
+          // Legend
+          h('g', { transform: `translate(${sX(SITE_W) - 115}, ${sY(0) + 10})` },
+            h('rect', { x: 0, y: 0, width: 110, height: showShared ? 100 : 72, fill: '#0a0e17', opacity: 0.85, rx: 4 }),
+            h('circle', { cx: 12, cy: 14, r: 4, fill: '#00e5ff' }),
+            h('text', { x: 22, y: 17, fill: '#8899aa', fontSize: 8, fontFamily: 'inherit' }, 'FOWT'),
+            h('rect', { x: 8, y: 26, width: 8, height: 8, fill: '#f5a623', rx: 1 }),
+            h('text', { x: 22, y: 33, fill: '#8899aa', fontSize: 8, fontFamily: 'inherit' }, 'OSS'),
+            h('circle', { cx: 12, cy: 46, r: 3, fill: '#44cc88' }),
+            h('text', { x: 22, y: 49, fill: '#8899aa', fontSize: 8, fontFamily: 'inherit' }, 'Drag anchor'),
+            h('circle', { cx: 12, cy: 60, r: 3, fill: '#ff4444' }),
+            h('text', { x: 22, y: 63, fill: '#8899aa', fontSize: 8, fontFamily: 'inherit' }, 'Drilled anchor'),
+            showShared && h('g', null,
+              h('circle', { cx: 12, cy: 74, r: 4, fill: '#ffaa00' }),
+              h('text', { x: 22, y: 77, fill: '#8899aa', fontSize: 8, fontFamily: 'inherit' }, 'Shared anchor'),
+              showHeatmap && h('g', null,
+                h('rect', { x: 8, y: 84, width: 8, height: 8, fill: wakeColor(0.5), rx: 1 }),
+                h('text', { x: 22, y: 91, fill: '#8899aa', fontSize: 8, fontFamily: 'inherit' }, 'Wake loss'),
+              ),
+            ),
+          ),
+        ),
+        // Replay bar
+        inReplay && h('div', { className: 'replay-bar' },
+          h('span', { className: 'rb-label' }, 'REPLAY'),
+          h('button', { className: 'replay-btn', onClick: replaying ? stopReplay : startReplay }, replaying ? '\u23F8' : '\u25B6'),
+          h('input', { type: 'range', min: 0, max: history.length - 1, value: replayIdx,
+            onChange: e => { stopReplay(); setReplayIdx(parseInt(e.target.value)); } }),
+          h('span', { className: 'rb-step' }, `${replayIdx}/${history.length - 1}`),
+        ),
+        // Layer toggles
+        h('div', { className: 'layer-toggles' },
+          [['Bedrock', showBedrock, setShowBedrock, '#3d1111'],
+           ['Mooring', showMooring, setShowMooring, '#2a5a7a'],
+           ['Cables', showCables, setShowCables, '#f5a623'],
+           ['Anchors', showAnchors, setShowAnchors, '#44cc88'],
+           ['Shared', showShared, setShowShared, '#ffaa00'],
+           ['Wake Map', showHeatmap, setShowHeatmap, '#ff8800'],
+          ].map(([label, val, setter, color]) =>
+            h('button', { key: label, className: 'layer-btn', onClick: () => setter(!val),
+              style: { background: val ? color + '33' : '#0d132166', border: '1px solid ' + (val ? color : '#1a2744'), color: val ? color : '#4a6785' },
+            }, label.toUpperCase())
+          ),
+        ),
+      ),
+
+      // Right panel
+      h('div', { className: 'panel' },
+        // NPV
+        h('div', { className: 'npv-card' },
+          h('div', { className: 'npv-label' }, 'RELATIVE NET PRESENT VALUE'),
+          h('div', { className: 'npv-value' }, '\u20AC' + metrics.npv.toFixed(1) + 'M'),
+          baselineNPV != null && h('div', { className: 'npv-delta', style: { color: npvDelta >= 0 ? '#44cc88' : '#ff6b6b' } },
+            (npvDelta >= 0 ? '\u25B2' : '\u25BC') + ' \u20AC' + Math.abs(npvDelta).toFixed(1) + 'M vs grid ',
+            h('span', { style: { color: '#4a6785', fontWeight: 400 } },
+              '(' + (baselineNPV !== 0 ? ((npvDelta / Math.abs(baselineNPV)) * 100).toFixed(2) : 0) + '%)'),
+          ),
+        ),
+        // Waterfall
+        h(WaterfallChart, { metrics }),
+        // Step 8: Convergence chart
+        npvHistories.length > 0 && h(ConvergenceChart, { npvHistories }),
+        // AEP + Losses (merged)
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label' }, 'ENERGY & LOSSES (EQ. 7, 13-16)'),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Potential AEP'),
+            h('span', { className: 'val', style: { color: '#00e5ff' } }, metrics.aep.toFixed(1) + ' GWh')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Elec. loss'),
+            h('span', { className: 'val', style: { color: '#aa88ff' } }, (metrics.etaElec * 100).toFixed(2) + '%')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Avail. loss'),
+            h('span', { className: 'val', style: { color: '#ff88aa' } }, (metrics.etaAvail * 100).toFixed(2) + '%')),
+          h('div', { className: 'divider' }),
+          h('div', { className: 'capex-row', style: { marginBottom: 0 } },
+            h('span', { className: 'lbl' }, 'Net AEP (\u03B7=' + (metrics.etaTot * 100).toFixed(1) + '%)'),
+            h('span', { className: 'val', style: { color: '#44cc88', fontWeight: 700 } }, metrics.aepActual.toFixed(1) + ' GWh \u00B7 ' + capFactor + '% CF')),
+        ),
+        // CAPEX + Anchors + OPEX (merged)
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'COSTS'),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Cable CAPEX'),
+            h('span', { className: 'val', style: { color: '#f5a623' } }, '\u20AC' + metrics.cableCAPEX.toFixed(1) + 'M (' + metrics.cableLength.toFixed(0) + ' km)')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Anchor CAPEX'),
+            h('span', { className: 'val', style: { color: '#f5a623' } }, '\u20AC' + metrics.anchorCost.toFixed(1) + 'M')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, '  Anchors'),
+            h('span', { style: { fontSize: 10 } },
+              h('span', { style: { color: '#44cc88' } }, metrics.nDrag + 'd'), ' / ',
+              h('span', { style: { color: '#ff4444' } }, metrics.nDrilled + 'r'), ' / ',
+              h('span', { style: { color: '#ffaa00' } }, metrics.nShared + ' shared'),
+              metrics.anchorSavings > 0 ? h('span', { style: { color: '#44cc88' } }, ' \u2192\u20AC' + metrics.anchorSavings.toFixed(1) + 'M saved') : null,
+            )),
+          h('div', { className: 'divider' }),
+          h('div', { className: 'capex-row', style: { marginBottom: 0 } },
+            h('span', { className: 'lbl' }, 'Failure OPEX'),
+            h('span', { className: 'val', style: { color: '#ff6b6b' } }, '\u20AC' + metrics.failureCost.toFixed(2) + 'M/yr')),
+        ),
+        // Sensitivity + Wind Rose side by side
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'SENSITIVITY'),
+          h('div', { style: { display: 'flex', gap: 8 } },
+            h('div', { style: { flex: 1 } },
+              h('div', { className: 'slider-section' },
+                sliderRow('Elec. price', elecPrice, setElecPrice, 50, 200, 1, '\u20AC' + elecPrice.toFixed(0) + '/MWh'),
+                sliderRow('Cable \u20AC/m', cableCost, setCableCost, 200, 1200, 10, '\u20AC' + cableCost),
+                sliderRow('Anchor \u00D7', anchorMult, setAnchorMult, 0.5, 2.0, 0.05, anchorMult.toFixed(2) + '\u00D7'),
+                sliderRow('Discount', interestRate, setInterestRate, 0.03, 0.12, 0.005, (interestRate * 100).toFixed(1) + '%'),
+              ),
+            ),
+            h('div', { style: { width: 80, flexShrink: 0 } },
+              h('svg', { viewBox: '0 0 120 120', style: { width: '100%', display: 'block' } },
+                WIND_ROSE.map(([dir, freq, spd], i) => {
+                  const r = 10 + freq * 280, rad = (90 - dir) * Math.PI / 180;
+                  return h('line', { key: i, x1: 60, y1: 60, x2: 60 + r * Math.cos(rad), y2: 60 - r * Math.sin(rad),
+                    stroke: '#00e5ff', strokeWidth: 3, opacity: 0.5 + spd / 24, strokeLinecap: 'round' });
+                }),
+                h('circle', { cx: 60, cy: 60, r: 4, fill: '#00e5ff', opacity: 0.8 }),
+                ['N', 'E', 'S', 'W'].map((d, i) => {
+                  const a = -i * Math.PI / 2 + Math.PI / 2;
+                  return h('text', { key: d, x: 60 + 54 * Math.cos(a), y: 60 - 54 * Math.sin(a) + 3,
+                    textAnchor: 'middle', fill: '#4a6785', fontSize: 8, fontFamily: 'inherit' }, d);
+                }),
+              ),
+            ),
+          ),
+        ),
+        // Footer
+        h('div', { style: { fontSize: 8, color: '#2a5a7a', textAlign: 'center', padding: '4px 0', flexShrink: 0 } },
+          'Hietanen et al. (2024) \u00B7 Peak Wind / DTU \u00B7 WES 9, 417\u2013438'),
+      ),
+    ),
+  );
+}
+
+function sliderRow(label, value, setter, min, max, step, display) {
+  return h('div', { className: 'slider-row' },
+    h('label', null, label),
+    h('input', { type: 'range', min, max, step, value, onChange: e => setter(parseFloat(e.target.value)) }),
+    h('span', { className: 'slider-val' }, display),
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
