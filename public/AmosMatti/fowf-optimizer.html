@@ -18,7 +18,7 @@
   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; flex-shrink: 0; }
   .header h1 { font-size: 16px; font-weight: 700; color: #00e5ff; letter-spacing: 0.05em; text-transform: uppercase; }
   .header .sub { font-size: 10px; color: #4a6785; margin-top: 2px; letter-spacing: 0.08em; }
-  .header-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .header-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; } /* legacy */
   .btn {
     border-radius: 5px; padding: 5px 10px; font-size: 9px; cursor: pointer;
     font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; font-weight: 600;
@@ -39,7 +39,7 @@
     letter-spacing: 0.05em;
   }
   .algo-select option { background: #0d1321; color: #c8d6e5; }
-  .main { display: flex; gap: 12px; flex: 1; min-height: 0; overflow: hidden; }
+  .main { display: flex; gap: 10px; flex: 1; min-height: 0; overflow: hidden; }
   .map-wrap {
     flex: 1; background: #0d1321; border-radius: 8px; border: 1px solid #1a2744;
     position: relative; overflow: hidden; min-height: 0;
@@ -50,10 +50,20 @@
     border-radius: 4px; padding: 3px 8px; font-size: 9px; cursor: pointer;
     font-family: inherit; letter-spacing: 0.05em; outline: none;
   }
-  .panel { width: 270px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; overflow-y: auto; min-height: 0; }
+  .panel { width: 260px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; overflow-y: auto; min-height: 0; }
   .panel::-webkit-scrollbar { width: 4px; }
   .panel::-webkit-scrollbar-track { background: transparent; }
   .panel::-webkit-scrollbar-thumb { background: #1a2744; border-radius: 2px; }
+  .left-panel { width: 220px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; overflow-y: auto; min-height: 0; }
+  .left-panel::-webkit-scrollbar { width: 4px; }
+  .left-panel::-webkit-scrollbar-track { background: transparent; }
+  .left-panel::-webkit-scrollbar-thumb { background: #1a2744; border-radius: 2px; }
+  .left-panel .card { background: #0d1321; border: 1px solid #1a2744; border-radius: 6px; padding: 8px 10px; }
+  .left-panel .card-label { font-size: 8px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 3px; }
+  .left-panel .btn { width: 100%; margin-bottom: 2px; text-align: center; }
+  .left-panel .algo-select { width: 100%; margin-bottom: 4px; }
+  .left-panel .btn-row { display: flex; gap: 4px; }
+  .left-panel .btn-row .btn { flex: 1; margin-bottom: 0; }
   .card { background: #0d1321; border: 1px solid #1a2744; border-radius: 6px; padding: 8px 10px; }
   .card-label { font-size: 8px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 3px; }
   .card-value { font-size: 16px; font-weight: 700; }
@@ -123,11 +133,11 @@
     border-radius: 4px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 10px;
   }
   .pareto-status { font-size: 10px; color: #5a7a95; margin-bottom: 10px; }
-  @media (max-width: 900px) {
+  @media (max-width: 1100px) {
     html, body { height: auto; overflow: auto; }
     #root { height: auto; overflow: visible; }
     .main { flex-direction: column; }
-    .panel { width: 100%; }
+    .panel, .left-panel { width: 100%; }
   }
 </style>
 </head>
@@ -1509,26 +1519,69 @@ function App() {
         h('p', { className: 'sub' },
           `TECHNO-ECONOMIC NPV OPTIMIZATION \u00B7 ${N_TURBINES}\u00D7 IEA 15MW \u00B7 SEMI-SUBMERSIBLE \u00B7 ${N_TURBINES * RATED_POWER} MW`),
       ),
-      h('div', { className: 'header-btns' },
-        h('select', { className: 'algo-select', value: algo, onChange: e => setAlgo(e.target.value) },
-          h('option', { value: 'random' }, 'Random Search'),
-          h('option', { value: 'sa' }, 'Simulated Annealing'),
-          h('option', { value: 'ga' }, 'Genetic Algorithm'),
-        ),
-        h('button', { className: 'btn btn-reset', onClick: resetGrid }, '\u21BA RESET'),
-        h('button', { className: 'btn btn-optimize', onClick: runOptimize, disabled: optimizing || inReplay },
-          optimizing ? `${algo.toUpperCase()} ${optimizeCount}/${totalSteps}` : '\u26A1 OPTIMIZE'),
-        h('button', { className: 'btn btn-replay', onClick: inReplay ? exitReplay : startReplay, disabled: !hasHistory || optimizing },
-          inReplay ? '\u2715 EXIT REPLAY' : '\u25B6 REPLAY'),
-        h('button', { className: 'btn btn-pareto', onClick: runPareto, disabled: optimizing || inReplay || paretoRunning },
-          '\u2022\u2022\u2022 PARETO'),
-        h('button', { className: 'btn btn-export', onClick: () => exportCSV(displayTurbines, metrics, params) }, '\u21E9 CSV'),
-        h('button', { className: 'btn btn-export', onClick: () => exportJSON(displayTurbines, metrics, params) }, '\u21E9 JSON'),
-      ),
     ),
 
     // Main
     h('div', { className: 'main' },
+      // Left panel — outputs
+      h('div', { className: 'panel' },
+        // NPV
+        h('div', { className: 'npv-card' },
+          h('div', { className: 'npv-label' }, 'RELATIVE NET PRESENT VALUE'),
+          h('div', { className: 'npv-value' }, '\u20AC' + metrics.npv.toFixed(1) + 'M'),
+          baselineNPV != null && h('div', { className: 'npv-delta', style: { color: npvDelta >= 0 ? '#44cc88' : '#ff6b6b' } },
+            (npvDelta >= 0 ? '\u25B2' : '\u25BC') + ' \u20AC' + Math.abs(npvDelta).toFixed(1) + 'M vs grid ',
+            h('span', { style: { color: '#4a6785', fontWeight: 400 } },
+              '(' + (baselineNPV !== 0 ? ((npvDelta / Math.abs(baselineNPV)) * 100).toFixed(2) : 0) + '%)'),
+          ),
+        ),
+        // Waterfall
+        h(WaterfallChart, { metrics }),
+        // Convergence chart
+        npvHistories.length > 0 && h(ConvergenceChart, { npvHistories }),
+        // AEP + Losses
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label' }, 'ENERGY & LOSSES (EQ. 7, 13-16)'),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Potential AEP'),
+            h('span', { className: 'val', style: { color: '#00e5ff' } }, metrics.aep.toFixed(1) + ' GWh')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Elec. loss'),
+            h('span', { className: 'val', style: { color: '#aa88ff' } }, (metrics.etaElec * 100).toFixed(2) + '%')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Avail. loss'),
+            h('span', { className: 'val', style: { color: '#ff88aa' } }, (metrics.etaAvail * 100).toFixed(2) + '%')),
+          h('div', { className: 'divider' }),
+          h('div', { className: 'capex-row', style: { marginBottom: 0 } },
+            h('span', { className: 'lbl' }, 'Net AEP (\u03B7=' + (metrics.etaTot * 100).toFixed(1) + '%)'),
+            h('span', { className: 'val', style: { color: '#44cc88', fontWeight: 700 } }, metrics.aepActual.toFixed(1) + ' GWh \u00B7 ' + capFactor + '% CF')),
+        ),
+        // Costs
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'COSTS'),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Cable CAPEX'),
+            h('span', { className: 'val', style: { color: '#f5a623' } }, '\u20AC' + metrics.cableCAPEX.toFixed(1) + 'M (' + metrics.cableLength.toFixed(0) + ' km)')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, 'Anchor CAPEX'),
+            h('span', { className: 'val', style: { color: '#f5a623' } }, '\u20AC' + metrics.anchorCost.toFixed(1) + 'M')),
+          h('div', { className: 'capex-row' },
+            h('span', { className: 'lbl' }, '  Anchors'),
+            h('span', { style: { fontSize: 10 } },
+              h('span', { style: { color: '#44cc88' } }, metrics.nDrag + 'd'), ' / ',
+              h('span', { style: { color: '#ff4444' } }, metrics.nDrilled + 'r'), ' / ',
+              h('span', { style: { color: '#ffaa00' } }, metrics.nShared + ' shared'),
+              metrics.anchorSavings > 0 ? h('span', { style: { color: '#44cc88' } }, ' \u2192\u20AC' + metrics.anchorSavings.toFixed(1) + 'M saved') : null,
+            )),
+          h('div', { className: 'divider' }),
+          h('div', { className: 'capex-row', style: { marginBottom: 0 } },
+            h('span', { className: 'lbl' }, 'Failure OPEX'),
+            h('span', { className: 'val', style: { color: '#ff6b6b' } }, '\u20AC' + metrics.failureCost.toFixed(2) + 'M/yr')),
+        ),
+        // Footer
+        h('div', { style: { fontSize: 8, color: '#2a5a7a', textAlign: 'center', padding: '4px 0', flexShrink: 0 } },
+          'Hietanen et al. (2024) \u00B7 Peak Wind / DTU \u00B7 WES 9, 417\u2013438'),
+      ),
       // Map
       h('div', { className: 'map-wrap' },
         h('svg', {
@@ -1646,109 +1699,86 @@ function App() {
             onChange: e => { stopReplay(); setReplayIdx(parseInt(e.target.value)); } }),
           h('span', { className: 'rb-step' }, `${replayIdx}/${history.length - 1}`),
         ),
-        // Layer toggles
-        h('div', { className: 'layer-toggles' },
-          [['Bedrock', showBedrock, setShowBedrock, '#3d1111'],
-           ['Mooring', showMooring, setShowMooring, '#2a5a7a'],
-           ['Cables', showCables, setShowCables, '#f5a623'],
-           ['Anchors', showAnchors, setShowAnchors, '#44cc88'],
-           ['Shared', showShared, setShowShared, '#ffaa00'],
-           ['Wake Map', showHeatmap, setShowHeatmap, '#ff8800'],
-          ].map(([label, val, setter, color]) =>
-            h('button', { key: label, className: 'layer-btn', onClick: () => setter(!val),
-              style: { background: val ? color + '33' : '#0d132166', border: '1px solid ' + (val ? color : '#1a2744'), color: val ? color : '#4a6785' },
-            }, label.toUpperCase())
-          ),
-        ),
       ),
 
-      // Right panel
-      h('div', { className: 'panel' },
-        // NPV
-        h('div', { className: 'npv-card' },
-          h('div', { className: 'npv-label' }, 'RELATIVE NET PRESENT VALUE'),
-          h('div', { className: 'npv-value' }, '\u20AC' + metrics.npv.toFixed(1) + 'M'),
-          baselineNPV != null && h('div', { className: 'npv-delta', style: { color: npvDelta >= 0 ? '#44cc88' : '#ff6b6b' } },
-            (npvDelta >= 0 ? '\u25B2' : '\u25BC') + ' \u20AC' + Math.abs(npvDelta).toFixed(1) + 'M vs grid ',
-            h('span', { style: { color: '#4a6785', fontWeight: 400 } },
-              '(' + (baselineNPV !== 0 ? ((npvDelta / Math.abs(baselineNPV)) * 100).toFixed(2) : 0) + '%)'),
+      // Right panel — inputs
+      h('div', { className: 'left-panel' },
+        // Algorithm & Controls
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'OPTIMIZER'),
+          h('select', { className: 'algo-select', value: algo, onChange: e => setAlgo(e.target.value) },
+            h('option', { value: 'random' }, 'Random Search'),
+            h('option', { value: 'sa' }, 'Simulated Annealing'),
+            h('option', { value: 'ga' }, 'Genetic Algorithm'),
           ),
+          h('button', { className: 'btn btn-optimize', onClick: runOptimize, disabled: optimizing || inReplay },
+            optimizing ? `${algo.toUpperCase()} ${optimizeCount}/${totalSteps}` : '\u26A1 OPTIMIZE'),
+          h('div', { className: 'btn-row' },
+            h('button', { className: 'btn btn-reset', onClick: resetGrid }, '\u21BA RESET'),
+            h('button', { className: 'btn btn-replay', onClick: inReplay ? exitReplay : startReplay, disabled: !hasHistory || optimizing },
+              inReplay ? '\u2715 EXIT' : '\u25B6 REPLAY'),
+          ),
+          h('button', { className: 'btn btn-pareto', onClick: runPareto, disabled: optimizing || inReplay || paretoRunning },
+            '\u2022\u2022\u2022 PARETO EXPLORE'),
         ),
-        // Waterfall
-        h(WaterfallChart, { metrics }),
-        // Step 8: Convergence chart
-        npvHistories.length > 0 && h(ConvergenceChart, { npvHistories }),
-        // AEP + Losses (merged)
-        h('div', { className: 'card' },
-          h('div', { className: 'card-label' }, 'ENERGY & LOSSES (EQ. 7, 13-16)'),
-          h('div', { className: 'capex-row' },
-            h('span', { className: 'lbl' }, 'Potential AEP'),
-            h('span', { className: 'val', style: { color: '#00e5ff' } }, metrics.aep.toFixed(1) + ' GWh')),
-          h('div', { className: 'capex-row' },
-            h('span', { className: 'lbl' }, 'Elec. loss'),
-            h('span', { className: 'val', style: { color: '#aa88ff' } }, (metrics.etaElec * 100).toFixed(2) + '%')),
-          h('div', { className: 'capex-row' },
-            h('span', { className: 'lbl' }, 'Avail. loss'),
-            h('span', { className: 'val', style: { color: '#ff88aa' } }, (metrics.etaAvail * 100).toFixed(2) + '%')),
-          h('div', { className: 'divider' }),
-          h('div', { className: 'capex-row', style: { marginBottom: 0 } },
-            h('span', { className: 'lbl' }, 'Net AEP (\u03B7=' + (metrics.etaTot * 100).toFixed(1) + '%)'),
-            h('span', { className: 'val', style: { color: '#44cc88', fontWeight: 700 } }, metrics.aepActual.toFixed(1) + ' GWh \u00B7 ' + capFactor + '% CF')),
-        ),
-        // CAPEX + Anchors + OPEX (merged)
-        h('div', { className: 'card' },
-          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'COSTS'),
-          h('div', { className: 'capex-row' },
-            h('span', { className: 'lbl' }, 'Cable CAPEX'),
-            h('span', { className: 'val', style: { color: '#f5a623' } }, '\u20AC' + metrics.cableCAPEX.toFixed(1) + 'M (' + metrics.cableLength.toFixed(0) + ' km)')),
-          h('div', { className: 'capex-row' },
-            h('span', { className: 'lbl' }, 'Anchor CAPEX'),
-            h('span', { className: 'val', style: { color: '#f5a623' } }, '\u20AC' + metrics.anchorCost.toFixed(1) + 'M')),
-          h('div', { className: 'capex-row' },
-            h('span', { className: 'lbl' }, '  Anchors'),
-            h('span', { style: { fontSize: 10 } },
-              h('span', { style: { color: '#44cc88' } }, metrics.nDrag + 'd'), ' / ',
-              h('span', { style: { color: '#ff4444' } }, metrics.nDrilled + 'r'), ' / ',
-              h('span', { style: { color: '#ffaa00' } }, metrics.nShared + ' shared'),
-              metrics.anchorSavings > 0 ? h('span', { style: { color: '#44cc88' } }, ' \u2192\u20AC' + metrics.anchorSavings.toFixed(1) + 'M saved') : null,
-            )),
-          h('div', { className: 'divider' }),
-          h('div', { className: 'capex-row', style: { marginBottom: 0 } },
-            h('span', { className: 'lbl' }, 'Failure OPEX'),
-            h('span', { className: 'val', style: { color: '#ff6b6b' } }, '\u20AC' + metrics.failureCost.toFixed(2) + 'M/yr')),
-        ),
-        // Sensitivity + Wind Rose side by side
+        // Sensitivity
         h('div', { className: 'card' },
           h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'SENSITIVITY'),
-          h('div', { style: { display: 'flex', gap: 8 } },
-            h('div', { style: { flex: 1 } },
-              h('div', { className: 'slider-section' },
-                sliderRow('Elec. price', elecPrice, setElecPrice, 50, 200, 1, '\u20AC' + elecPrice.toFixed(0) + '/MWh'),
-                sliderRow('Cable \u20AC/m', cableCost, setCableCost, 200, 1200, 10, '\u20AC' + cableCost),
-                sliderRow('Anchor \u00D7', anchorMult, setAnchorMult, 0.5, 2.0, 0.05, anchorMult.toFixed(2) + '\u00D7'),
-                sliderRow('Discount', interestRate, setInterestRate, 0.03, 0.12, 0.005, (interestRate * 100).toFixed(1) + '%'),
-              ),
-            ),
-            h('div', { style: { width: 80, flexShrink: 0 } },
-              h('svg', { viewBox: '0 0 120 120', style: { width: '100%', display: 'block' } },
-                WIND_ROSE.map(([dir, freq, spd], i) => {
-                  const r = 10 + freq * 280, rad = (90 - dir) * Math.PI / 180;
-                  return h('line', { key: i, x1: 60, y1: 60, x2: 60 + r * Math.cos(rad), y2: 60 - r * Math.sin(rad),
-                    stroke: '#00e5ff', strokeWidth: 3, opacity: 0.5 + spd / 24, strokeLinecap: 'round' });
-                }),
-                h('circle', { cx: 60, cy: 60, r: 4, fill: '#00e5ff', opacity: 0.8 }),
-                ['N', 'E', 'S', 'W'].map((d, i) => {
-                  const a = -i * Math.PI / 2 + Math.PI / 2;
-                  return h('text', { key: d, x: 60 + 54 * Math.cos(a), y: 60 - 54 * Math.sin(a) + 3,
-                    textAnchor: 'middle', fill: '#4a6785', fontSize: 8, fontFamily: 'inherit' }, d);
-                }),
-              ),
+          h('div', { className: 'slider-section' },
+            sliderRow('Elec. price', elecPrice, setElecPrice, 50, 200, 1, '\u20AC' + elecPrice.toFixed(0) + '/MWh'),
+            sliderRow('Cable \u20AC/m', cableCost, setCableCost, 200, 1200, 10, '\u20AC' + cableCost),
+            sliderRow('Anchor \u00D7', anchorMult, setAnchorMult, 0.5, 2.0, 0.05, anchorMult.toFixed(2) + '\u00D7'),
+            sliderRow('Discount', interestRate, setInterestRate, 0.03, 0.12, 0.005, (interestRate * 100).toFixed(1) + '%'),
+          ),
+        ),
+        // Wind Rose
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label', style: { marginBottom: 4 } }, 'WIND ROSE'),
+          h('svg', { viewBox: '0 0 120 120', style: { width: '100%', maxWidth: 160, display: 'block', margin: '0 auto' } },
+            WIND_ROSE.map(([dir, freq, spd], i) => {
+              const r = 10 + freq * 280, rad = (90 - dir) * Math.PI / 180;
+              return h('line', { key: i, x1: 60, y1: 60, x2: 60 + r * Math.cos(rad), y2: 60 - r * Math.sin(rad),
+                stroke: '#00e5ff', strokeWidth: 3, opacity: 0.5 + spd / 24, strokeLinecap: 'round' });
+            }),
+            h('circle', { cx: 60, cy: 60, r: 4, fill: '#00e5ff', opacity: 0.8 }),
+            ['N', 'E', 'S', 'W'].map((d, i) => {
+              const a = -i * Math.PI / 2 + Math.PI / 2;
+              return h('text', { key: d, x: 60 + 54 * Math.cos(a), y: 60 - 54 * Math.sin(a) + 3,
+                textAnchor: 'middle', fill: '#4a6785', fontSize: 8, fontFamily: 'inherit' }, d);
+            }),
+          ),
+        ),
+        // Layer Toggles
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'MAP LAYERS'),
+          h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4 } },
+            [['Bedrock', showBedrock, setShowBedrock, '#3d1111'],
+             ['Mooring', showMooring, setShowMooring, '#2a5a7a'],
+             ['Cables', showCables, setShowCables, '#f5a623'],
+             ['Anchors', showAnchors, setShowAnchors, '#44cc88'],
+             ['Shared', showShared, setShowShared, '#ffaa00'],
+             ['Wake', showHeatmap, setShowHeatmap, '#ff8800'],
+            ].map(([label, val, setter, color]) =>
+              h('button', { key: label, className: 'layer-btn', onClick: () => setter(!val),
+                style: { background: val ? color + '33' : '#0d132166', border: '1px solid ' + (val ? color : '#1a2744'), color: val ? color : '#4a6785', fontSize: 8, padding: '2px 6px' },
+              }, label.toUpperCase())
             ),
           ),
         ),
-        // Footer
-        h('div', { style: { fontSize: 8, color: '#2a5a7a', textAlign: 'center', padding: '4px 0', flexShrink: 0 } },
-          'Hietanen et al. (2024) \u00B7 Peak Wind / DTU \u00B7 WES 9, 417\u2013438'),
+        // Export
+        h('div', { className: 'card' },
+          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'EXPORT'),
+          h('div', { className: 'btn-row' },
+            h('button', { className: 'btn btn-export', onClick: () => exportCSV(displayTurbines, metrics, params) }, '\u21E9 CSV'),
+            h('button', { className: 'btn btn-export', onClick: () => exportJSON(displayTurbines, metrics, params) }, '\u21E9 JSON'),
+          ),
+        ),
+        // How-to
+        h('div', { className: 'card', style: { fontSize: 9, color: '#4a6785', lineHeight: 1.4 } },
+          h('strong', { style: { color: '#5a7a95' } }, 'Drag'), ' turbines to reposition. ',
+          h('strong', { style: { color: '#5a7a95' } }, 'Optimize'), ' runs the selected algorithm. ',
+          h('strong', { style: { color: '#5a7a95' } }, 'Pareto'), ' explores AEP vs CAPEX trade-offs.',
+        ),
       ),
     ),
   );
