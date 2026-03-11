@@ -16,11 +16,11 @@
   }
   #root { padding: 10px 14px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; flex-shrink: 0; }
-  .header h1 { font-size: 16px; font-weight: 700; color: #00e5ff; letter-spacing: 0.05em; text-transform: uppercase; }
-  .header .sub { font-size: 10px; color: #4a6785; margin-top: 2px; letter-spacing: 0.08em; }
+  .header h1 { font-size: 20px; font-weight: 700; color: #00e5ff; letter-spacing: 0.05em; text-transform: uppercase; }
+  .header .sub { font-size: 12px; color: #4a6785; margin-top: 2px; letter-spacing: 0.08em; }
   .header-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; } /* legacy */
   .btn {
-    border-radius: 5px; padding: 5px 10px; font-size: 9px; cursor: pointer;
+    border-radius: 5px; padding: 6px 12px; font-size: 11px; cursor: pointer;
     font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; font-weight: 600;
     transition: all 0.2s; outline: none;
   }
@@ -32,10 +32,10 @@
   .btn-replay:disabled { background: #1a2744; border-color: #4a6785; color: #4a6785; cursor: default; }
   .btn-pareto { background: #2a1a44; border: 1px solid #aa66ff; color: #aa66ff; }
   .btn-pareto:disabled { background: #1a2744; border-color: #4a6785; color: #4a6785; cursor: default; }
-  .btn-export { background: #1a2744; border: 1px solid #5a7a95; color: #5a7a95; padding: 3px 8px; font-size: 8px; }
+  .btn-export { background: #1a2744; border: 1px solid #5a7a95; color: #5a7a95; padding: 4px 10px; font-size: 10px; }
   .algo-select {
     background: #0d1321; border: 1px solid #1a3355; color: #00e5ff; border-radius: 4px;
-    padding: 5px 8px; font-size: 9px; font-family: inherit; outline: none; cursor: pointer;
+    padding: 6px 10px; font-size: 11px; font-family: inherit; outline: none; cursor: pointer;
     letter-spacing: 0.05em;
   }
   .algo-select option { background: #0d1321; color: #c8d6e5; }
@@ -59,32 +59,32 @@
   .left-panel::-webkit-scrollbar-track { background: transparent; }
   .left-panel::-webkit-scrollbar-thumb { background: #1a2744; border-radius: 2px; }
   .left-panel .card { background: #0d1321; border: 1px solid #1a2744; border-radius: 6px; padding: 8px 10px; }
-  .left-panel .card-label { font-size: 8px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 3px; }
+  .left-panel .card-label { font-size: 10px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 3px; }
   .left-panel .btn { width: 100%; margin-bottom: 2px; text-align: center; }
   .left-panel .algo-select { width: 100%; margin-bottom: 4px; }
   .left-panel .btn-row { display: flex; gap: 4px; }
   .left-panel .btn-row .btn { flex: 1; margin-bottom: 0; }
   .card { background: #0d1321; border: 1px solid #1a2744; border-radius: 6px; padding: 8px 10px; }
-  .card-label { font-size: 8px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 3px; }
-  .card-value { font-size: 16px; font-weight: 700; }
-  .card-sub { font-size: 9px; color: #5a7a95; margin-top: 1px; }
+  .card-label { font-size: 10px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 3px; }
+  .card-value { font-size: 18px; font-weight: 700; }
+  .card-sub { font-size: 11px; color: #5a7a95; margin-top: 1px; }
   .npv-card {
     background: linear-gradient(135deg, #0d1321 0%, #0a1a2e 100%);
     border: 1px solid #1a3355; border-radius: 6px; padding: 10px 12px;
   }
-  .npv-label { font-size: 8px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 4px; }
-  .npv-value { font-size: 24px; font-weight: 700; color: #00e5ff; line-height: 1; }
-  .npv-delta { font-size: 11px; margin-top: 4px; font-weight: 600; }
+  .npv-label { font-size: 10px; color: #4a6785; letter-spacing: 0.12em; margin-bottom: 4px; }
+  .npv-value { font-size: 28px; font-weight: 700; color: #00e5ff; line-height: 1; }
+  .npv-delta { font-size: 13px; margin-top: 4px; font-weight: 600; }
   .capex-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-  .capex-row .lbl { font-size: 10px; color: #8899aa; }
-  .capex-row .val { font-size: 11px; font-weight: 600; }
+  .capex-row .lbl { font-size: 12px; color: #8899aa; }
+  .capex-row .val { font-size: 13px; font-weight: 600; }
   .divider { background: #1a2744; height: 1px; margin: 4px 0; }
-  .how-to { font-size: 9px; color: #4a6785; line-height: 1.4; }
+  .how-to { font-size: 11px; color: #4a6785; line-height: 1.4; }
   .how-to strong { color: #5a7a95; }
-  .citation { color: #2a5a7a; font-size: 8px; }
+  .citation { color: #2a5a7a; font-size: 10px; }
   .slider-section { display: flex; flex-direction: column; gap: 4px; }
   .slider-row { display: flex; align-items: center; gap: 6px; }
-  .slider-row label { font-size: 8px; color: #5a7a95; min-width: 62px; letter-spacing: 0.05em; }
+  .slider-row label { font-size: 11px; color: #5a7a95; min-width: 72px; letter-spacing: 0.05em; }
   .slider-row input[type="range"] {
     flex: 1; accent-color: #00e5ff; height: 3px;
     -webkit-appearance: none; background: #1a2744; border-radius: 2px; outline: none;
@@ -93,13 +93,13 @@
     -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
     background: #00e5ff; cursor: pointer;
   }
-  .slider-row .slider-val { font-size: 9px; color: #8899aa; min-width: 50px; text-align: right; }
+  .slider-row .slider-val { font-size: 11px; color: #8899aa; min-width: 55px; text-align: right; }
   .replay-bar {
     position: absolute; bottom: 36px; left: 10px; right: 10px;
     background: #0a0e17ee; border: 1px solid #1a3355; border-radius: 6px;
     padding: 8px 12px; display: flex; align-items: center; gap: 10px;
   }
-  .replay-bar .rb-label { font-size: 9px; color: #44cc88; letter-spacing: 0.08em; white-space: nowrap; }
+  .replay-bar .rb-label { font-size: 11px; color: #44cc88; letter-spacing: 0.08em; white-space: nowrap; }
   .replay-bar input[type="range"] {
     flex: 1; accent-color: #44cc88; height: 3px;
     -webkit-appearance: none; background: #1a2744; border-radius: 2px; outline: none;
@@ -108,7 +108,7 @@
     -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
     background: #44cc88; cursor: pointer;
   }
-  .replay-bar .rb-step { font-size: 10px; color: #8899aa; min-width: 40px; text-align: center; }
+  .replay-bar .rb-step { font-size: 12px; color: #8899aa; min-width: 40px; text-align: center; }
   .replay-btn {
     background: none; border: 1px solid #44cc88; color: #44cc88; border-radius: 4px;
     padding: 2px 8px; font-size: 10px; cursor: pointer; font-family: inherit;
@@ -127,12 +127,12 @@
     background: #0d1321; border: 1px solid #1a3355; border-radius: 12px;
     padding: 20px; width: 700px; max-width: 90vw; max-height: 85vh; overflow-y: auto;
   }
-  .pareto-modal h2 { font-size: 14px; color: #aa66ff; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .pareto-modal h2 { font-size: 16px; color: #aa66ff; letter-spacing: 0.1em; margin-bottom: 12px; }
   .pareto-close {
     float: right; background: none; border: 1px solid #4a6785; color: #4a6785;
-    border-radius: 4px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 10px;
+    border-radius: 4px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 12px;
   }
-  .pareto-status { font-size: 10px; color: #5a7a95; margin-bottom: 10px; }
+  .pareto-status { font-size: 12px; color: #5a7a95; margin-bottom: 10px; }
   @media (max-width: 1100px) {
     html, body { height: auto; overflow: auto; }
     #root { height: auto; overflow: visible; }
@@ -1519,6 +1519,20 @@ function App() {
         h('p', { className: 'sub' },
           `TECHNO-ECONOMIC NPV OPTIMIZATION \u00B7 ${N_TURBINES}\u00D7 IEA 15MW \u00B7 SEMI-SUBMERSIBLE \u00B7 ${N_TURBINES * RATED_POWER} MW`),
       ),
+      h('div', { className: 'header-btns' },
+        h('select', { className: 'algo-select', value: algo, onChange: e => setAlgo(e.target.value) },
+          h('option', { value: 'random' }, 'Random Search'),
+          h('option', { value: 'sa' }, 'Simulated Annealing'),
+          h('option', { value: 'ga' }, 'Genetic Algorithm'),
+        ),
+        h('button', { className: 'btn btn-optimize', onClick: runOptimize, disabled: optimizing || inReplay },
+          optimizing ? `${algo.toUpperCase()} ${optimizeCount}/${totalSteps}` : '\u26A1 OPTIMIZE'),
+        h('button', { className: 'btn btn-reset', onClick: resetGrid }, '\u21BA RESET'),
+        h('button', { className: 'btn btn-replay', onClick: inReplay ? exitReplay : startReplay, disabled: !hasHistory || optimizing },
+          inReplay ? '\u2715 EXIT' : '\u25B6 REPLAY'),
+        h('button', { className: 'btn btn-pareto', onClick: runPareto, disabled: optimizing || inReplay || paretoRunning },
+          '\u2022\u2022\u2022 PARETO EXPLORE'),
+      ),
     ),
 
     // Main
@@ -1703,24 +1717,7 @@ function App() {
 
       // Right panel — inputs
       h('div', { className: 'left-panel' },
-        // Algorithm & Controls
-        h('div', { className: 'card' },
-          h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'OPTIMIZER'),
-          h('select', { className: 'algo-select', value: algo, onChange: e => setAlgo(e.target.value) },
-            h('option', { value: 'random' }, 'Random Search'),
-            h('option', { value: 'sa' }, 'Simulated Annealing'),
-            h('option', { value: 'ga' }, 'Genetic Algorithm'),
-          ),
-          h('button', { className: 'btn btn-optimize', onClick: runOptimize, disabled: optimizing || inReplay },
-            optimizing ? `${algo.toUpperCase()} ${optimizeCount}/${totalSteps}` : '\u26A1 OPTIMIZE'),
-          h('div', { className: 'btn-row' },
-            h('button', { className: 'btn btn-reset', onClick: resetGrid }, '\u21BA RESET'),
-            h('button', { className: 'btn btn-replay', onClick: inReplay ? exitReplay : startReplay, disabled: !hasHistory || optimizing },
-              inReplay ? '\u2715 EXIT' : '\u25B6 REPLAY'),
-          ),
-          h('button', { className: 'btn btn-pareto', onClick: runPareto, disabled: optimizing || inReplay || paretoRunning },
-            '\u2022\u2022\u2022 PARETO EXPLORE'),
-        ),
+        // (Optimizer controls moved to header)
         // Sensitivity
         h('div', { className: 'card' },
           h('div', { className: 'card-label', style: { marginBottom: 6 } }, 'SENSITIVITY'),
