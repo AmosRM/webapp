@@ -9,11 +9,11 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --en-dark: #0D3B3B;
-      --en-green: #0D3B3B;
-      --en-orange: #E8612D;
-      --en-teal: #3ECEB0;
-      --en-gray: #F5F5F5;
+      --en-dark: #1C3C3C;
+      --en-green: #1C3C3C;
+      --en-orange: #ff8a01;
+      --en-teal: #62D6A1;
+      --en-gray: #EBEBE8;
       --en-text: #333;
       --en-text-light: #666;
     }
@@ -26,8 +26,8 @@
 
     /* --- Header --- */
     .site-header {
-      background: #fff;
-      border-bottom: 1px solid #eee;
+      background: var(--en-dark);
+      border-bottom: none;
       padding: 0 48px;
       height: 72px;
       display: flex;
@@ -47,7 +47,7 @@
     }
     .site-nav a {
       text-decoration: none;
-      color: var(--en-dark);
+      color: #fff;
       font-size: 15px;
       font-weight: 500;
       display: flex;
@@ -74,7 +74,7 @@
     .header-right .lang {
       font-size: 14px;
       font-weight: 500;
-      color: var(--en-dark);
+      color: #fff;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -83,7 +83,7 @@
     .header-icon {
       width: 20px;
       height: 20px;
-      color: var(--en-dark);
+      color: #fff;
       cursor: pointer;
       opacity: 0.7;
       transition: opacity 0.2s;
@@ -94,17 +94,25 @@
     .hero-banner {
       position: relative;
       height: 420px;
-      background: linear-gradient(135deg, #0D3B3B 0%, #145252 50%, #0D3B3B 100%);
+      background: #0D3B3B;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+    .hero-banner .hero-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
     .hero-banner::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%230D3B3B"/><circle cx="200" cy="300" r="400" fill="%23145252" opacity="0.3"/><circle cx="900" cy="200" r="350" fill="%231a5a5a" opacity="0.2"/><circle cx="600" cy="500" r="300" fill="%23145252" opacity="0.15"/></svg>') center/cover;
+      background: rgba(28, 60, 60, 0.55);
+      z-index: 1;
     }
     .hero-accent-left {
       position: absolute;
@@ -115,6 +123,7 @@
       height: 6px;
       background: var(--en-teal);
       border-radius: 0 3px 3px 0;
+      z-index: 2;
     }
     .hero-accent-right {
       position: absolute;
@@ -124,10 +133,11 @@
       height: 6px;
       background: var(--en-teal);
       border-radius: 3px 0 0 3px;
+      z-index: 2;
     }
     .hero-content {
       position: relative;
-      z-index: 1;
+      z-index: 2;
       text-align: center;
       color: #fff;
       max-width: 700px;
@@ -382,7 +392,7 @@
         <path d="M10 6C10 6 6 12 6 17C6 20.3 7.8 23 10 23C12.2 23 14 20.3 14 17C14 12 10 6 10 6Z" fill="none" stroke="#E8612D" stroke-width="2"/>
         <circle cx="10" cy="26" r="1.5" fill="#E8612D"/>
         <!-- ENERGYNEST text -->
-        <text x="24" y="21" font-family="Inter, sans-serif" font-size="18" font-weight="700" letter-spacing="2" fill="#0D3B3B">ENERGYNEST</text>
+        <text x="24" y="21" font-family="Inter, sans-serif" font-size="18" font-weight="700" letter-spacing="2" fill="#ffffff">ENERGYNEST</text>
       </svg>
     </a>
     <nav class="site-nav">
@@ -411,6 +421,9 @@
 
   <!-- Hero Banner -->
   <section class="hero-banner">
+    <video class="hero-video" autoplay muted loop playsinline>
+      <source src="/4EN/energynest-thermal-battery-hero.mp4" type="video/mp4">
+    </video>
     <div class="hero-accent-left"></div>
     <div class="hero-accent-right"></div>
     <div class="hero-content">

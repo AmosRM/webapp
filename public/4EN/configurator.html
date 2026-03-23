@@ -375,9 +375,13 @@
       padding: 16px 20px;
       min-width: 200px;
       pointer-events: auto;
-      transition: transform 0.3s, opacity 0.3s;
+      transition: transform 0.3s, opacity 0.3s, border-color 0.4s, box-shadow 0.4s;
+      position: relative;
     }
     .result-card:hover { transform: translateY(-2px); }
+    .result-card.pulse-green { border-color: var(--green); box-shadow: 0 0 20px rgba(98,214,161,0.25); }
+    .result-card.pulse-orange { border-color: var(--orange); box-shadow: 0 0 20px rgba(255,138,1,0.25); }
+    .result-card.pulse-white { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 20px rgba(255,255,255,0.12); }
     .result-label {
       font-size: 10px;
       font-weight: 600;
@@ -399,6 +403,28 @@
     .result-value.green { color: var(--green); }
     .result-value.orange { color: var(--orange); }
     .result-value.white { color: #fff; }
+    .result-tooltip {
+      position: absolute;
+      right: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%) translateX(4px);
+      width: 200px;
+      background: rgba(10,20,20,0.95);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-mid);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 20;
+    }
+    .result-card:hover .result-tooltip {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
 
     /* ─── 3D Viewport ─── */
     .viewport {
@@ -412,6 +438,26 @@
       height: 100%;
       border: none;
     }
+    .bg-toggle {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 10;
+      background: rgba(20,40,40,0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .bg-toggle:hover { background: rgba(20,40,40,0.85); border-color: rgba(255,255,255,0.45); }
+    .bg-toggle.active { background: rgba(20,40,40,0.85); border-color: var(--accent); }
 
     /* ─── CTA Bar (bottom of panel) ─── */
     .cta-section {
@@ -849,19 +895,29 @@
   <div class="viewport">
     <iframe id="viewer" src="heat-exchanger.html" allow="autoplay"></iframe>
 
+    <!-- Background toggle -->
+    <button class="bg-toggle" id="bgToggle" onclick="toggleBg()" title="Toggle background">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+
     <!-- Floating results -->
     <div class="results-bar" id="resultsBar">
-      <div class="result-card">
+      <div class="result-card" id="cardCo2">
+        <div class="result-tooltip">Estimated CO2 avoided by replacing fossil fuel boilers with stored thermal energy from renewable sources.</div>
         <div class="result-label">Annual CO2 Reduction</div>
         <div class="result-value green" id="co2Value">~840</div>
         <div class="result-sub">tonnes CO2/year</div>
       </div>
-      <div class="result-card">
+      <div class="result-card" id="cardSavings">
+        <div class="result-tooltip">Projected annual savings from reduced fuel consumption and improved energy efficiency, based on current gas prices.</div>
         <div class="result-label">Cost Savings</div>
         <div class="result-value orange" id="savingsValue">~320K</div>
         <div class="result-sub">EUR/year</div>
       </div>
-      <div class="result-card">
+      <div class="result-card" id="cardPayback">
+        <div class="result-tooltip">Time to recover the initial investment through energy savings. Larger systems benefit from economies of scale.</div>
         <div class="result-label">Payback Period</div>
         <div class="result-value white" id="paybackValue">~4</div>
         <div class="result-sub">years</div>
@@ -1126,6 +1182,14 @@
     sendToViewer({ type: view === 'casing' ? 'showCasing' : 'hideCasing' });
   }
 
+  // ─── HDRI Background Toggle ───
+  let hdriOn = true;
+  function toggleBg() {
+    hdriOn = !hdriOn;
+    document.getElementById('bgToggle').classList.toggle('active', hdriOn);
+    sendToViewer({ type: 'toggleHdri', value: hdriOn });
+  }
+
   // ─── Estimates Engine ───
   // Simplified multipliers for illustration. Real numbers from ENERGYNEST engineering.
   const industryMultipliers = {
@@ -1135,6 +1199,28 @@
   const solutionMultipliers = {
     wasteheat: 1.0, steam: 1.1, solar: 0.85, electrification: 1.2
   };
+
+  // ─── Animated Counter ───
+  const animCounters = {};
+  function animateValue(el, id, target, duration, formatter) {
+    if (animCounters[id]) cancelAnimationFrame(animCounters[id]);
+    const start = animCounters[id + '_val'] ?? target;
+    const startTime = performance.now();
+    function tick(now) {
+      const t = Math.min((now - startTime) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const current = start + (target - start) * ease;
+      animCounters[id + '_val'] = current;
+      el.textContent = formatter(current);
+      if (t < 1) animCounters[id] = requestAnimationFrame(tick);
+    }
+    animCounters[id] = requestAnimationFrame(tick);
+  }
+
+  function pulseCard(card, colorClass) {
+    card.classList.add(colorClass);
+    setTimeout(() => card.classList.remove(colorClass), 1500);
+  }
 
   function updateEstimates() {
     const im = industryMultipliers[selectedIndustry] || 1.0;
@@ -1147,15 +1233,26 @@
     const savings = Math.round(cap * 32 * im * sm);
     // Payback: roughly 3-6 years depending on size (larger = faster payback)
     const payback = Math.max(2.5, 5.5 - (cap / 80) * 1.5);
-    const paybackRound = payback.toFixed(1);
 
-    // Format
-    const co2Str = co2 >= 1000 ? `~${(co2/1000).toFixed(1)}K` : `~${co2}`;
-    const savStr = savings >= 1000 ? `~${(savings/1000).toFixed(1)}M` : `~${savings}K`;
+    const dur = 500;
 
-    document.getElementById('co2Value').textContent = co2Str;
-    document.getElementById('savingsValue').textContent = savStr + ' EUR';
-    document.getElementById('paybackValue').textContent = `~${paybackRound}`;
+    animateValue(document.getElementById('co2Value'), 'co2', co2, dur, v => {
+      const r = Math.round(v);
+      return r >= 1000 ? `~${(r/1000).toFixed(1)}K` : `~${r}`;
+    });
+
+    animateValue(document.getElementById('savingsValue'), 'sav', savings, dur, v => {
+      const r = Math.round(v);
+      return (r >= 1000 ? `~${(r/1000).toFixed(1)}M` : `~${r}K`) + ' EUR';
+    });
+
+    animateValue(document.getElementById('paybackValue'), 'pay', payback, dur, v => {
+      return `~${v.toFixed(1)}`;
+    });
+
+    pulseCard(document.getElementById('cardCo2'), 'pulse-green');
+    pulseCard(document.getElementById('cardSavings'), 'pulse-orange');
+    pulseCard(document.getElementById('cardPayback'), 'pulse-white');
   }
 
   // ─── Modal ───

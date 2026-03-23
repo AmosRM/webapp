@@ -31,11 +31,29 @@
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
     const container = document.getElementById('hx-canvas-container');
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xc8c8c8);
+
+    // Load HDRI environment
+    const defaultBg = new THREE.Color(0xc8c8c8);
+    let hdriTexture = null;
+    let hdriBackground = true;
+
+    new RGBELoader().load('env.hdr', (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      hdriTexture = texture;
+      scene.environment = texture;
+      if (hdriBackground) scene.background = texture;
+    });
+
+    function setHdriBackground(on) {
+      hdriBackground = on;
+      scene.background = on && hdriTexture ? hdriTexture : defaultBg;
+    }
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 300);
     camera.position.set(-14, 10, 17);
@@ -74,7 +92,7 @@
 
     // Materials (shared across all units)
     const steelMat = new THREE.MeshStandardMaterial({ color: 0x909090, roughness: 0.4, metalness: 0.7 });
-    const tubeMat = new THREE.MeshStandardMaterial({ color: 0xb8b8b8, roughness: 0.35, metalness: 0.65 });
+    const tubeMat = new THREE.MeshStandardMaterial({ color: 0x8a8a8a, roughness: 0.45, metalness: 0.5, envMapIntensity: 0 });
     const darkSteelMat = new THREE.MeshStandardMaterial({ color: 0x6e6e6e, roughness: 0.5, metalness: 0.7 });
     const lightSteelMat = new THREE.MeshStandardMaterial({ color: 0xa0a0a0, roughness: 0.35, metalness: 0.7 });
 
@@ -130,6 +148,12 @@
     function buildUnit() {
       const group = new THREE.Group();
 
+      function tag(mesh, partType, order) {
+        mesh.userData.partType = partType;
+        mesh.userData.partOrder = order !== undefined ? order : 0;
+        return mesh;
+      }
+
       const numBays = 5;
       const postXPositions = [];
       for (let i = 0; i <= numBays; i++) {
@@ -141,21 +165,21 @@
       const yTop = legHeight + frameHeight;
 
       // Vertical posts
-      postXPositions.forEach(x => {
-        group.add(createBeam(new THREE.Vector3(x, yBot, zFront), new THREE.Vector3(x, yTop, zFront), beamSize, lightSteelMat));
-        group.add(createBeam(new THREE.Vector3(x, yBot, zBack), new THREE.Vector3(x, yTop, zBack), beamSize, lightSteelMat));
+      postXPositions.forEach((x, idx) => {
+        group.add(tag(createBeam(new THREE.Vector3(x, yBot, zFront), new THREE.Vector3(x, yTop, zFront), beamSize, lightSteelMat), 'frame', idx));
+        group.add(tag(createBeam(new THREE.Vector3(x, yBot, zBack), new THREE.Vector3(x, yTop, zBack), beamSize, lightSteelMat), 'frame', idx));
       });
 
       // Horizontal beams along length
       [zFront, zBack].forEach(z => {
-        group.add(createBeam(new THREE.Vector3(-frameLength / 2, yBot, z), new THREE.Vector3(frameLength / 2, yBot, z), beamSize, lightSteelMat));
-        group.add(createBeam(new THREE.Vector3(-frameLength / 2, yTop, z), new THREE.Vector3(frameLength / 2, yTop, z), beamSize, lightSteelMat));
+        group.add(tag(createBeam(new THREE.Vector3(-frameLength / 2, yBot, z), new THREE.Vector3(frameLength / 2, yBot, z), beamSize, lightSteelMat), 'frame', 0));
+        group.add(tag(createBeam(new THREE.Vector3(-frameLength / 2, yTop, z), new THREE.Vector3(frameLength / 2, yTop, z), beamSize, lightSteelMat), 'frame', numBays));
       });
 
       // Cross beams (width)
-      postXPositions.forEach(x => {
-        group.add(createBeam(new THREE.Vector3(x, yBot, zFront), new THREE.Vector3(x, yBot, zBack), beamSize, lightSteelMat));
-        group.add(createBeam(new THREE.Vector3(x, yTop, zFront), new THREE.Vector3(x, yTop, zBack), beamSize, lightSteelMat));
+      postXPositions.forEach((x, idx) => {
+        group.add(tag(createBeam(new THREE.Vector3(x, yBot, zFront), new THREE.Vector3(x, yBot, zBack), beamSize, lightSteelMat), 'frame', idx));
+        group.add(tag(createBeam(new THREE.Vector3(x, yTop, zFront), new THREE.Vector3(x, yTop, zBack), beamSize, lightSteelMat), 'frame', idx));
       });
 
       // Diagonal braces (N-pattern)
@@ -164,33 +188,33 @@
         const x2 = postXPositions[i + 1];
         [zFront, zBack].forEach(z => {
           if (i % 2 === 0) {
-            group.add(createBeam(new THREE.Vector3(x1, yBot, z), new THREE.Vector3(x2, yTop, z), beamSize * 0.7, lightSteelMat));
+            group.add(tag(createBeam(new THREE.Vector3(x1, yBot, z), new THREE.Vector3(x2, yTop, z), beamSize * 0.7, lightSteelMat), 'frame', i));
           } else {
-            group.add(createBeam(new THREE.Vector3(x1, yTop, z), new THREE.Vector3(x2, yBot, z), beamSize * 0.7, lightSteelMat));
+            group.add(tag(createBeam(new THREE.Vector3(x1, yTop, z), new THREE.Vector3(x2, yBot, z), beamSize * 0.7, lightSteelMat), 'frame', i));
           }
         });
       }
 
       // Legs and feet
-      postXPositions.forEach(x => {
+      postXPositions.forEach((x, idx) => {
         [zFront, zBack].forEach(z => {
           const legGeo = new THREE.BoxGeometry(beamSize * 1.8, legHeight, beamSize * 1.8);
           const leg = new THREE.Mesh(legGeo, steelMat);
           leg.position.set(x, legHeight / 2, z);
           leg.castShadow = true;
-          group.add(leg);
+          group.add(tag(leg, 'leg', idx));
 
           const footGeo = new THREE.BoxGeometry(0.5, 0.06, 0.5);
           const foot = new THREE.Mesh(footGeo, darkSteelMat);
           foot.position.set(x, 0.03, z);
           foot.receiveShadow = true;
-          group.add(foot);
+          group.add(tag(foot, 'foot', idx));
         });
       });
 
       // Bottom runners
       [zFront, zBack].forEach(z => {
-        group.add(createBeam(new THREE.Vector3(-frameLength / 2, 0.06, z), new THREE.Vector3(frameLength / 2, 0.06, z), beamSize * 0.9, darkSteelMat));
+        group.add(tag(createBeam(new THREE.Vector3(-frameLength / 2, 0.06, z), new THREE.Vector3(frameLength / 2, 0.06, z), beamSize * 0.9, darkSteelMat), 'foot', 0));
       });
 
       // Tubes (staggered)
@@ -216,13 +240,13 @@
           const tube = new THREE.Mesh(straightTubeGeo, tubeMat);
           tube.position.set((tubeStartX + tubeEndX) / 2, y, z);
           tube.castShadow = true;
-          group.add(tube);
+          group.add(tag(tube, 'tube', row));
         }
         tubePositions.push(rowPositions);
       }
 
       // U-bends (left end)
-      function addUBend(y1, z1, y2, z2, xPos, direction) {
+      function addUBend(y1, z1, y2, z2, xPos, direction, pairIdx) {
         const bendReach = Math.abs(y2 - y1) * 0.55;
         const curve = new THREE.CatmullRomCurve3([
           new THREE.Vector3(xPos, y1, z1),
@@ -234,7 +258,7 @@
         const bendGeo = new THREE.TubeGeometry(curve, 24, tubeRadius, 12, false);
         const bendMesh = new THREE.Mesh(bendGeo, tubeMat);
         bendMesh.castShadow = true;
-        group.add(bendMesh);
+        group.add(tag(bendMesh, 'ubend', pairIdx));
       }
 
       for (let pairIdx = 0; pairIdx < 3; pairIdx++) {
@@ -243,7 +267,7 @@
         const posA = tubePositions[rowA];
         const posB = tubePositions[rowB];
         for (let col = 0; col < posB.length; col++) {
-          addUBend(posA[col].y, posA[col].z, posB[col].y, posB[col].z, tubeStartX, -1);
+          addUBend(posA[col].y, posA[col].z, posB[col].y, posB[col].z, tubeStartX, -1, pairIdx);
         }
       }
 
@@ -253,7 +277,7 @@
       const tubeSheet = new THREE.Mesh(sheetGeo, darkSteelMat);
       tubeSheet.position.set(tubeEndX + sheetThickness / 2, legHeight + frameHeight / 2, 0);
       tubeSheet.castShadow = true;
-      group.add(tubeSheet);
+      group.add(tag(tubeSheet, 'tubesheet', 0));
 
       // Header manifolds + stubs
       const headerRadius = 0.22;
@@ -275,14 +299,14 @@
       topManifold.position.set(headerX, topManifoldY, (topManifoldZ1 + topManifoldZ2) / 2);
       topManifold.rotation.x = Math.PI / 2;
       topManifold.castShadow = true;
-      group.add(topManifold);
+      group.add(tag(topManifold, 'manifold', 1));
 
       const stubGeo = new THREE.CylinderGeometry(stubRadius, stubRadius, stubHeight + headerRadius, 8);
       topRow.forEach(pos => {
         const stub = new THREE.Mesh(stubGeo, tubeMat);
         stub.position.set(headerX, pos.y + (stubHeight + headerRadius) / 2, pos.z);
         stub.castShadow = true;
-        group.add(stub);
+        group.add(tag(stub, 'manifold', 1));
       });
 
       // Bottom manifold
@@ -294,13 +318,13 @@
       botManifold.position.set(headerX, botManifoldY, (botManifoldZ1 + botManifoldZ2) / 2);
       botManifold.rotation.x = Math.PI / 2;
       botManifold.castShadow = true;
-      group.add(botManifold);
+      group.add(tag(botManifold, 'manifold', 0));
 
       botRow.forEach(pos => {
         const stub = new THREE.Mesh(stubGeo, tubeMat);
         stub.position.set(headerX, pos.y - (stubHeight + headerRadius) / 2, pos.z);
         stub.castShadow = true;
-        group.add(stub);
+        group.add(tag(stub, 'manifold', 0));
       });
 
       // Inlet pipe
@@ -314,7 +338,7 @@
       const inletPipe = new THREE.Mesh(inletGeo, steelMat);
       inletPipe.castShadow = true;
       inletPipe.userData.isExternalPipe = true;
-      group.add(inletPipe);
+      group.add(tag(inletPipe, 'extpipe', 0));
 
       // Outlet pipe
       const outletCurve = new THREE.CatmullRomCurve3([
@@ -327,7 +351,7 @@
       const outletPipe = new THREE.Mesh(outletGeo, steelMat);
       outletPipe.castShadow = true;
       outletPipe.userData.isExternalPipe = true;
-      group.add(outletPipe);
+      group.add(tag(outletPipe, 'extpipe', 1));
 
       return group;
     }
@@ -363,8 +387,8 @@
         targets: from,
         cx: to.cx, cy: to.cy, cz: to.cz,
         tx: to.tx, ty: to.ty, tz: to.tz,
-        duration: duration || 800,
-        easing: easing || 'easeInOutQuart',
+        duration: duration || 1100,
+        easing: easing || 'easeInOutQuint',
         update: () => {
           camera.position.set(from.cx, from.cy, from.cz);
           controls.target.set(from.tx, from.ty, from.tz);
@@ -380,38 +404,247 @@
       gridGroup.remove(unit);
     }
 
+    function getUnitParts(unit, type) {
+      return unit.children.filter(c => c.userData.partType === type);
+    }
+
     function animateUnitIn(unit, delay) {
       const targetY = unit.userData.targetY;
-      // Start below and scaled down, like the casing build
-      unit.position.y = targetY - 3;
-      unit.scale.set(1, 0.01, 1);
+      unit.position.y = targetY;
 
+      const feet = getUnitParts(unit, 'foot');
+      const legs = getUnitParts(unit, 'leg');
+      const frames = getUnitParts(unit, 'frame');
+      const tubes = getUnitParts(unit, 'tube');
+      const ubends = getUnitParts(unit, 'ubend');
+      const tubesheet = getUnitParts(unit, 'tubesheet');
+      const manifolds = getUnitParts(unit, 'manifold');
+      const extpipes = getUnitParts(unit, 'extpipe');
+
+      // Snapshot final positions/scales
+      unit.children.forEach(c => {
+        c.userData._finalPos = c.position.clone();
+        c.userData._finalScale = c.scale.clone();
+      });
+
+      // --- Initial states ---
+      // Feet: flat on ground, scaled down
+      feet.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+
+      // Legs: squashed flat, at foot level
+      legs.forEach(c => {
+        c.scale.set(1, 0.01, 1);
+        c.position.y = 0.06;
+      });
+
+      // Frame: scaled to zero
+      frames.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+
+      // Tubes: offset to the right (slide in from side), invisible scale
+      tubes.forEach(c => {
+        c.userData._origX = c.position.x;
+        c.position.x = c.userData._finalPos.x + 12;
+        c.scale.set(1, 0.01, 0.01);
+      });
+
+      // U-bends: scaled to zero
+      ubends.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+
+      // Tube sheet: scaled flat
+      tubesheet.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+
+      // Manifolds: scaled to zero
+      manifolds.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+
+      // External pipes: scaled to zero
+      extpipes.forEach(c => {
+        c.scale.set(0.01, 0.01, 0.01);
+      });
+
+      // --- Staged assembly ---
+      const d = delay;
+
+      // 1. Feet pop in (foundation)
       gridAnims.push(anime({
-        targets: unit.position,
-        y: targetY,
-        duration: 600,
-        delay: delay,
-        easing: 'easeOutCubic',
+        targets: feet.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 350,
+        delay: anime.stagger(25, { start: d }),
+        easing: 'easeOutBack',
+      }));
+
+      // 2. Legs grow upward
+      gridAnims.push(anime({
+        targets: legs.map(c => c.scale),
+        y: 1,
+        duration: 450,
+        delay: anime.stagger(30, { start: d + 200 }),
+        easing: 'easeOutExpo',
       }));
       gridAnims.push(anime({
-        targets: unit.scale,
-        y: 1,
-        duration: 600,
-        delay: delay,
-        easing: 'easeOutCubic',
+        targets: legs.map(c => c.position),
+        y: (el, i) => legs[i].userData._finalPos.y,
+        duration: 450,
+        delay: anime.stagger(30, { start: d + 200 }),
+        easing: 'easeOutExpo',
+      }));
+
+      // 3. Frame assembles — posts first (staggered by bay index), then beams
+      frames.sort((a, b) => a.userData.partOrder - b.userData.partOrder);
+      gridAnims.push(anime({
+        targets: frames.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 400,
+        delay: anime.stagger(20, { start: d + 500 }),
+        easing: 'easeOutBack',
+      }));
+
+      // 4. Tube sheet slides into place (right end cap before tubes arrive)
+      gridAnims.push(anime({
+        targets: tubesheet.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 400,
+        delay: d + 900,
+        easing: 'easeOutBack',
+      }));
+
+      // 5. Tubes slide in from the right, row by row (bottom up)
+      tubes.sort((a, b) => a.userData.partOrder - b.userData.partOrder);
+      gridAnims.push(anime({
+        targets: tubes.map(c => c.position),
+        x: (el, i) => tubes[i].userData._finalPos.x,
+        duration: 700,
+        delay: anime.stagger(12, { start: d + 1000 }),
+        easing: 'easeOutExpo',
+      }));
+      gridAnims.push(anime({
+        targets: tubes.map(c => c.scale),
+        y: 1, z: 1,
+        duration: 500,
+        delay: anime.stagger(12, { start: d + 1000 }),
+        easing: 'easeOutQuint',
+      }));
+
+      // 6. U-bends appear (connecting tubes at the left end)
+      ubends.sort((a, b) => a.userData.partOrder - b.userData.partOrder);
+      gridAnims.push(anime({
+        targets: ubends.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 400,
+        delay: anime.stagger(20, { start: d + 1600 }),
+        easing: 'easeOutBack',
+      }));
+
+      // 7. Manifolds and stubs pop in
+      manifolds.sort((a, b) => a.userData.partOrder - b.userData.partOrder);
+      gridAnims.push(anime({
+        targets: manifolds.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 400,
+        delay: anime.stagger(25, { start: d + 1850 }),
+        easing: 'easeOutBack',
+      }));
+
+      // 8. External pipes grow in last
+      gridAnims.push(anime({
+        targets: extpipes.map(c => c.scale),
+        x: 1, y: 1, z: 1,
+        duration: 500,
+        delay: anime.stagger(80, { start: d + 2150 }),
+        easing: 'easeOutElastic(1, 0.8)',
       }));
     }
 
-    function animateUnitOut(unit, delay, onComplete) {
+    function animateUnitOut(unit, delay) {
+      const allParts = unit.children;
+
+      // Reverse assembly: shrink everything, tubes slide out
+      const tubes = getUnitParts(unit, 'tube');
+      const others = allParts.filter(c => c.userData.partType !== 'tube');
+
+      // External pipes + manifolds + ubends shrink first
+      const topParts = [...getUnitParts(unit, 'extpipe'), ...getUnitParts(unit, 'manifold'), ...getUnitParts(unit, 'ubend')];
       gridAnims.push(anime({
-        targets: unit.position,
-        y: unit.position.y - 20,
+        targets: topParts.map(c => c.scale),
+        x: 0.01, y: 0.01, z: 0.01,
+        duration: 250,
+        delay: anime.stagger(10, { start: delay }),
+        easing: 'easeInQuart',
+      }));
+
+      // Tubes slide out to the right
+      gridAnims.push(anime({
+        targets: tubes.map(c => c.position),
+        x: (el, i) => tubes[i].position.x + 12,
+        duration: 500,
+        delay: anime.stagger(8, { start: delay + 200 }),
+        easing: 'easeInQuart',
+      }));
+      gridAnims.push(anime({
+        targets: tubes.map(c => c.scale),
+        y: 0.01, z: 0.01,
         duration: 400,
-        delay: delay,
-        easing: 'easeInCubic',
+        delay: anime.stagger(8, { start: delay + 200 }),
+        easing: 'easeInQuart',
+      }));
+
+      // Tube sheet shrinks
+      const tubesheet = getUnitParts(unit, 'tubesheet');
+      gridAnims.push(anime({
+        targets: tubesheet.map(c => c.scale),
+        x: 0.01, y: 0.01, z: 0.01,
+        duration: 300,
+        delay: delay + 500,
+        easing: 'easeInQuart',
+      }));
+
+      // Frame collapses
+      const frames = getUnitParts(unit, 'frame');
+      gridAnims.push(anime({
+        targets: frames.map(c => c.scale),
+        x: 0.01, y: 0.01, z: 0.01,
+        duration: 350,
+        delay: anime.stagger(15, { start: delay + 600 }),
+        easing: 'easeInQuart',
+      }));
+
+      // Legs collapse down
+      const legs = getUnitParts(unit, 'leg');
+      gridAnims.push(anime({
+        targets: legs.map(c => c.scale),
+        y: 0.01,
+        duration: 300,
+        delay: anime.stagger(20, { start: delay + 800 }),
+        easing: 'easeInQuart',
+      }));
+      gridAnims.push(anime({
+        targets: legs.map(c => c.position),
+        y: 0.06,
+        duration: 300,
+        delay: anime.stagger(20, { start: delay + 800 }),
+        easing: 'easeInQuart',
+      }));
+
+      // Feet vanish last
+      const feet = getUnitParts(unit, 'foot');
+      gridAnims.push(anime({
+        targets: feet.map(c => c.scale),
+        x: 0.01, y: 0.01, z: 0.01,
+        duration: 250,
+        delay: anime.stagger(15, { start: delay + 1000 }),
+        easing: 'easeInQuart',
         complete: () => {
           disposeUnit(unit);
-          if (onComplete) onComplete();
         }
       }));
     }
@@ -469,7 +702,7 @@
       });
       toRemove.forEach(({ unit, key }, i) => {
         moduleRegistry.delete(key);
-        animateUnitOut(unit, i * 50);
+        animateUnitOut(unit, i * 200);
       });
 
       // Add new units
@@ -498,7 +731,7 @@
       // Update orbit radius for auto-orbit
       currentOrbitDist = cam.dist;
       currentOrbitTargetY = cam.target.y;
-      animateCamera(cam.camPos, cam.target, 800, 'easeInOutQuart');
+      animateCamera(cam.camPos, cam.target, 1100, 'easeInOutQuint');
 
       // Rebuild casing if visible
       rebuildCasing(stacks, rows);
@@ -510,13 +743,13 @@
         toAdd.sort((a, b) => a.s !== b.s ? a.s - b.s : a.r - b.r);
         toAdd.forEach(({ key }, i) => {
           const unit = moduleRegistry.get(key);
-          animateUnitIn(unit, i * 150);
+          animateUnitIn(unit, i * 400);
         });
       }
     }
 
     // Ground
-    const groundGeo = new THREE.PlaneGeometry(200, 200);
+    const groundGeo = new THREE.PlaneGeometry(60, 60);
     const groundMat = new THREE.MeshStandardMaterial({ color: 0xb0b0b0, roughness: 0.8 });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -915,9 +1148,10 @@
       const roofItems = getCasingByType('roof');
       const pipeItems = getCasingByType('pipe');
 
+      // --- Initial offsets ---
       baseItems.forEach(c => {
-        c.position.y = c.userData.finalPos.y - 3;
-        c.scale.set(1, 0.01, 1);
+        c.position.y = c.userData.finalPos.y - 4;
+        c.scale.set(0.9, 0.01, 0.9);
       });
       frameItems.forEach(c => {
         c.scale.set(0.01, 0.01, 0.01);
@@ -927,12 +1161,15 @@
         c.position.x = c.userData.finalPos.x + dir.x * SLIDE_DISTANCE;
         c.position.z = c.userData.finalPos.z + dir.z * SLIDE_DISTANCE;
         c.scale.set(1, 0.01, 1);
+        c.userData.startRotY = c.rotation.y;
+        // Slight rotation offset — walls swing into place
+        c.rotation.y += (dir.x !== 0 ? 0.15 : -0.15);
       });
       logoItems.forEach(c => {
         c.scale.set(0.01, 0.01, 0.01);
       });
       roofItems.forEach(c => {
-        c.position.y = c.userData.finalPos.y + 8;
+        c.position.y = c.userData.finalPos.y + 10;
       });
       pipeItems.forEach(c => {
         c.scale.set(0.01, 0.01, 0.01);
@@ -940,69 +1177,84 @@
 
       casingGroup.visible = true;
 
+      // 1. Base: rise up with weight
       casingAnims.push(anime({
         targets: baseItems.map(c => c.position),
         y: (el, i) => baseItems[i].userData.finalPos.y,
-        duration: 333,
-        easing: 'easeOutCubic',
-        delay: anime.stagger(27),
+        duration: 600,
+        easing: 'easeOutExpo',
+        delay: anime.stagger(40),
       }));
       casingAnims.push(anime({
         targets: baseItems.map(c => c.scale),
-        y: 1,
-        duration: 333,
-        easing: 'easeOutCubic',
-        delay: anime.stagger(27),
+        x: 1, y: 1, z: 1,
+        duration: 600,
+        easing: 'easeOutQuint',
+        delay: anime.stagger(40),
       }));
 
+      // 2. Frame: pop in with slight overshoot, overlapping with base
       casingAnims.push(anime({
         targets: frameItems.map(c => c.scale),
         x: 1, y: 1, z: 1,
-        duration: 467,
-        delay: anime.stagger(17, { start: 200 }),
+        duration: 650,
+        delay: anime.stagger(25, { start: 300 }),
         easing: 'easeOutBack',
       }));
 
+      // 3. Walls: slide + swing into place, scale up, overlapping with frames
       wallItems.forEach((wall, i) => {
         const fp = wall.userData.finalPos;
+        const fr = wall.userData.finalRot;
+        const stagger = 550 + i * 120;
         casingAnims.push(anime({
           targets: wall.position,
           x: fp.x, z: fp.z,
-          duration: 400,
-          delay: 467 + i * 100,
-          easing: 'easeOutCubic',
+          duration: 700,
+          delay: stagger,
+          easing: 'easeOutExpo',
         }));
         casingAnims.push(anime({
           targets: wall.scale,
           y: 1,
-          duration: 400,
-          delay: 467 + i * 100,
-          easing: 'easeOutCubic',
+          duration: 600,
+          delay: stagger,
+          easing: 'easeOutQuint',
+        }));
+        casingAnims.push(anime({
+          targets: wall.rotation,
+          y: fr.y,
+          duration: 700,
+          delay: stagger,
+          easing: 'easeOutQuint',
         }));
       });
 
+      // 4. Logos: scale in with gentle overshoot
       casingAnims.push(anime({
         targets: logoItems.map(c => c.scale),
         x: 1, y: 1, z: 1,
-        duration: 267,
-        delay: anime.stagger(53, { start: 933 }),
+        duration: 500,
+        delay: anime.stagger(70, { start: 1100 }),
         easing: 'easeOutBack',
       }));
 
+      // 5. Roof: descend and settle with gentle overshoot (not bouncy)
       casingAnims.push(anime({
         targets: roofItems.map(c => c.position),
         y: (el, i) => roofItems[i].userData.finalPos.y,
-        duration: 533,
-        delay: anime.stagger(40, { start: 1067 }),
-        easing: 'easeOutBounce',
+        duration: 800,
+        delay: anime.stagger(50, { start: 1250 }),
+        easing: 'easeOutBack',
       }));
 
+      // 6. Pipes: grow in with soft elastic
       casingAnims.push(anime({
         targets: pipeItems.map(c => c.scale),
         x: 1, y: 1, z: 1,
-        duration: 400,
-        delay: anime.stagger(27, { start: 1467 }),
-        easing: 'easeOutElastic(1, 0.6)',
+        duration: 600,
+        delay: anime.stagger(35, { start: 1700 }),
+        easing: 'easeOutElastic(1, 0.8)',
       }));
     }
 
@@ -1016,56 +1268,84 @@
       const frameItems = getCasingByType('frame');
       const baseItems = getCasingByType('base');
 
+      // 1. Pipes shrink away
       casingAnims.push(anime({
         targets: pipeItems.map(c => c.scale),
         x: 0.01, y: 0.01, z: 0.01,
-        duration: 200,
-        easing: 'easeInCubic',
-        delay: anime.stagger(13),
+        duration: 300,
+        easing: 'easeInQuart',
+        delay: anime.stagger(20),
       }));
 
+      // 2. Logos fade out
       casingAnims.push(anime({
         targets: logoItems.map(c => c.scale),
         x: 0.01, y: 0.01, z: 0.01,
-        duration: 167,
-        delay: anime.stagger(27, { start: 100 }),
-        easing: 'easeInCubic',
+        duration: 250,
+        delay: anime.stagger(35, { start: 150 }),
+        easing: 'easeInQuart',
       }));
 
+      // 3. Roof lifts off — slow start, then accelerates away
       casingAnims.push(anime({
         targets: roofItems.map(c => c.position),
-        y: (el, i) => roofItems[i].position.y + 8,
-        duration: 333,
-        delay: anime.stagger(20, { start: 200 }),
-        easing: 'easeInCubic',
+        y: (el, i) => roofItems[i].position.y + 10,
+        duration: 600,
+        delay: anime.stagger(30, { start: 300 }),
+        easing: 'easeInQuint',
       }));
 
+      // 4. Walls slide out with slight rotation and collapse
       wallItems.forEach((wall, i) => {
         const dir = wall.userData.slideDir || { x: 0, y: 0, z: -1 };
+        const stagger = 500 + i * 90;
         casingAnims.push(anime({
           targets: wall.position,
           x: wall.position.x + dir.x * SLIDE_DISTANCE,
           z: wall.position.z + dir.z * SLIDE_DISTANCE,
-          duration: 333,
-          delay: 333 + i * 67,
-          easing: 'easeInCubic',
+          duration: 550,
+          delay: stagger,
+          easing: 'easeInQuart',
+        }));
+        casingAnims.push(anime({
+          targets: wall.scale,
+          y: 0.01,
+          duration: 500,
+          delay: stagger,
+          easing: 'easeInQuart',
+        }));
+        casingAnims.push(anime({
+          targets: wall.rotation,
+          y: wall.rotation.y + (dir.x !== 0 ? 0.15 : -0.15),
+          duration: 550,
+          delay: stagger,
+          easing: 'easeInQuart',
         }));
       });
 
+      // 5. Frame shrinks
       casingAnims.push(anime({
         targets: frameItems.map(c => c.scale),
         x: 0.01, y: 0.01, z: 0.01,
-        duration: 267,
-        delay: anime.stagger(10, { start: 533 }),
-        easing: 'easeInCubic',
+        duration: 400,
+        delay: anime.stagger(15, { start: 800 }),
+        easing: 'easeInQuart',
       }));
 
+      // 6. Base sinks and flattens
+      casingAnims.push(anime({
+        targets: baseItems.map(c => c.scale),
+        x: 0.9, y: 0.01, z: 0.9,
+        duration: 500,
+        delay: anime.stagger(20, { start: 1000 }),
+        easing: 'easeInQuint',
+      }));
       casingAnims.push(anime({
         targets: baseItems.map(c => c.position),
-        y: (el, i) => baseItems[i].position.y - 3,
-        duration: 267,
-        delay: anime.stagger(13, { start: 667 }),
-        easing: 'easeInCubic',
+        y: (el, i) => baseItems[i].position.y - 4,
+        duration: 500,
+        delay: anime.stagger(20, { start: 1000 }),
+        easing: 'easeInQuint',
         complete: () => {
           casingGroup.visible = false;
           restoreCasingFinals();
@@ -1088,13 +1368,13 @@
 
       if (thermalAnim) thermalAnim.pause();
 
-      // Set emissive color directly (not animated)
-      tubeMat.emissive.setRGB(target.er, target.eg, target.eb);
-
       const current = {
         r: tubeMat.color.r,
         g: tubeMat.color.g,
         b: tubeMat.color.b,
+        er: tubeMat.emissive.r,
+        eg: tubeMat.emissive.g,
+        eb: tubeMat.emissive.b,
         ei: tubeMat.emissiveIntensity,
       };
 
@@ -1103,11 +1383,15 @@
         r: target.r,
         g: target.g,
         b: target.b,
+        er: target.er,
+        eg: target.eg,
+        eb: target.eb,
         ei: target.ei,
-        duration: 1200,
-        easing: 'easeInOutSine',
+        duration: 1800,
+        easing: 'easeInOutQuart',
         update: () => {
           tubeMat.color.setRGB(current.r, current.g, current.b);
+          tubeMat.emissive.setRGB(current.er, current.eg, current.eb);
           tubeMat.emissiveIntensity = current.ei;
         },
       });
@@ -1180,9 +1464,11 @@
         autoOrbit = false;
       },
       resumeOrbit() {
-        // Recalculate angle from current camera position
         orbitAngle = Math.atan2(camera.position.x, camera.position.z);
         autoOrbit = true;
+      },
+      toggleHdri(on) {
+        setHdriBackground(on !== undefined ? on : !hdriBackground);
       },
     };
 
@@ -1195,6 +1481,7 @@
       else if (d.type === 'setThermalState') TB.setThermalState(d.value);
       else if (d.type === 'showCasing') TB.showCasing();
       else if (d.type === 'hideCasing') TB.hideCasing();
+      else if (d.type === 'toggleHdri') TB.toggleHdri(d.value);
     });
 
     // Default: show a 2-stack, 1-row system on load
