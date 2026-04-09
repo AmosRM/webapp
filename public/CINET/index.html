@@ -522,6 +522,20 @@ p, li, td, th { line-height: 1.55; }
   color: var(--accent); margin-top: clamp(1.5rem, 3vh, 3rem);
   max-width: 550px; line-height: 1.5;
 }
+.thanks-contact {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-top: clamp(1.2rem, 2.5vh, 2rem);
+  font-size: var(--fs-small); color: var(--text-white-dim);
+}
+.thanks-contact a {
+  color: var(--accent); text-decoration: none;
+  transition: opacity 0.2s;
+}
+.thanks-contact a:hover { opacity: 0.7; }
+.thanks-contact svg {
+  width: 1.1em; height: 1.1em; flex-shrink: 0;
+  fill: var(--accent); position: relative; top: 0.1em;
+}
 
 /* ===========================================
    SPEAKER NOTES PANEL
@@ -953,12 +967,21 @@ p, li, td, th { line-height: 1.55; }
 <!-- =====================================================
      SLIDE 10 — Thank You (Dark)
      ===================================================== -->
-<section class="slide theme-dark" data-notes="Thank you. Happy to take questions — and I'll be around for the rest of Interclean if you want to continue the conversation.">
-  <div class="thanks-wrap">
-    <h1 class="reveal" style="--d:0;font-size:var(--fs-hero);letter-spacing:-0.03em">Thank You</h1>
-    <div class="reveal" style="--d:1;width:50px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2));margin:clamp(0.8rem,1.5vh,1.2rem) auto"></div>
-    <p class="thanks-name reveal" style="--d:2">Amos Rossman</p>
-    <p class="thanks-role reveal" style="--d:3">AI Consultant<br>CINET AI Program &middot; Lumino AI Studio</p>
+<section class="slide theme-split" data-notes="Thank you. Happy to take questions — and I'll be around for the rest of Interclean if you want to continue the conversation.">
+  <div class="panel-dark" style="padding:0;overflow:hidden">
+    <img src="images/IMG_2944-Small.jpeg" alt="Amos Rossman" loading="lazy" class="reveal-scale" style="--d:1;width:100%;height:100%;object-fit:cover;object-position:center;">
+  </div>
+  <div class="panel-dark" style="display:flex;align-items:center;justify-content:center">
+    <div class="thanks-wrap">
+      <h1 class="reveal" style="--d:0;font-size:var(--fs-hero);letter-spacing:-0.03em">Thank You</h1>
+      <div class="reveal" style="--d:1;width:50px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2));margin:clamp(0.8rem,1.5vh,1.2rem) auto"></div>
+      <p class="thanks-name reveal" style="--d:2">Amos Rossman</p>
+      <p class="thanks-role reveal" style="--d:3">AI Consultant<br>CINET AI Program &middot; Lumino AI Studio</p>
+      <div class="thanks-contact reveal" style="--d:4">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <a href="mailto:AmosRossman@gmail.com">AmosRossman@gmail.com</a>
+      </div>
+    </div>
   </div>
 </section>
 
