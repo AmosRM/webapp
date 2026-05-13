@@ -312,6 +312,35 @@ function kindLabel(kind: WorkbenchKind) {
 }
 
 function Preview({ item }: { item: WorkbenchItem }) {
+  if (item.previewImages && item.previewImages.length > 0) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
+        {item.previewImages.map((src) => (
+          <div
+            key={src}
+            className="relative overflow-hidden"
+            style={{
+              flex: "1 1 0",
+              maxWidth: "32%",
+              aspectRatio: "9 / 19.5",
+              borderRadius: 12,
+              boxShadow: "0 10px 22px rgba(60,40,15,0.18)",
+              background: "#fffdf8",
+            }}
+          >
+            <Image
+              alt=""
+              className="absolute inset-0 size-full object-cover"
+              fill
+              src={src}
+              sizes="120px"
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   if (item.previewImage) {
     return (
       <Image

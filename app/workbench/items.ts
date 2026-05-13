@@ -9,6 +9,7 @@ export type WorkbenchItem = {
   tags: string[];
   preview?: "energy" | "matti" | "optimizer" | "document";
   previewImage?: string;
+  previewImages?: string[];
 };
 
 export const items: WorkbenchItem[] = [
@@ -126,12 +127,16 @@ export const items: WorkbenchItem[] = [
   },
   {
     title: "CardLine",
-    href: "/cardline/support",
+    href: "https://www.luminoaistudio.com/cardline",
     kind: "mobile",
     date: "2026-01-04",
     description:
       "Mobile app support and privacy material, with a screenshot preview to add later.",
     tags: ["Mobile", "CardLine", "App"],
-    preview: "document",
+    previewImages: [
+      "/cardline/artifacts/sim2/1.png",
+      "/cardline/artifacts/sim2/3.png",
+      "/cardline/artifacts/sim2/4.png",
+    ],
   },
 ];
