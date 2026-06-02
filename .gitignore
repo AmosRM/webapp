@@ -43,3 +43,6 @@ next-env.d.ts
 # a5c tooling cache/logs
 .a5c/
 **/.a5c/
+
+# claude code
+.claude/
