@@ -358,8 +358,65 @@
       font-size: 13px;
     }
 
+    /* --- Full Analysis (revealed from configurator CTA) --- */
+    .analysis-section {
+      display: none;
+      background: #fff;
+      scroll-margin-top: 72px;
+    }
+    .analysis-section.open { display: block; }
+    .analysis-header {
+      max-width: none;
+      margin: 0 auto;
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      background: var(--en-dark);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .analysis-header .section-label { margin: 0 0 3px; }
+    .analysis-header h2 {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .analysis-collapse {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .analysis-collapse:hover { border-color: var(--en-teal); color: var(--en-teal); }
+    .analysis-frame {
+      max-width: none;
+      margin: 0 auto;
+      padding: 0;
+    }
+    .analysis-frame iframe {
+      width: 100%;
+      height: 82vh;
+      border: none;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+    }
+
     /* --- Responsive --- */
     @media (max-width: 768px) {
+      .analysis-header { padding: 14px 20px; }
+      .analysis-header h2 { font-size: 18px; }
+      .analysis-header .section-label { display: none; }
+      .analysis-frame { padding: 0; }
+      .analysis-frame iframe { height: 82vh; border-radius: 0; }
       .site-header {
         padding: 0 20px;
         height: 60px;
@@ -451,6 +508,20 @@
     </div>
   </section>
 
+  <!-- Full Market Analysis (revealed from the configurator's CTA) -->
+  <section class="analysis-section" id="analysisSection">
+    <div class="analysis-header">
+      <div>
+        <div class="section-label">Market optimization</div>
+        <h2>Full multi-market analysis</h2>
+      </div>
+      <button class="analysis-collapse" onclick="closeAnalysis()">Hide &times;</button>
+    </div>
+    <div class="analysis-frame">
+      <iframe id="analysisFrame" title="Market optimization analysis" loading="lazy"></iframe>
+    </div>
+  </section>
+
   <!-- Features -->
   <section class="features-section">
     <h2>Why ThermalBattery?</h2>
@@ -505,6 +576,31 @@
       &copy; 2026 ENERGYNEST. All rights reserved.
     </div>
   </footer>
+
+  <script>
+    // Reveal the full market analysis below the configurator when its CTA is
+    // clicked (the configurator posts a message across the iframe boundary).
+    const analysisSection = document.getElementById('analysisSection');
+    const analysisFrame = document.getElementById('analysisFrame');
+
+    function openAnalysis() {
+      if (!analysisFrame.getAttribute('src')) {
+        analysisFrame.setAttribute('src', '/4EN/optimization/?embedded=1'); // lazy-load
+      }
+      analysisSection.classList.add('open');
+      analysisSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeAnalysis() {
+      analysisSection.classList.remove('open');
+      document.getElementById('configurator')
+        .scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'openAnalysis') openAnalysis();
+    });
+  </script>
 
 </body>
 </html>

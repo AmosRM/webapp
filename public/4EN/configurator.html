@@ -355,76 +355,49 @@
       color: #fff;
     }
 
-    /* ─── Results Panel (right overlay) ─── */
+    /* ─── Results Summary ─── */
     .results-bar {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(190px, 0.9fr);
+      gap: 0;
+      flex-shrink: 0;
       z-index: 10;
-      pointer-events: none;
+      background: rgba(15, 26, 26, 0.98);
+      border-top: 1px solid var(--border);
     }
     .result-card {
-      background: rgba(22,40,40,0.88);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 20px;
-      min-width: 200px;
-      pointer-events: auto;
-      transition: transform 0.3s, opacity 0.3s, border-color 0.4s, box-shadow 0.4s;
+      background: transparent;
+      border-right: 1px solid var(--border);
+      padding: 13px 18px;
+      min-width: 0;
+      transition: background 0.2s;
       position: relative;
     }
-    .result-card:hover { transform: translateY(-2px); }
-    .result-card.pulse-green { border-color: var(--green); box-shadow: 0 0 20px rgba(98,214,161,0.25); }
-    .result-card.pulse-orange { border-color: var(--orange); box-shadow: 0 0 20px rgba(255,138,1,0.25); }
-    .result-card.pulse-white { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 20px rgba(255,255,255,0.12); }
+    .result-card:hover { background: rgba(255,255,255,0.025); }
+    .result-card--secondary { display: none; }
     .result-label {
       font-size: 10px;
       font-weight: 600;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: var(--text-dim);
-      margin-bottom: 6px;
+      margin-bottom: 3px;
     }
     .result-value {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 700;
       line-height: 1.1;
     }
     .result-sub {
       font-size: 12px;
       color: var(--text-dim);
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .result-value.green { color: var(--green); }
     .result-value.orange { color: var(--orange); }
     .result-value.white { color: #fff; }
-    .result-tooltip {
-      position: absolute;
-      right: calc(100% + 10px);
-      top: 50%;
-      transform: translateY(-50%) translateX(4px);
-      width: 200px;
-      background: rgba(10,20,20,0.95);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 11px;
-      line-height: 1.5;
-      color: var(--text-mid);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s, transform 0.2s;
-      z-index: 20;
-    }
-    .result-card:hover .result-tooltip {
-      opacity: 1;
-      transform: translateY(-50%) translateX(0);
-    }
+    .result-tooltip { display: none; }
 
     /* ─── 3D Viewport ─── */
     .viewport {
@@ -432,15 +405,20 @@
       position: relative;
       background: #0a1414;
       min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
     }
     .viewport iframe {
       width: 100%;
-      height: 100%;
+      height: auto;
+      flex: 1;
+      min-height: 0;
       border: none;
     }
     .bg-toggle {
       position: absolute;
-      bottom: 16px;
+      bottom: 92px;
       right: 16px;
       z-index: 10;
       background: rgba(20,40,40,0.7);
@@ -668,9 +646,13 @@
         border-right: none;
         border-bottom: 1px solid var(--border);
       }
-      .results-bar { top: 10px; right: 10px; }
-      .result-card { padding: 12px 14px; min-width: 160px; }
-      .result-value { font-size: 22px; }
+      .results-bar {
+        grid-template-columns: repeat(3, minmax(140px, 1fr)) minmax(180px, 1fr);
+        overflow-x: auto;
+      }
+      .result-card { padding: 10px 14px; }
+      .result-value { font-size: 20px; }
+      .bg-toggle { bottom: 82px; }
     }
 
     /* ─── Collapsible Steps ─── */
@@ -734,6 +716,40 @@
     .panel-section:nth-child(3) { animation-delay: 0.16s; }
     .panel-section:nth-child(4) { animation-delay: 0.24s; }
     .panel-section:nth-child(5) { animation-delay: 0.32s; }
+    /* ─── Market participation toggle ─── */
+    .market-toggle-label {
+      font-size: 11px; font-weight: 600; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.6px; margin: 20px 0 8px;
+    }
+    .market-toggle {
+      display: flex; gap: 4px; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px;
+    }
+    .mt-btn {
+      flex: 1; border: none; background: transparent; cursor: pointer;
+      font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--text-dim);
+      padding: 8px 6px; border-radius: 6px; transition: all 0.18s; white-space: nowrap;
+    }
+    .mt-btn:hover { color: var(--green); }
+    .mt-btn.active {
+      background: var(--green); color: #0f1a1a;
+      box-shadow: 0 1px 8px rgba(98,214,161,0.3);
+    }
+    /* Full-analysis CTA at the end of the summary strip */
+    .analysis-cta {
+      align-self: center;
+      justify-self: stretch;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      margin: 12px 14px;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      background: transparent;
+      border: 1px solid rgba(98,214,161,0.65);
+      font-size: 13px; font-weight: 600; color: var(--green);
+      text-decoration: none; cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+    }
+    .analysis-cta:hover { background: var(--green); color: #0f1a1a; }
+    .analysis-cta svg { width: 14px; height: 14px; }
   </style>
 </head>
 <body>
@@ -847,6 +863,12 @@
         <div class="slider-ticks">
           <span>5</span><span>25</span><span>50</span><span>75</span><span>100</span>
         </div>
+        <div class="market-toggle-label">Energy-market participation</div>
+        <div class="market-toggle" id="marketToggle">
+          <button class="mt-btn" data-market="da-only">Day-Ahead</button>
+          <button class="mt-btn" data-market="da-afrr">+ aFRR</button>
+          <button class="mt-btn active" data-market="full-stack">Full stack</button>
+        </div>
         <div class="custom-cap-row">
           <button class="custom-cap-btn" id="customCapBtn" onclick="toggleCustomCapacity()">Custom</button>
           <div class="custom-cap-input" id="customCapInput">
@@ -913,8 +935,20 @@
       <div class="result-card" id="cardSavings">
         <div class="result-tooltip">Projected annual savings from reduced fuel consumption and improved energy efficiency, based on current gas prices.</div>
         <div class="result-label">Cost Savings</div>
-        <div class="result-value orange" id="savingsValue">~320K</div>
+        <div class="result-value orange" id="savingsValue">~€320K</div>
+        <div class="result-sub">per year</div>
+      </div>
+      <div class="result-card result-card--secondary" id="cardAfrr">
+        <div class="result-tooltip">Annual revenue from aFRR balancing-market participation (capacity + energy), on top of Day-Ahead savings. Requires aFRR-enabled market participation.</div>
+        <div class="result-label">aFRR Market Revenue</div>
+        <div class="result-value green" id="afrrValue">~115K</div>
         <div class="result-sub">EUR/year</div>
+      </div>
+      <div class="result-card result-card--secondary" id="cardBreakeven">
+        <div class="result-tooltip">Highest Day-Ahead power price at which charging the store still beats the gas boiler, crediting aFRR revenue back as a subsidy. Independent of system size.</div>
+        <div class="result-label">Break-even Power Price</div>
+        <div class="result-value white" id="breakevenValue">~91</div>
+        <div class="result-sub">EUR/MWh</div>
       </div>
       <div class="result-card" id="cardPayback">
         <div class="result-tooltip">Time to recover the initial investment through energy savings. Larger systems benefit from economies of scale.</div>
@@ -922,6 +956,10 @@
         <div class="result-value white" id="paybackValue">~4</div>
         <div class="result-sub">years</div>
       </div>
+      <a class="analysis-cta" id="analysisCta" href="/4EN/optimization/">
+        View detailed analysis
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
     </div>
   </div>
 </div>
@@ -1004,6 +1042,8 @@
   let currentCapacity = 10;
   let currentState = 'idle';
   let currentView = 'internal';
+  let currentMarket = 'full-stack';   // da-only | da-afrr | full-stack
+  let solverScenarios = null;          // loaded from the solver showcase build
 
   const viewer = document.getElementById('viewer');
 
@@ -1217,43 +1257,100 @@
     animCounters[id] = requestAnimationFrame(tick);
   }
 
-  function pulseCard(card, colorClass) {
-    card.classList.add(colorClass);
-    setTimeout(() => card.classList.remove(colorClass), 1500);
+  // Reference electrification (full-stack elec_thermal_pct) used to scale the
+  // engineering CO2 factor down for lower market participation.
+  const REF_ELEC_PCT = 61;
+
+  function currentScenario() {
+    if (!solverScenarios) return null;
+    return solverScenarios.find(s => s.id === currentMarket) || null;
   }
 
   function updateEstimates() {
     const im = industryMultipliers[selectedIndustry] || 1.0;
     const sm = solutionMultipliers[selectedSolution] || 1.0;
     const cap = currentCapacity;
+    const scn = currentScenario();
 
-    // Base: ~84 tonnes CO2 per MWh capacity per year
-    const co2 = Math.round(cap * 84 * im * sm);
-    // Base: ~32K EUR savings per MWh per year
-    const savings = Math.round(cap * 32 * im * sm);
-    // Payback: roughly 3-6 years depending on size (larger = faster payback)
+    let savingsK, co2, afrrK, breakeven;
+    if (scn) {
+      // Per-MWh coefficients grounded in the solver's yearly run for the
+      // reference asset (smax_mwh), scaled by capacity + industry/solution.
+      const smax = scn.asset.smax_mwh || 8;
+      const elecPct = scn.kpis.elec_thermal_pct || REF_ELEC_PCT;
+      savingsK = (scn.kpis.total_savings / smax / 1000) * cap * im * sm;
+      afrrK = (scn.kpis.afrr_revenue / smax / 1000) * cap * im * sm;
+      co2 = 84 * (elecPct / REF_ELEC_PCT) * cap * im * sm;
+      // Break-even power price (capacity-independent) — solver KPI formula:
+      // (gas / boiler_eff) · η + aFRR_revenue / electricity_charged.
+      const boiler = scn.asset.boiler_eff || 0.9;
+      const totalElec = (scn.daily || []).reduce((a, d) => a + d.elec_energy, 0);
+      const base = (scn.asset.gas_eur_mwh / boiler) * scn.asset.eta;
+      breakeven = base + (totalElec > 0 ? scn.kpis.afrr_revenue / totalElec : 0);
+    } else {
+      // Fallback to the original illustrative constants if scenarios missing.
+      savingsK = cap * 32 * im * sm;
+      afrrK = 0;
+      co2 = cap * 84 * im * sm;
+      breakeven = 72;
+    }
     const payback = Math.max(2.5, 5.5 - (cap / 80) * 1.5);
-
     const dur = 500;
 
-    animateValue(document.getElementById('co2Value'), 'co2', co2, dur, v => {
+    animateValue(document.getElementById('co2Value'), 'co2', Math.round(co2), dur, v => {
       const r = Math.round(v);
       return r >= 1000 ? `~${(r/1000).toFixed(1)}K` : `~${r}`;
     });
 
-    animateValue(document.getElementById('savingsValue'), 'sav', savings, dur, v => {
+    animateValue(document.getElementById('savingsValue'), 'sav', savingsK, dur, v => {
       const r = Math.round(v);
+      return r >= 1000 ? `~€${(r/1000).toFixed(1)}M` : `~€${r}K`;
+    });
+
+    animateValue(document.getElementById('afrrValue'), 'afrr', afrrK, dur, v => {
+      const r = Math.round(v);
+      if (r <= 0) return '—';
       return (r >= 1000 ? `~${(r/1000).toFixed(1)}M` : `~${r}K`) + ' EUR';
+    });
+
+    animateValue(document.getElementById('breakevenValue'), 'be', breakeven, dur, v => {
+      return `~${v.toFixed(0)}`;
     });
 
     animateValue(document.getElementById('paybackValue'), 'pay', payback, dur, v => {
       return `~${v.toFixed(1)}`;
     });
 
-    pulseCard(document.getElementById('cardCo2'), 'pulse-green');
-    pulseCard(document.getElementById('cardSavings'), 'pulse-orange');
-    pulseCard(document.getElementById('cardPayback'), 'pulse-white');
   }
+
+  // ─── Wire the market toggle + load solver scenarios ───
+  function initSolverEstimates() {
+    document.querySelectorAll('#marketToggle .mt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#marketToggle .mt-btn')
+          .forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMarket = btn.dataset.market;
+        updateEstimates();
+      });
+    });
+    // CTA: when embedded in the EnergyNest page, ask the parent to reveal the
+    // analysis below the 3D area; standalone, follow the href as a fallback.
+    const cta = document.getElementById('analysisCta');
+    if (cta) {
+      cta.addEventListener('click', (e) => {
+        if (window.parent && window.parent !== window) {
+          e.preventDefault();
+          window.parent.postMessage({ type: 'openAnalysis' }, '*');
+        }
+      });
+    }
+    fetch('/4EN/optimization/demo/scenarios.json')
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => { solverScenarios = data.scenarios || null; updateEstimates(); })
+      .catch(() => { updateEstimates(); });  // keep illustrative fallback
+  }
+  initSolverEstimates();
 
   // ─── Modal ───
   function openModal() {
