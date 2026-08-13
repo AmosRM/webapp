@@ -1,0 +1,3057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16161a" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Decision simulator for a Dutch home purchase: funding structure, monthly cost, tax and long-term wealth.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Dutch home">
+<meta name="format-detection" content="telephone=no">
+<title>Dutch home — purchase &amp; financing</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f3f0; --card:#fff; --ink:#191917; --ink-2:#4a4944; --muted:#82817a;
+  --line:#e4e2db; --line-2:#cfccc3; --soft:#faf9f6; --soft-2:#eeece6; --hl:#f6f3ea;
+  --bg-blur:rgba(244,243,240,.94); --nav-bg:rgba(255,255,255,.96);
+  --chart-net:#2f3b44; --band:#e6e9ea;
+  --gap-bg:#fbeeeb; --gap-bd:#e6c3ba; --gap-fg:#7d2f22;
+  --sur-bg:#eef3ee; --sur-bd:#c3d5c4; --sur-fg:#33502f;
+  --own:#4a6f4e; --family:#a9772c; --bank:#3d6383; --gift:#7c7593; --warn:#a2402f;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --pad:16px;
+  --card-px:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);overflow-x:hidden;max-width:100%}
+@media(prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --bg:#16161a; --card:#1f1f24; --ink:#eceae4; --ink-2:#c6c4bc; --muted:#8d8b83;
+    --line:#2d2d33; --line-2:#43434b; --soft:#26262c; --soft-2:#2f2f36; --hl:#33322a;
+    --bg-blur:rgba(22,22,26,.94); --nav-bg:rgba(31,31,36,.96);
+    --chart-net:#cfd6db; --band:#2b3238;
+    --gap-bg:#33211e; --gap-bd:#5c332b; --gap-fg:#f0b4a6;
+    --sur-bg:#1e2a1f; --sur-bd:#33472f; --sur-fg:#a9cfa6;
+    --own:#7faa83; --family:#d3a45f; --bank:#7fa8c9; --gift:#a9a1c6; --warn:#e08d7a;
+  }
+}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0;font-weight:600}
+h1{font-size:15px}
+h2{font-size:15px;letter-spacing:-.01em}
+h3{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+a{color:#38607e}
+button{font:inherit;color:inherit}
+
+/* ---------- app frame ---------- */
+header.app{position:sticky;top:0;z-index:30;background:var(--bg-blur);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.app-in{max-width:1180px;margin:0 auto;padding:10px var(--pad) 0;display:flex;align-items:center;gap:12px}
+.app-in .stamp{margin-left:auto;font-size:10.5px;color:var(--muted);font-family:var(--mono);text-align:right;line-height:1.3}
+nav.tabs{display:none}
+.pulse{max-width:1180px;margin:0 auto;padding:8px var(--pad) 10px;display:flex;gap:18px;overflow-x:auto;scrollbar-width:none}
+.pulse::-webkit-scrollbar{display:none}
+.pulse .p{flex:0 0 auto}
+.pulse .p .k{display:block;font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+.pulse .p .v{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:17px;margin-top:1px}
+.pulse .p .v.neg{color:var(--warn)} .pulse .p .v.pos{color:var(--own)}
+
+main{max-width:1180px;margin:0 auto;padding:14px var(--pad) 110px}
+.view{display:none}.view.active{display:block}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+.card>h2{margin-bottom:2px}
+.card>.lede{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+.card.flush{padding:0;overflow:hidden}
+.card.flush>h2{padding:16px var(--card-px) 0}
+.flush-h{padding:16px var(--card-px) 10px}
+.flush-hd{padding:16px var(--card-px) 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.flush-body{padding:14px var(--card-px) 4px}
+.flush-x{padding-left:var(--card-px);padding-right:var(--card-px)}
+.flush-x.pb{padding-bottom:16px}
+
+/* ---------- money stepper ---------- */
+.mf{padding:12px 0;border-bottom:1px solid var(--line)}
+.mf:first-child{padding-top:2px}
+.mf:last-child{border-bottom:0;padding-bottom:2px}
+.mf .lab{display:flex;align-items:baseline;gap:8px;font-size:13.5px;color:var(--ink-2)}
+.mf .lab .sub{color:var(--muted);font-size:11.5px;margin-left:auto;font-family:var(--mono)}
+.mf .ctl{display:flex;align-items:center;gap:8px;margin-top:6px}
+.mf .amount{flex:1;min-width:0;text-align:center;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;font-weight:600;
+  border:1px solid transparent;background:var(--soft);border-radius:8px;padding:9px 6px;color:var(--ink);width:100%}
+.mf .amount:focus{outline:none;border-color:var(--line-2);background:var(--card)}
+.step{width:46px;height:46px;flex:0 0 46px;border:1px solid var(--line-2);background:var(--card);border-radius:23px;font-size:22px;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-2);user-select:none}
+.step:active{background:var(--soft-2)}
+.step:disabled{opacity:.3;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips button{border:1px solid var(--line);background:var(--soft);border-radius:14px;padding:5px 11px;font-size:12px;color:var(--muted);
+  font-family:var(--mono);cursor:pointer;min-height:30px}
+.chips button.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+
+/* ---------- headline numbers ---------- */
+.big{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.big .b{background:var(--card);padding:14px 16px}
+.big .b .k{font-size:11.5px;color:var(--muted);display:block;letter-spacing:.01em}
+.big .b .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:23px;display:block;margin-top:3px;letter-spacing:-.02em}
+.big .b .s{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.big .b .v.neg{color:var(--warn)}
+.big.one{grid-template-columns:1fr}
+
+/* ---------- rows ---------- */
+.rows{width:100%;border-collapse:collapse;font-size:13.5px}
+.rows td{padding:9px 0;border-bottom:1px solid var(--line);vertical-align:baseline}
+.rows td:last-child{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:10px}
+.rows tr:last-child td{border-bottom:0}
+.rows tr.sum td{border-top:1px solid var(--line-2);border-bottom:0;font-weight:600}
+.rows tr.dim td{color:var(--muted);font-size:12.5px}
+.rows td .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;vertical-align:0}
+.neg{color:var(--warn)} .pos{color:var(--own)}
+
+/* ---------- monthly breakdown (collapsible) ---------- */
+.monthly-acc details{border-top:1px solid var(--line)}
+.monthly-acc details:first-child{border-top:0}
+.monthly-acc details>summary{
+  cursor:pointer;padding:10px 0;font-size:13.5px;font-weight:600;color:var(--ink);
+  list-style:none;display:flex;align-items:baseline;gap:10px;min-height:40px
+}
+.monthly-acc details>summary::-webkit-details-marker{display:none}
+.monthly-acc details>summary:after{
+  content:"";width:7px;height:7px;flex:0 0 auto;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);
+  transform:rotate(-45deg);margin-left:4px;transition:transform .15s;align-self:center
+}
+.monthly-acc details[open]>summary:after{transform:rotate(45deg)}
+.monthly-acc details>summary .mv{
+  margin-left:auto;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600
+}
+.monthly-acc details .rows{margin:0 0 2px 14px;width:calc(100% - 14px)}
+.monthly-acc details .rows td{padding:5px 0;font-size:12.5px}
+.monthly-acc details .rows tr.dim td{font-size:12px;padding:4px 0}
+.monthly-acc details .rows tr.sub td:first-child{padding-left:14px;color:var(--muted);font-size:12px}
+.monthly-acc details .rows tr.split td{border-top:1px solid var(--line);padding-top:7px}
+.monthly-acc .fcf-final{
+  display:flex;align-items:baseline;gap:10px;padding:10px 0 2px;border-top:1px solid var(--line-2);
+  font-size:13.5px;font-weight:600
+}
+.monthly-acc .fcf-final .mv{margin-left:auto;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 calc(-1 * var(--card-px));padding:0 var(--card-px)}
+table.grid{border-collapse:collapse;font-size:12.5px;width:100%}
+table.grid th,table.grid td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-family:var(--mono);font-variant-numeric:tabular-nums}
+table.grid th{color:var(--muted);font-weight:600;font-size:11px;font-family:var(--sans);border-bottom:1px solid var(--line-2)}
+table.grid th:first-child,table.grid td:first-child{text-align:left;font-family:var(--sans);position:sticky;left:0;background:var(--card);padding-right:14px}
+table.grid tr.head td{background:var(--soft);color:var(--muted);font-family:var(--sans);font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+
+/* ---------- funding bar ---------- */
+.fbar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:4px 0 14px}
+.fbar span{display:block}
+.sw-own{background:var(--own)}.sw-family{background:var(--family)}.sw-bank{background:var(--bank)}
+.sw-gift{background:var(--gift)}.sw-warn{background:var(--warn)}
+.mix{max-width:1180px;margin:0 auto;padding:0 var(--pad) 10px}
+.mix .fbar{height:8px;border-radius:4px;margin:0 0 7px}
+.mix-leg{display:flex;flex-wrap:wrap;gap:5px 14px;font-size:11.5px;color:var(--ink-2)}
+.mix-leg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.mix-leg i{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
+.mix-leg b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);margin-left:2px}
+.mix-meta{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--mono);line-height:1.35;overflow-wrap:anywhere}
+
+/* ---------- alerts ---------- */
+.alert{border-radius:10px;padding:13px 15px;margin-bottom:12px;font-size:13.5px;display:flex;gap:12px;align-items:flex-start}
+.alert .v{font-family:var(--mono);font-size:20px;font-weight:600;white-space:nowrap}
+.alert.gap{background:var(--gap-bg);border:1px solid var(--gap-bd);color:var(--gap-fg)}
+.alert.sur{background:var(--sur-bg);border:1px solid var(--sur-bd);color:var(--sur-fg)}
+.flag{border-left:3px solid var(--line-2);padding:9px 0 9px 12px;margin:10px 0;font-size:12.5px;color:var(--ink-2)}
+.flag.error{border-color:var(--warn)} .flag.warn{border-color:#c9a227} .flag.info{border-color:var(--bank)}
+
+/* ---------- disclosure ---------- */
+details{border-top:1px solid var(--line)}
+details>summary{cursor:pointer;padding:13px 0;font-size:13px;color:var(--ink-2);list-style:none;display:flex;align-items:center;gap:8px;min-height:44px}
+details>summary::-webkit-details-marker{display:none}
+details>summary:after{content:"";width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);margin-left:auto;transition:transform .15s}
+details[open]>summary:after{transform:rotate(-135deg)}
+details .db{padding-bottom:14px}
+.card>details:first-of-type{margin-top:4px}
+.acc{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.acc>details{border-top:1px solid var(--line)}
+.acc>details:first-child{border-top:0}
+.acc>details>summary{padding:14px 16px;font-size:14px;color:var(--ink)}
+.acc>details>.db{padding:0 16px 14px}
+.code{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:12px;font-family:var(--mono);font-size:11px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink-2)}
+
+/* ---------- small inputs (assumptions) ---------- */
+.f{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);min-height:46px}
+.f:last-child{border-bottom:0}
+.f label{flex:1;font-size:13px;color:var(--ink-2);min-width:0}
+.f label .hint{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.f .tag{font-size:9px;letter-spacing:.05em;color:var(--warn);border:1px solid var(--line-2);border-radius:3px;padding:1px 4px;margin-left:6px;white-space:nowrap;vertical-align:1px}
+.f .tag.rule{color:var(--bank)}
+.f .tag.model{color:var(--family)}
+.f input[type=text],.f input[type=number],.f select{border:1px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:7px;padding:9px 10px;font-size:15px;
+  font-family:var(--mono);text-align:right;width:128px;flex:0 0 auto}
+.f select{font-family:var(--sans);font-size:13px;text-align:left;width:170px}
+.f input:focus,.f select:focus{outline:2px solid #b9cbd8;outline-offset:-1px}
+.f .sw{position:relative;width:46px;height:28px;flex:0 0 46px}
+.f .sw input{opacity:0;width:100%;height:100%;margin:0;position:absolute;z-index:2;cursor:pointer}
+.f .sw i{position:absolute;inset:0;background:var(--line-2);border-radius:14px;transition:background .15s}
+.f .sw i:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;background:var(--card);border-radius:11px;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.f .sw input:checked+i{background:var(--own)}
+.f .sw input:checked+i:after{transform:translateX(18px)}
+.f .unit{color:var(--muted);font-size:13px;margin-left:-6px}
+.f .spin{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.f .spin input[type=number]{width:92px;flex:0 0 92px;padding:8px 6px}
+.f .spin .step{width:36px;height:36px;flex:0 0 36px;border-radius:18px;font-size:18px}
+.f .spin .unit{margin-left:0;margin-right:2px}
+
+/* ---------- segmented ---------- */
+.seg{display:inline-flex;background:var(--soft-2);border-radius:9px;padding:3px;gap:2px}
+.seg button{border:0;background:none;border-radius:7px;padding:7px 14px;font-size:12.5px;color:var(--muted);cursor:pointer;min-height:34px;font-family:var(--mono)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.btn{border:1px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:13.5px;cursor:pointer;min-height:44px}
+.btn:active{background:var(--soft-2)}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.btn[disabled]{opacity:.35;cursor:default}
+.btn.sm{padding:7px 11px;min-height:36px;font-size:12.5px}
+.btn.dgr{color:var(--warn)}
+.chart-key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--ink-2);margin-top:8px}
+.chart-key i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+svg{display:block;width:100%;height:auto}
+.muted{color:var(--muted)} .sm{font-size:12.5px}
+p.note{font-size:12.5px;color:var(--muted);margin:12px 0 0}
+.hl{background:var(--hl)}
+.pulse .p .d{display:block;height:13px;font-size:10.5px;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity .25s}
+.pulse .p .d.on{opacity:1}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:10px;padding:12px 0 2px;border-top:1px solid var(--line);margin-top:10px}
+.readout div{font-size:10.5px;color:var(--muted)}
+.readout b{display:block;font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:600;margin-top:2px}
+.readout .yr{color:var(--ink);font-weight:600;font-size:11px}
+.hdrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hdrow .sp{margin-left:auto;display:flex;gap:6px}
+svg.scrub{touch-action:pan-y;cursor:crosshair}
+
+/* ---------- scenario cards ---------- */
+.scn{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--soft)}
+.scn .top{display:flex;align-items:center;gap:10px}
+.scn .nm{font-weight:600;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scn .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin-top:10px}
+.scn .mini div{font-size:11px;color:var(--muted)}
+.scn .mini b{display:block;font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:600;margin-top:1px}
+.scn .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
+/* ---------- bottom nav (mobile) ---------- */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--nav-bg);backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav.bottom button{flex:1;border:0;background:none;padding:11px 4px 12px;font-size:11px;color:var(--muted);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px}
+nav.bottom button .ic{width:20px;height:20px;display:block}
+nav.bottom button.active{color:var(--ink)}
+nav.bottom button{color:var(--muted)}
+nav.bottom button.active{color:var(--ink)}
+nav.bottom button .ic{stroke:currentColor}
+
+button,.step{touch-action:manipulation}
+
+/* ---------- mobile: compact, dense, one-column ---------- */
+@media(max-width:899px){
+  :root{--pad:12px;--card-px:12px}
+  body{font-size:14px;line-height:1.45}
+  h1{font-size:13.5px;letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .app-in{padding:8px var(--pad) 0;gap:8px}
+  .app-in .stamp{display:none}
+
+  .pulse{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px 10px;
+    padding:6px var(--pad) 8px;
+    overflow:hidden;
+  }
+  .pulse .p{min-width:0;padding-bottom:2px;position:relative}
+  .pulse .p .k{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pulse .p .v{font-size:13.5px;overflow:hidden;text-overflow:ellipsis}
+  .pulse .p .d{position:absolute;left:0;top:100%;height:auto;font-size:9.5px}
+
+  .mix{padding:0 var(--pad) 8px}
+  .mix .fbar{height:6px;margin-bottom:6px}
+  .mix-leg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 10px;font-size:11px}
+  .mix-leg span{min-width:0}
+  .mix-leg b{overflow:hidden;text-overflow:ellipsis}
+  .mix-meta{font-size:10.5px;margin-top:3px}
+
+  main{padding:10px var(--pad) 92px}
+  .split,.split>*{min-width:0}
+
+  .card{padding:12px;margin-bottom:10px;border-radius:12px}
+  .card.flush>h2,.flush-h{padding:12px var(--card-px) 8px}
+  .flush-hd{padding:12px var(--card-px) 0}
+  .flush-body{padding:10px var(--card-px) 2px}
+  .flush-x.pb{padding-bottom:12px}
+  .card>.lede{font-size:12px;margin-bottom:8px}
+  .left>.card>.lede{display:none}
+  .hdrow{gap:6px}
+  .hdrow .btn.sm{min-height:30px;padding:4px 9px;font-size:12px}
+
+  .alert{padding:10px 12px;margin-bottom:10px;font-size:13px;border-radius:10px;gap:8px;flex-wrap:wrap}
+  .alert .v{font-size:16px;white-space:normal}
+
+  /* Main money inputs: stack on narrow, share a row when there is room */
+  .mf{
+    display:grid;
+    grid-template-columns:1fr;
+    row-gap:4px;
+    align-items:center;
+    padding:9px 0;
+  }
+  .mf .lab{
+    grid-column:1;
+    flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:6px 10px;
+    font-size:12.5px;line-height:1.3;
+  }
+  .mf .lab .sub{margin-left:0;font-size:11px}
+  .mf .ctl{grid-column:1;margin-top:0;gap:6px;width:100%;max-width:none}
+  .mf .amount{font-size:16px;font-weight:600;padding:8px 6px;border-radius:8px;min-width:0}
+  .mf .step{width:40px;height:40px;flex:0 0 40px;border-radius:20px;font-size:18px}
+  .mf .chips{grid-column:1;margin-top:2px;gap:4px}
+  .chips button{padding:3px 8px;font-size:11px;min-height:26px;border-radius:11px}
+
+  .big{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .big .b{padding:8px 6px}
+  .big .b .k{font-size:9.5px;line-height:1.2}
+  .big .b .v{font-size:14px;margin-top:2px}
+  .big .b .s{font-size:9.5px;line-height:1.25}
+
+  .rows{font-size:13px}
+  .rows td{padding:7px 0}
+  .rows td:last-child{padding-left:8px}
+
+  .monthly-acc details>summary{padding:8px 0;font-size:13px;min-height:36px;gap:8px}
+  .monthly-acc details>summary>span:first-child{min-width:0}
+  .monthly-acc details>summary .mv{flex-shrink:0}
+  .monthly-acc .fcf-final{padding:8px 0 0;font-size:13px;gap:8px;flex-wrap:wrap}
+
+  /* Assumption fields: label above, full-width stepper */
+  .f{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:6px 8px;
+    align-items:center;
+    padding:9px 0;
+    min-height:0;
+  }
+  .f label{grid-column:1/-1;font-size:12.5px;line-height:1.35;min-width:0}
+  .f label .hint{display:none}
+  .f .tag{font-size:8px;padding:0 3px;margin-left:4px}
+  .f .spin{grid-column:1/-1;width:100%;max-width:100%;gap:6px;min-width:0}
+  .f .spin .step{width:40px;height:40px;flex:0 0 40px;border-radius:20px;font-size:18px}
+  .f .spin input[type=number]{
+    flex:1 1 auto;width:auto;min-width:0;font-size:16px;padding:9px 8px
+  }
+  .f select{
+    grid-column:1/-1;width:100%;max-width:100%;font-size:16px;padding:9px 10px
+  }
+  .f:has(.sw){grid-template-columns:minmax(0,1fr) auto}
+  .f:has(.sw) label{grid-column:1;grid-row:1}
+  .f .sw{grid-column:2;grid-row:1}
+
+  .acc>details>summary{padding:12px 14px;font-size:13.5px;min-height:44px}
+  .acc>details>.db{padding:0 14px 12px}
+  details>summary{padding:11px 0;min-height:40px;font-size:13px}
+
+  .readout{grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px 10px;padding:8px 0 2px;margin-top:8px}
+  .readout b{font-size:13px}
+  .chart-key{font-size:11px;margin-top:6px}
+
+  .seg{flex-shrink:0}
+  .seg button{padding:6px 10px;min-height:30px;font-size:12px}
+  .btn{min-height:40px;padding:8px 12px;font-size:13px}
+
+  nav.bottom button{padding:8px 2px 8px;font-size:10px;gap:3px}
+  nav.bottom button .ic{width:18px;height:18px}
+
+  .code{font-size:10.5px;padding:10px;overflow-x:auto;max-width:100%}
+  p.note{font-size:12px;margin-top:8px}
+
+  .scn{padding:10px 12px}
+  .scn .mini{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+  .scn .mini b{font-size:13px}
+
+  .cols2{display:block}
+}
+
+@media(max-width:400px){
+  .pulse{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+}
+
+@media(min-width:480px) and (max-width:899px){
+  .mf{grid-template-columns:minmax(0,1fr) minmax(168px,52%)}
+  .mf .lab{grid-column:1;grid-row:1;flex-direction:column;align-items:flex-start;gap:1px}
+  .mf .ctl{grid-column:2;grid-row:1;width:100%}
+  .mf .chips{grid-column:1/-1}
+}
+
+@media(min-width:900px){
+  main{padding-bottom:40px;display:grid;grid-template-columns:1fr;gap:0}
+  nav.bottom{display:none}
+  nav.tabs{display:flex;gap:4px;margin-left:8px}
+  nav.tabs button{border:0;background:none;padding:8px 12px;border-radius:8px;font-size:13.5px;color:var(--muted);cursor:pointer}
+  nav.tabs button.active{background:var(--soft-2);color:var(--ink)}
+  .split{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:16px;align-items:start}
+  .split>.left{position:sticky;top:148px}
+  .cols2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+}
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="app-in">
+    <h1>Dutch home · financing</h1>
+    <nav class="tabs" id="tabs-top">
+      <button data-view="plan" class="active">Plan</button>
+      <button data-view="compare">Compare</button>
+      <button data-view="risk">Detail</button>
+    </nav>
+    <div class="stamp" id="verified-stamp"></div>
+  </div>
+  <div class="pulse" id="pulse"></div>
+  <div class="mix" id="mix">
+    <div class="fbar" id="fund-bar"></div>
+    <div class="mix-leg" id="fund-legend"></div>
+    <div class="mix-meta" id="fund-meta"></div>
+  </div>
+</header>
+
+<main>
+<!-- ================= PLAN ================= -->
+<section class="view active" id="view-plan">
+  <div id="funding-banner"></div>
+  <div class="split">
+    <div class="left">
+      <div class="card">
+        <div class="hdrow"><h2>The structure</h2>
+          <span class="sp"><button class="btn sm" id="btn-undo">Undo</button>
+          <button class="btn sm" id="btn-reset">Reset</button></span></div>
+        <p class="lede">Tap a number to type it, or use − / +. Own capital is worked out for you.</p>
+        <div id="fld-core"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card flush">
+        <h2 class="flush-h">Each month</h2>
+        <div class="big" id="monthly-big"></div>
+        <div class="flush-body"><div class="monthly-acc" id="monthly-rows"></div>
+          <p class="note" id="fcf-note"></p></div>
+        <div class="flush-x">
+          <details><summary>How the loan payments are built</summary><div class="db"><div class="code" id="loan-calc"></div></div></details>
+          <details><summary>How the box 1 housing tax effect is built</summary><div class="db"><div class="code" id="box1-calc"></div></div></details>
+          <details><summary>How box 3 is built</summary><div class="db"><div class="code" id="box3-calc"></div></div></details>
+        </div>
+      </div>
+
+      <div class="card flush">
+        <div class="flush-hd">
+          <h2>Over time</h2>
+          <span class="seg" id="horizon-seg" style="margin-left:auto">
+            <button data-y="10">10y</button><button data-y="20">20y</button><button data-y="30" class="on">30y</button>
+          </span>
+        </div>
+        <p class="lede flush-x" id="path-label" style="padding-top:6px"></p>
+        <div class="flush-x" style="padding-top:10px" id="chart-longterm"></div>
+        <div class="flush-x"><div class="chart-key" id="chart-legend"></div>
+          <div class="readout" id="chart-readout"></div></div>
+        <h3 class="flush-hd" style="text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink)">Monthly payment mix</h3>
+        <p class="lede flush-x" id="debtmix-label" style="padding-top:4px">Average month that year. The bottom of each bar is principal (loan return); the top is interest.</p>
+        <div class="flush-x" style="padding-top:10px" id="chart-debtmix"></div>
+        <div class="flush-x"><div class="chart-key" id="chart-debtmix-legend"></div>
+          <div class="readout" id="chart-debtmix-readout"></div></div>
+        <div class="flush-body"><div class="scroll"><table class="grid" id="lt-table"></table></div></div>
+      </div>
+
+      <div class="card" id="warn-card">
+        <h2>Worth checking</h2>
+        <div id="warnings"></div>
+      </div>
+
+      <div class="acc" id="assumptions">
+        <details><summary>Funding formula</summary><div class="db"><div class="code" id="fund-calc"></div></div></details>
+        <details><summary>Purchase costs</summary><div class="db" id="fld-costs"></div></details>
+        <details><summary>Bank mortgage terms</summary><div class="db" id="fld-bank"></div></details>
+        <details><summary>Family mortgage terms</summary><div class="db" id="fld-family"></div></details>
+        <details><summary>Parental gift</summary><div class="db" id="fld-gift"></div></details>
+        <details><summary>Income &amp; living costs</summary><div class="db" id="fld-household"></div></details>
+        <details><summary>Recurring housing costs</summary><div class="db" id="fld-housing"></div></details>
+        <details><summary>Portfolio, inflation &amp; cash</summary><div class="db" id="fld-portfolio"></div></details>
+        <details><summary>Purchase timing &amp; tax residence</summary><div class="db" id="fld-purchase"></div></details>
+      </div>
+      <p class="note">Financial planning tool, not tax or mortgage advice. Every assumption is editable and every rule is shown under Detail.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMPARE ================= -->
+<section class="view" id="view-compare">
+  <div class="card">
+    <h2>Saved structures</h2>
+    <p class="lede">Save a plan, move one number, save another. Stored in this browser only.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="scenario-name" placeholder="Name this structure"
+             style="flex:1;min-width:150px;border:1px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:8px;padding:11px;font-size:15px">
+      <button class="btn pri" id="btn-save">Save current</button>
+      <button class="btn" id="btn-presets">Add examples</button>
+      <button class="btn" id="btn-export">Export file</button>
+      <button class="btn" id="btn-import">Import file</button>
+      <input type="file" id="import-file" accept="application/json,.json" style="display:none">
+    </div>
+    <p class="note" id="backup-note">Saved structures live only in this browser. Export a file to keep them safe or move them to another device.</p>
+  </div>
+  <div id="scenario-list"></div>
+  <div class="card flush">
+    <div class="hdrow" style="padding:16px 16px 4px"><h2>Side by side</h2>
+      <span class="sp"><span class="seg" id="cmp-mode"><button data-m="val" class="on">Values</button><button data-m="diff">Difference</button></span></span></div>
+    <p class="lede" style="padding:0 16px" id="cmp-lede">Current plan first. Differences are shaded.</p>
+    <div style="padding:0 16px 16px"><div class="scroll"><table class="grid" id="compare-table"></table></div></div>
+  </div>
+</section>
+
+<!-- ================= DETAIL / RISK ================= -->
+<section class="view" id="view-risk">
+  <div class="cols2">
+    <div>
+      <div class="card flush">
+        <h2 style="padding:16px 16px 8px">Return paths</h2>
+        <div style="padding:0 16px" id="fld-paths"></div>
+        <div style="padding:10px 16px 16px"><div class="scroll"><table class="grid" id="paths-table"></table></div></div>
+      </div>
+      <div class="card flush">
+        <h2 style="padding:16px 16px 4px">Monte Carlo</h2>
+        <p class="lede" style="padding:0 16px">A scenario distribution, not a forecast.</p>
+        <div style="padding:0 16px" id="chart-mc"></div>
+        <div style="padding:10px 16px 0"><div class="scroll"><table class="grid" id="mc-table"></table></div></div>
+        <div style="padding:0 16px"><details><summary>Simulation settings</summary><div class="db" id="fld-mc"></div></details></div>
+      </div>
+      <div class="card flush">
+        <h2 style="padding:16px 16px 4px">Stress tests</h2>
+        <p class="lede" style="padding:0 16px">Factual outcomes, no pass/fail labels. Liquidity = cash + portfolio.</p>
+        <div style="padding:6px 16px 16px"><div class="scroll"><table class="grid" id="stress-table"></table></div></div>
+      </div>
+      <div class="card">
+        <h2>Household vs extended family</h2>
+        <div id="family-economics"></div>
+        <details><summary>Parents' own tax treatment</summary><div class="db" id="fld-parents"></div></details>
+      </div>
+    </div>
+    <div>
+      <div class="card flush">
+        <h2 style="padding:16px 16px 4px">Tax rules — 2026</h2>
+        <p class="lede" style="padding:0 16px" id="rules-stamp"></p>
+        <div style="padding:0 16px 6px">
+          <details><summary>Box 1 — eigen woning</summary><div class="db" id="fld-rules-box1"></div></details>
+          <details><summary>Box 3</summary><div class="db" id="fld-rules-box3"></div></details>
+          <details><summary>Transfer tax &amp; gift tax</summary><div class="db" id="fld-rules-other"></div></details>
+          <details><summary>Sources</summary><div class="db"><ul class="sm" id="sources-list" style="padding-left:18px;line-height:1.9"></ul></div></details>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Partner allocation &amp; box 3 method</h2>
+        <div id="fld-partner"></div>
+        <div class="code" style="margin-top:12px" id="partner-calc"></div>
+      </div>
+      <div class="card">
+        <h2>Qualifying debt (eigenwoningschuld)</h2>
+        <div id="fld-qualdebt"></div>
+        <div class="code" style="margin-top:12px" id="qualdebt-calc"></div>
+      </div>
+      <div class="card">
+        <h2>Family-mortgage checklist</h2>
+        <div id="family-checklist"></div>
+        <p class="note">Supports a conversation with a Dutch adviser. It does not establish that any rate or structure is legally acceptable.</p>
+      </div>
+      <div class="card flush">
+        <h2 style="padding:16px 16px 8px">Model</h2>
+        <div style="padding:0 16px 6px">
+          <details><summary>Formulas</summary><div class="db"><div class="code" id="formulas"></div></div></details>
+          <details><summary id="validation-summary">Validation</summary><div class="db"><div class="scroll"><table class="grid" id="validation-list"></table></div><p class="note" id="dom-check"></p></div></details>
+          <details><summary>What still needs a Dutch adviser</summary><div class="db sm" id="scope-text"></div></details>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<nav class="bottom" id="tabs-bottom">
+  <button data-view="plan" class="active">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>Plan</button>
+  <button data-view="compare">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Compare</button>
+  <button data-view="risk">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Detail</button>
+</nav>
+<script>
+/* =========================================================================
+   DUTCH HOME PURCHASE & FINANCING DECISION SIMULATOR
+   PART 1 — RULES / STATE / PURE CALCULATION ENGINE
+   No DOM access anywhere in this file.
+   ========================================================================= */
+'use strict';
+
+/* ------------------------------ RULES ---------------------------------- */
+/* Every value below is CURRENT DUTCH RULE unless marked otherwise, and every
+   value is editable at runtime through state.rules.                        */
+
+const DUTCH_RULES_2026 = {
+  verifiedDate: '2026-08-11',
+  box1: {
+    brackets: [
+      { upTo: 38883, rate: 0.3575 },
+      { upTo: 78426, rate: 0.3756 },
+      { upTo: 1e12, rate: 0.4950 }
+    ],
+    maxDeductionRate: 0.3756,   // tariefsaanpassing aftrek eigen woning 2026
+    hillenPct: 0.71867          // aftrek geen/geringe eigenwoningschuld 2026
+  },
+  eigenwoningforfait: {
+    standardRate: 0.0035,       // WOZ 75.000 - 1.350.000
+    lowerThreshold: 75000,
+    highThreshold: 1350000,
+    fixedAtHighThreshold: 4725, // 0,35% x 1.350.000
+    highRate: 0.0235            // "villaforfait" over het meerdere
+  },
+  box3: {
+    rate: 0.36,
+    exemptionPerPerson: 59357,
+    bankReturn: 0.0128,         // provisional for 2026
+    investmentReturn: 0.0600,   // definitive for 2026
+    debtReturn: 0.0270,         // provisional for 2026
+    debtThresholdPerPerson: 3800
+  },
+  transferTax: {
+    primaryResidence: 0.02,
+    starterExemptionLimit: 555000,
+    otherHomes: 0.08,
+    nonResidential: 0.104
+  },
+  gifts: {
+    annualChildExemption: 6908,
+    oneTimeExemption18to40: 33129,
+    brackets: [
+      { upTo: 158669, rate: 0.10 },
+      { upTo: 1e12, rate: 0.20 }
+    ]
+  }
+};
+
+const RULE_SOURCES = [
+  { label: 'Belastingdienst — gift from abroad: donor residence decides, never a Dutch resident \u2192 no return due', url: 'https://www.belastingdienst.nl/wps/wcm/connect/nl/schenken/content/ik-krijg-een-schenking-uit-het-buitenland-moet-ik-aangifte-schenkbelasting-doen' },
+  { label: 'Belastingdienst — eigenwoningforfait & Wet Hillen', url: 'https://www.belastingdienst.nl/wps/wcm/connect/nl/koopwoning/content/hoe-werkt-eigenwoningforfait' },
+  { label: 'Belastingdienst — tariefsaanpassing eigen woning (max. aftrektarief 37,56%)', url: 'https://www.belastingdienst.nl/wps/wcm/connect/nl/koopwoning/content/tariefsaanpassing-eigen-woning' },
+  { label: 'Belastingdienst — belastingvrij schenken aan een kind', url: 'https://www.belastingdienst.nl/wps/wcm/connect/nl/schenken/content/hoeveel-mag-ik-mijn-kind-belastingvrij-schenken' },
+  { label: 'Rijksoverheid — vrijstelling overdrachtsbelasting (grens € 555.000 in 2026)', url: 'https://www.rijksoverheid.nl/onderwerpen/huis-kopen/vraag-en-antwoord/vrijstelling-overdrachtsbelasting' },
+  { label: 'Belastingplan 2026 — schijven box 1 (35,75% / 37,56% / 49,50%)', url: 'https://open.overheid.nl/documenten/c3d48c04-1009-4ffe-a54b-cebf13427ab5/file' }
+];
+
+/* --------------------------- DEFAULT STATE ------------------------------ */
+
+const DEFAULT_STATE = {
+  house:      { price: 1350000, appreciation: 0.02, wozRatio: 1.00 },
+  purchase:   { year: 2027, month: 6, residentJan1: true, firstYearBox3Override: null },
+  costs: {
+    transferTaxPct: 0.02, starterExemption: false,
+    notary: 2500, advice: 3500, valuation: 1500, agent: 13500,
+    moving: 5000, renovation: 40000, other: 2500,
+    cls: { transferTax: 'acq', notary: 'acq', advice: 'fin', valuation: 'fin',
+           agent: 'acq', moving: 'non', renovation: 'acq', other: 'non' }
+  },
+  bank: {
+    amount: 500000, rate: 0.037, termYears: 30, type: 'annuity',
+    fixedYears: 10, resetRate: 0.030, deductible: true
+  },
+  family: {
+    amount: 250000, rate: 0.031, termYears: 20, type: 'annuity',
+    fixedYears: 10, resetRate: 0.020, deductible: true,
+    secured: false, interestActuallyPaid: true, reportedCorrectly: true,
+    qualifyingUse: true, comparisonBankRate: 0.037, comparisonBandPct: 0.25
+  },
+  gift: {
+    initial: 150000, annual: 6908, escalation: 0.00,
+    status: 'none',               // unknown | dutch | none
+    exemptionInitial: 6908, exemptionAnnual: 6908,
+    parentsResidence: 'never'     // nl | abroad-recent | never
+  },
+  household: {
+    grossMonthly: 11000, netMonthly: 7500, living: 3500, childcare: 0,
+    incomeGrowth: 0.02, partnerAIncome: 80000, partnerBIncome: 52000,
+    allocationMode: 'auto', allocationA: 1.0
+  },
+  housing: { mode: 'flat', flatMonthly: 500, maintenancePct: 0.004,
+             utilitiesMonthly: 250, municipalAnnual: 1400 },
+  portfolio: {
+    before: 700000, nominalReturn: 0.06, fees: 0.0020, inflation: 0.02,
+    cashStart: 0, cashReturn: 0.015, cashBuffer: 25000, path: 'base'
+  },
+  box3: { method: 'fictitious', partners: 2, actualReturnPct: 0.06,
+          eigenwoningreserve: 0, parentsBox3OnClaim: true, parentsBox3Share: 1.0 },
+  mc: { volatility: 0.16, sims: 500, seed: 20260811 },
+  rules: JSON.parse(JSON.stringify(DUTCH_RULES_2026))
+};
+
+/* ------------------------------ HELPERS -------------------------------- */
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
+function getPath(obj, path) {
+  return path.split('.').reduce(function (a, k) { return (a == null ? a : a[k]); }, obj);
+}
+function setPath(obj, path, value) {
+  const keys = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) cur = cur[keys[i]];
+  cur[keys[keys.length - 1]] = value;
+}
+function round2(x) { return Math.round(x * 100) / 100; }
+
+/* ------------------------------- LOANS --------------------------------- */
+
+function annuityPayment(principal, monthlyRate, months) {
+  if (months <= 0) return 0;
+  if (monthlyRate === 0) return principal / months;
+  return principal * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
+}
+
+/**
+ * Month-by-month amortization schedule, including a rate reset at the end of
+ * the fixed-rate period.
+ * type: 'annuity' | 'linear' | 'interestOnly'
+ */
+function loanSchedule(loan) {
+  const n = Math.round((loan.termYears || 0) * 12);
+  const P0 = Math.max(0, loan.amount || 0);
+  const months = [];
+  if (n <= 0 || P0 <= 0) return { months: months, initialPayment: 0, resetPayment: 0, totalInterest: 0 };
+
+  const fixedMonths = (loan.fixedYears && loan.fixedYears > 0 && loan.fixedYears < loan.termYears)
+    ? Math.round(loan.fixedYears * 12) : n;
+  let rate = loan.rate / 12;
+  let balance = P0;
+  let payment = loan.type === 'annuity' ? annuityPayment(P0, rate, n) : 0;
+  const linearPrincipal = P0 / n;
+  let initialPayment = 0, resetPayment = 0, totalInterest = 0;
+
+  for (let m = 1; m <= n; m++) {
+    if (m === fixedMonths + 1) {
+      rate = (loan.resetRate != null ? loan.resetRate : loan.rate) / 12;
+      if (loan.type === 'annuity') payment = annuityPayment(balance, rate, n - fixedMonths);
+      resetPayment = (loan.type === 'annuity') ? payment
+        : (loan.type === 'linear' ? linearPrincipal + balance * rate : balance * rate);
+    }
+    const interest = balance * rate;
+    let principalPart, pay;
+    if (loan.type === 'annuity') { pay = payment; principalPart = pay - interest; }
+    else if (loan.type === 'linear') { principalPart = linearPrincipal; pay = principalPart + interest; }
+    else { principalPart = 0; pay = interest; }
+    if (principalPart > balance) { principalPart = balance; pay = principalPart + interest; }
+    balance = balance - principalPart;
+    totalInterest += interest;
+    if (m === 1) initialPayment = pay;
+    months.push({ m: m, payment: pay, interest: interest, principal: principalPart, balance: balance });
+  }
+  if (loan.type === 'interestOnly') {
+    // balloon repayment at maturity is NOT auto-modelled; balance stays until end
+    months[months.length - 1].balance = P0;
+  }
+  return { months: months, initialPayment: initialPayment, resetPayment: resetPayment, totalInterest: totalInterest };
+}
+
+function annualLoanSummary(schedule) {
+  const out = [];
+  const ms = schedule.months;
+  for (let i = 0; i < ms.length; i += 12) {
+    let pay = 0, int = 0, pri = 0;
+    const chunk = ms.slice(i, i + 12);
+    chunk.forEach(function (x) { pay += x.payment; int += x.interest; pri += x.principal; });
+    out.push({
+      year: Math.floor(i / 12) + 1, payment: pay, interest: int, principal: pri,
+      endBalance: chunk[chunk.length - 1].balance,
+      startBalance: chunk[0].balance + chunk[0].principal
+    });
+  }
+  return out;
+}
+
+function loanYear(annual, y) {
+  if (y - 1 < annual.length) return annual[y - 1];
+  return { year: y, payment: 0, interest: 0, principal: 0, endBalance: 0, startBalance: 0 };
+}
+
+/* --------------------------- PURCHASE COSTS ----------------------------- */
+
+function purchaseCostBreakdown(state) {
+  const c = state.costs, price = state.house.price, r = state.rules;
+  const starterApplies = c.starterExemption && price <= r.transferTax.starterExemptionLimit;
+  const transferTax = starterApplies ? 0 : price * c.transferTaxPct;
+  const items = [
+    { key: 'transferTax', label: 'Transfer tax (overdrachtsbelasting)', amount: transferTax, cls: c.cls.transferTax },
+    { key: 'notary', label: 'Notary (deed of transfer)', amount: c.notary, cls: c.cls.notary },
+    { key: 'advice', label: 'Mortgage advice / arrangement', amount: c.advice, cls: c.cls.advice },
+    { key: 'valuation', label: 'Valuation + technical inspection', amount: c.valuation, cls: c.cls.valuation },
+    { key: 'agent', label: 'Purchase agent (aankoopmakelaar)', amount: c.agent, cls: c.cls.agent },
+    { key: 'moving', label: 'Moving', amount: c.moving, cls: c.cls.moving },
+    { key: 'renovation', label: 'Renovation / improvement', amount: c.renovation, cls: c.cls.renovation },
+    { key: 'other', label: 'Other costs', amount: c.other, cls: c.cls.other }
+  ];
+  let total = 0, acq = 0, fin = 0, non = 0;
+  items.forEach(function (it) {
+    total += it.amount;
+    if (it.cls === 'acq') acq += it.amount;
+    else if (it.cls === 'fin') fin += it.amount;
+    else non += it.amount;
+  });
+  return { items: items, total: total, acquisition: acq, financing: fin, nonQualifying: non, starterApplies: starterApplies };
+}
+
+/* ------------------------------- GIFTS ---------------------------------- */
+
+function giftTax(gross, exemption, rules) {
+  const taxable = Math.max(0, gross - exemption);
+  let tax = 0, prev = 0;
+  for (let i = 0; i < rules.gifts.brackets.length; i++) {
+    const b = rules.gifts.brackets[i];
+    const slice = Math.max(0, Math.min(taxable, b.upTo) - prev);
+    tax += slice * b.rate;
+    prev = b.upTo;
+    if (taxable <= b.upTo) break;
+  }
+  return tax;
+}
+
+/** Dutch gift tax is applied unless the user explicitly selects "no Dutch gift
+ *  tax". 'unknown' is treated conservatively (tax applied) and flagged. */
+function giftResult(state) {
+  const g = state.gift, r = state.rules;
+  const applies = (g.status !== 'none');
+  const tax = applies ? giftTax(g.initial, g.exemptionInitial, r) : 0;
+  const annualTax = applies ? giftTax(g.annual, g.exemptionAnnual, r) : 0;
+  return {
+    gross: g.initial, tax: tax, net: g.initial - tax,
+    annualGross: g.annual, annualTax: annualTax, annualNet: g.annual - annualTax,
+    applies: applies, unknown: g.status === 'unknown'
+  };
+}
+
+/* ---------------------- AUTOMATIC OWN CAPITAL --------------------------- */
+
+function automaticOwnCapital(totalRequired, netGift, bank, family, portfolioBefore) {
+  const needed = totalRequired - netGift - bank - family;
+  const ownCapital = clamp(needed, 0, portfolioBefore);
+  return {
+    needed: needed,
+    ownCapital: ownCapital,
+    portfolioLeft: portfolioBefore - ownCapital,
+    surplus: Math.max(0, -needed),
+    gap: Math.max(0, needed - portfolioBefore)
+  };
+}
+
+/* --------------------------- QUALIFYING DEBT ---------------------------- */
+
+function qualifyingDebtCeiling(state, costs) {
+  const base = state.house.price + costs.acquisition + costs.financing;
+  return Math.max(0, base - (state.box3.eigenwoningreserve || 0));
+}
+
+function familyQualifies(f) {
+  return !!(f.deductible && f.qualifyingUse && f.interestActuallyPaid && f.reportedCorrectly &&
+            (f.type === 'annuity' || f.type === 'linear'));
+}
+
+/* ------------------------------- BOX 1 ---------------------------------- */
+
+function box1TaxOnIncome(income, rules) {
+  let tax = 0, prev = 0;
+  const inc = Math.max(0, income);
+  for (let i = 0; i < rules.box1.brackets.length; i++) {
+    const b = rules.box1.brackets[i];
+    const slice = Math.max(0, Math.min(inc, b.upTo) - prev);
+    tax += slice * b.rate;
+    prev = b.upTo;
+    if (inc <= b.upTo) break;
+  }
+  return tax;
+}
+
+function marginalRate(income, rules) {
+  for (let i = 0; i < rules.box1.brackets.length; i++) {
+    if (income <= rules.box1.brackets[i].upTo) return rules.box1.brackets[i].rate;
+  }
+  return rules.box1.brackets[rules.box1.brackets.length - 1].rate;
+}
+
+function eigenwoningforfait(wozValue, rules) {
+  const e = rules.eigenwoningforfait;
+  if (wozValue <= e.lowerThreshold) return 0;
+  if (wozValue <= e.highThreshold) return wozValue * e.standardRate;
+  return e.fixedAtHighThreshold + (wozValue - e.highThreshold) * e.highRate;
+}
+
+/** Tax effect on one partner of being allocated `saldo` of income from own home.
+ *  saldo < 0 = net deduction. Returns a POSITIVE number when it saves tax.     */
+function partnerHomeEffect(income, saldo, rules) {
+  const raw = box1TaxOnIncome(income, rules) - box1TaxOnIncome(income + saldo, rules);
+  if (saldo < 0) return Math.min(raw, -saldo * rules.box1.maxDeductionRate); // tariefsaanpassing cap
+  return raw; // negative: EWF income costs tax at the full marginal rate
+}
+
+function mortgageTaxEffect(opts) {
+  const rules = opts.rules;
+  const ewf = eigenwoningforfait(opts.wozValue, rules);
+  const costs = Math.max(0, opts.qualifyingInterest);
+  const hillen = costs < ewf ? (ewf - costs) * rules.box1.hillenPct : 0;
+  const saldo = ewf - costs - hillen; // negative = deduction
+  const incA = opts.incomeA, incB = opts.incomeB;
+
+  let bestShare = 1, bestEffect = -Infinity;
+  if (opts.mode === 'manual') {
+    bestShare = clamp(opts.allocationA, 0, 1);
+    bestEffect = partnerHomeEffect(incA, saldo * bestShare, rules) +
+                 partnerHomeEffect(incB, saldo * (1 - bestShare), rules);
+  } else {
+    for (let s = 0; s <= 1.0001; s += 0.05) {
+      const e = partnerHomeEffect(incA, saldo * s, rules) +
+                partnerHomeEffect(incB, saldo * (1 - s), rules);
+      if (e > bestEffect + 1e-9) { bestEffect = e; bestShare = s; }
+    }
+  }
+  return {
+    ewf: ewf, hillen: hillen, qualifyingInterest: costs, saldo: saldo,
+    allocationA: bestShare, effect: bestEffect,
+    marginalA: marginalRate(incA, rules), marginalB: marginalRate(incB, rules)
+  };
+}
+
+/* ------------------------------- BOX 3 ---------------------------------- */
+
+/** Fictitious-return box 3 (2023+ methodology) with the tegenbewijsregeling
+ *  ("actual return") as an alternative. Debts here are box 3 debts only —
+ *  qualifying eigenwoningschuld sits in box 1 and is excluded.               */
+function box3Tax(opts) {
+  const r = opts.rules.box3;
+  const partners = opts.partners || 1;
+  const cash = Math.max(0, opts.cash || 0);
+  const investments = Math.max(0, opts.investments || 0);
+  const debtRaw = Math.max(0, opts.debt || 0);
+  const debtThreshold = r.debtThresholdPerPerson * partners;
+  const debt = Math.max(0, debtRaw - debtThreshold);
+  const exemption = r.exemptionPerPerson * partners;
+
+  const grondslag = cash + investments - debt;
+  const forfaitReturn = cash * r.bankReturn + investments * r.investmentReturn - debt * r.debtReturn;
+  let taxableFict = 0;
+  if (grondslag > 0 && forfaitReturn > 0) {
+    const share = Math.max(0, (grondslag - exemption)) / grondslag;
+    taxableFict = forfaitReturn * share;
+  }
+  const fictTax = taxableFict * r.rate;
+
+  const actualReturn = (cash + investments) * (opts.actualReturnPct != null ? opts.actualReturnPct : 0);
+  const actualTax = grondslag > exemption ? Math.max(0, actualReturn) * r.rate : 0;
+
+  let tax = fictTax;
+  if (opts.method === 'actual') tax = actualTax;
+  else if (opts.method === 'lower') tax = Math.min(fictTax, actualTax);
+
+  return {
+    tax: tax, fictitious: fictTax, actual: actualTax,
+    grondslag: grondslag, forfaitReturn: forfaitReturn, exemption: exemption,
+    taxableFictitious: taxableFict
+  };
+}
+
+/* ------------------- RECURRING HOUSING COSTS ---------------------------- */
+
+function recurringHousingAnnual(state, homeValue) {
+  const h = state.housing;
+  if (h.mode === 'flat') return h.flatMonthly * 12;
+  return homeValue * h.maintenancePct + h.utilitiesMonthly * 12 + h.municipalAnnual;
+}
+
+/* ------------------------ SCENARIO (YEAR 0/1) --------------------------- */
+
+function calculateScenario(state) {
+  const rules = state.rules;
+  const costs = purchaseCostBreakdown(state);
+  const totalRequired = state.house.price + costs.total;
+  const gift = giftResult(state);
+
+  const funding = automaticOwnCapital(totalRequired, gift.net, state.bank.amount,
+                                      state.family.amount, state.portfolio.before);
+
+  const bankSched = loanSchedule(state.bank);
+  const famSched = loanSchedule(state.family);
+  const bankAnnual = annualLoanSummary(bankSched);
+  const famAnnual = annualLoanSummary(famSched);
+
+  const bankPayment = bankSched.initialPayment;
+  const famPayment = famSched.initialPayment;
+  const grossDebtService = bankPayment + famPayment;
+
+  const ceiling = qualifyingDebtCeiling(state, costs);
+  const famQual = familyQualifies(state.family);
+  const eligibleDebt = (state.bank.deductible ? state.bank.amount : 0) + (famQual ? state.family.amount : 0);
+  const qualifyingDebt = Math.min(eligibleDebt, ceiling);
+  const qualifyingRatio = eligibleDebt > 0 ? qualifyingDebt / eligibleDebt : 0;
+  const totalDebt = state.bank.amount + state.family.amount;
+  const nonQualifyingDebt = Math.max(0, totalDebt - qualifyingDebt);
+
+  const y1 = { bank: loanYear(bankAnnual, 1), family: loanYear(famAnnual, 1) };
+  const qualifyingInterest =
+    (state.bank.deductible ? y1.bank.interest : 0) * qualifyingRatio +
+    (famQual ? y1.family.interest : 0) * qualifyingRatio;
+
+  const box1 = mortgageTaxEffect({
+    rules: rules, wozValue: state.house.price * state.house.wozRatio,
+    qualifyingInterest: qualifyingInterest,
+    incomeA: state.household.partnerAIncome, incomeB: state.household.partnerBIncome,
+    mode: state.household.allocationMode, allocationA: state.household.allocationA
+  });
+
+  // Box 3 in the first full year after purchase (peildatum 1 January).
+  const startCash = state.portfolio.cashStart + funding.surplus;
+  const box3First = firstYearBox3(state, funding, startCash, nonQualifyingDebt);
+
+  const recurring = recurringHousingAnnual(state, state.house.price);
+  const netHousingMonthly = grossDebtService + recurring / 12 - box1.effect / 12;
+  const fcfBeforeBox3 = state.household.netMonthly - netHousingMonthly -
+        state.household.living - state.household.childcare + gift.annualNet / 12;
+  const fcf = fcfBeforeBox3 - box3First.tax / 12;
+
+  const warnings = buildWarnings(state, {
+    funding: funding, gift: gift, qualifyingDebt: qualifyingDebt, totalDebt: totalDebt, famQual: famQual
+  });
+
+  return {
+    costs: costs, totalRequired: totalRequired, gift: gift, funding: funding,
+    loans: {
+      bank: { schedule: bankSched, annual: bankAnnual, payment: bankPayment, resetPayment: bankSched.resetPayment },
+      family: { schedule: famSched, annual: famAnnual, payment: famPayment, resetPayment: famSched.resetPayment }
+    },
+    grossDebtService: grossDebtService,
+    grossDebtServicePct: state.household.grossMonthly > 0 ? grossDebtService / state.household.grossMonthly : 0,
+    recurringMonthly: recurring / 12,
+    netHousingMonthly: netHousingMonthly,
+    netHousingPct: state.household.netMonthly > 0 ? netHousingMonthly / state.household.netMonthly : 0,
+    freeCashFlowBeforeBox3: fcfBeforeBox3, freeCashFlow: fcf,
+    qualifying: { ceiling: ceiling, eligibleDebt: eligibleDebt, qualifyingDebt: qualifyingDebt,
+                  ratio: qualifyingRatio, nonQualifyingDebt: nonQualifyingDebt, familyQualifies: famQual },
+    box1: box1, box3: box3First, year1Interest: y1.bank.interest + y1.family.interest,
+    totalDebt: totalDebt,
+    ltv: state.house.price > 0 ? totalDebt / state.house.price : 0,
+    homeEquityAtPurchase: state.house.price - totalDebt,
+    startCash: startCash,
+    warnings: warnings
+  };
+}
+
+function firstYearBox3(state, funding, startCash, nonQualifyingDebt) {
+  const o = state.purchase.firstYearBox3Override;
+  if (o != null && o !== '') {
+    return { tax: Number(o), fictitious: Number(o), actual: Number(o), override: true,
+             grondslag: 0, forfaitReturn: 0, exemption: 0, taxableFictitious: 0 };
+  }
+  if (!state.purchase.residentJan1) {
+    return { tax: 0, fictitious: 0, actual: 0, notResident: true,
+             grondslag: 0, forfaitReturn: 0, exemption: 0, taxableFictitious: 0 };
+  }
+  // Resident on 1 January of the purchase year: the peildatum still sees the
+  // PRE-purchase portfolio, because the house is bought later that year.
+  return box3Tax({
+    rules: state.rules, partners: state.box3.partners,
+    cash: state.portfolio.cashStart, investments: state.portfolio.before,
+    debt: 0, method: state.box3.method, actualReturnPct: state.box3.actualReturnPct
+  });
+}
+
+function buildWarnings(state, ctx) {
+  const w = [];
+  if (ctx.funding.gap > 0) w.push({ level: 'error', text: 'Funding gap: the plan does not close. Increase financing, reduce costs or lower the price.' });
+  if (ctx.gift.unknown) w.push({ level: 'warn', text: 'Gift-tax status is set to "unknown". Dutch gift tax is applied as the conservative default — verify the donors\u2019 residence position.' });
+  if (state.bank.type === 'interestOnly' && state.bank.deductible)
+    w.push({ level: 'warn', text: 'Bank loan is interest-only AND assumed deductible. For debt taken on after 2013 the annuity/linear repayment requirement normally applies.' });
+  if (state.family.type === 'interestOnly' && state.family.deductible)
+    w.push({ level: 'warn', text: 'Family loan is interest-only AND assumed deductible. For debt taken on after 2013 the annuity/linear repayment requirement normally applies.' });
+  const lo = state.family.comparisonBankRate * (1 - state.family.comparisonBandPct);
+  const hi = state.family.comparisonBankRate * (1 + state.family.comparisonBandPct);
+  if (state.family.amount > 0 && (state.family.rate < lo || state.family.rate > hi))
+    w.push({ level: 'warn', text: 'Family rate is materially outside the comparison range (' + (lo * 100).toFixed(2) + '%\u2013' + (hi * 100).toFixed(2) + '%). Verify market conformity based on term, security, ranking and borrower risk.' });
+  if (!ctx.famQual && state.family.amount > 0)
+    w.push({ level: 'info', text: 'Family loan is modelled as NON-qualifying debt: its interest gets no box 1 deduction and the balance is treated as a box 3 debt.' });
+  if (ctx.qualifyingDebt < ctx.totalDebt - 0.5)
+    w.push({ level: 'info', text: 'Total borrowing exceeds the qualifying eigenwoningschuld ceiling. The excess receives no mortgage-interest deduction in this model.' });
+  if (state.bank.amount > 0 && state.family.amount > 0)
+    w.push({ level: 'info', text: 'Bank capacity is an external constraint. A bank indication of \u20ac' + Math.round(state.bank.amount).toLocaleString('nl-NL') + ' should not be combined mechanically with family borrowing without lender confirmation.' });
+  return w;
+}
+/* =========================================================================
+   PART 2 — PROJECTION / DECISION ANALYSIS / VALIDATION
+   ========================================================================= */
+
+/* --------------------------- RETURN PATHS ------------------------------- */
+
+function pathReturns(state, years) {
+  const base = state.portfolio.nominalReturn;
+  const out = [];
+  const p = state.portfolio.path;
+  for (let y = 1; y <= years; y++) {
+    if (p === 'stagnation') out.push(y <= 5 ? 0 : base);
+    else if (p === 'crash') {
+      const seq = [-0.20, -0.05, 0.12, 0.09, 0.07];
+      out.push(y <= 5 ? seq[y - 1] : base);
+    } else if (p === 'conservative') out.push(0.03);
+    else out.push(base);
+  }
+  return out;
+}
+
+/* ---------------------------- PROJECTION -------------------------------- */
+/**
+ * Cash-flow-neutral annual projection.
+ * Order inside each year:
+ *   1. box 3 tax on the 1 January position (previous year end)
+ *   2. loan payments (interest + principal) from the amortization schedule
+ *   3. box 1 housing tax effect
+ *   4. living costs, childcare, recurring housing costs, gifts
+ *   5. free cash flow -> cash buffer first, then investments
+ *      negative free cash flow -> cash first, then portfolio
+ *   6. growth of portfolio / cash / home value
+ */
+function projectScenario(state, opts) {
+  opts = opts || {};
+  const years = opts.years || 30;
+  const calc = opts.calc || calculateScenario(state);
+  const rules = state.rules;
+  const returns = opts.returns || pathReturns(state, years);
+  const infl = state.portfolio.inflation;
+
+  let portfolio = calc.funding.portfolioLeft;
+  let cash = calc.startCash;
+  let homeValue = state.house.price * (opts.homeShock || 1);
+  const bankAnnual = calc.loans.bank.annual;
+  const famAnnual = calc.loans.family.annual;
+  const famQual = calc.qualifying.familyQualifies;
+  const qRatio = calc.qualifying.ratio;
+
+  const incomeFactor = opts.incomeFactor != null ? opts.incomeFactor : 1;
+  let parentsCash = 0;                 // net cash position of the parents from this deal
+  let cumBankInterest = 0, cumFamilyInterest = 0, cumParentsTax = 0, cumGifts = 0;
+  let liquidityExhaustedYear = null;
+
+  const rows = [];
+  for (let y = 1; y <= years; y++) {
+    const by = loanYear(bankAnnual, y), fy = loanYear(famAnnual, y);
+    const debtService = by.payment + fy.payment;
+    const bankBal = by.endBalance, famBal = fy.endBalance;
+    const nonQualDebt = Math.max(0, (by.startBalance + fy.startBalance) - calc.qualifying.qualifyingDebt);
+
+    /* --- box 3 on the 1 January position ------------------------------- */
+    let b3;
+    if (y === 1) {
+      b3 = calc.box3;
+    } else {
+      const prev = rows[y - 2];
+      b3 = box3Tax({
+        rules: rules, partners: state.box3.partners,
+        cash: prev.cash, investments: prev.portfolio, debt: nonQualDebt,
+        method: state.box3.method, actualReturnPct: state.box3.actualReturnPct
+      });
+    }
+
+    /* --- box 1 --------------------------------------------------------- */
+    const qualifyingInterest =
+      (state.bank.deductible ? by.interest : 0) * qRatio +
+      (famQual ? fy.interest : 0) * qRatio;
+    const growth = Math.pow(1 + state.household.incomeGrowth, y - 1);
+    const box1 = mortgageTaxEffect({
+      rules: rules, wozValue: homeValue * state.house.wozRatio,
+      qualifyingInterest: qualifyingInterest,
+      incomeA: state.household.partnerAIncome * growth * incomeFactor,
+      incomeB: state.household.partnerBIncome * growth * incomeFactor,
+      mode: state.household.allocationMode, allocationA: state.household.allocationA
+    });
+
+    /* --- household cash flow ------------------------------------------- */
+    const inflFactor = Math.pow(1 + infl, y - 1);
+    const netIncome = state.household.netMonthly * 12 * growth * incomeFactor;
+    const living = state.household.living * 12 * inflFactor;
+    const childcare = state.household.childcare * 12 * inflFactor;
+    const recurring = recurringHousingAnnual(state, homeValue) *
+                      (state.housing.mode === 'flat' ? inflFactor : 1);
+    const giftGross = (opts.giftsStop ? 0 : state.gift.annual) * Math.pow(1 + state.gift.escalation, y - 1);
+    const giftNet = giftGross - (state.gift.status !== 'none' ? giftTax(giftGross, state.gift.exemptionAnnual, rules) : 0);
+    const oneOff = (y === 1 && opts.oneOffCost) ? opts.oneOffCost : 0;
+
+    const fcfBeforeBox3 = netIncome + giftNet + box1.effect - debtService - recurring - living - childcare - oneOff;
+    const fcf = fcfBeforeBox3 - b3.tax;
+
+    /* --- growth then allocation ---------------------------------------- */
+    portfolio = portfolio * (1 + returns[y - 1] - state.portfolio.fees);
+    cash = cash * (1 + state.portfolio.cashReturn);
+
+    if (fcf >= 0) {
+      const toCash = Math.max(0, Math.min(fcf, state.portfolio.cashBuffer - cash));
+      cash += toCash;
+      portfolio += (fcf - toCash);
+    } else {
+      let deficit = -fcf;
+      const fromCash = Math.min(cash, deficit);
+      cash -= fromCash; deficit -= fromCash;
+      if (deficit > 0) {
+        const fromPortfolio = Math.min(portfolio, deficit);
+        portfolio -= fromPortfolio; deficit -= fromPortfolio;
+        if (deficit > 0.5 && liquidityExhaustedYear == null) liquidityExhaustedYear = y;
+      }
+    }
+    if (portfolio < 0) portfolio = 0;
+
+    homeValue = homeValue * (1 + state.house.appreciation);
+
+    /* --- extended family ------------------------------------------------ */
+    cumBankInterest += by.interest;
+    cumFamilyInterest += fy.interest;
+    cumGifts += giftGross;
+    let parentsTax = 0;
+    if (state.box3.parentsBox3OnClaim && fy.startBalance > 0) {
+      parentsTax = fy.startBalance * rules.box3.investmentReturn * rules.box3.rate * state.box3.parentsBox3Share;
+      cumParentsTax += parentsTax;
+    }
+    parentsCash += fy.payment - giftGross - parentsTax;
+
+    const netWorth = homeValue + portfolio + cash - bankBal - famBal;
+    rows.push({
+      year: y, portfolio: portfolio, cash: cash, homeValue: homeValue,
+      bankBalance: bankBal, familyBalance: famBal,
+      homeEquity: homeValue - bankBal - famBal,
+      netWorth: netWorth,
+      netWorthReal: netWorth / Math.pow(1 + infl, y),
+      portfolioReal: portfolio / Math.pow(1 + infl, y),
+      debtService: debtService, interest: by.interest + fy.interest,
+      principal: by.principal + fy.principal,
+      box1Effect: box1.effect, ewf: box1.ewf, box3: b3.tax,
+      freeCashFlow: fcf, freeCashFlowMonthly: fcf / 12,
+      freeCashFlowReal: fcf / Math.pow(1 + infl, y),
+      freeCashFlowMonthlyReal: fcf / 12 / Math.pow(1 + infl, y),
+      parentsClaim: famBal, parentsCash: parentsCash,
+      familyWideNetWorth: netWorth + famBal + parentsCash,
+      cumBankInterest: cumBankInterest, cumFamilyInterest: cumFamilyInterest,
+      cumParentsTax: cumParentsTax, cumGifts: cumGifts
+    });
+  }
+  return { rows: rows, calc: calc, liquidityExhaustedYear: liquidityExhaustedYear,
+           returns: returns };
+}
+
+function netWorthAt(projection, year) {
+  const r = projection.rows[Math.min(year, projection.rows.length) - 1];
+  return r ? r.netWorth : 0;
+}
+
+/* ----------------------------- MONTE CARLO ------------------------------ */
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function normalPair(rng) {
+  let u = 0, v = 0;
+  while (u === 0) u = rng();
+  while (v === 0) v = rng();
+  const R = Math.sqrt(-2 * Math.log(u));
+  return [R * Math.cos(2 * Math.PI * v), R * Math.sin(2 * Math.PI * v)];
+}
+function percentile(sorted, p) {
+  if (!sorted.length) return 0;
+  const idx = clamp((sorted.length - 1) * p, 0, sorted.length - 1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+
+function monteCarloProjection(state, opts) {
+  opts = opts || {};
+  const years = opts.years || 30;
+  const sims = Math.max(50, Math.min(3000, state.mc.sims));
+  const mu = state.portfolio.nominalReturn, sigma = state.mc.volatility;
+  const rng = mulberry32(state.mc.seed);
+  const calc = calculateScenario(state);
+  const byYear = [];
+  for (let y = 0; y < years; y++) byYear.push([]);
+  for (let s = 0; s < sims; s++) {
+    const rets = [];
+    for (let y = 0; y < years; y++) {
+      if (y % 2 === 0) { const z = normalPair(rng); rets.push(mu + sigma * z[0]); rets.push(mu + sigma * z[1]); }
+    }
+    rets.length = years;
+    const p = projectScenario(state, { years: years, returns: rets, calc: calc });
+    for (let y = 0; y < years; y++) byYear[y].push(p.rows[y].netWorth);
+  }
+  const bands = byYear.map(function (arr, i) {
+    arr.sort(function (a, b) { return a - b; });
+    return { year: i + 1, p10: percentile(arr, 0.10), p50: percentile(arr, 0.50), p90: percentile(arr, 0.90) };
+  });
+  return { bands: bands, sims: sims };
+}
+
+/* ------------------------------ STRESSES -------------------------------- */
+
+const STRESS_DEFS = [
+  { key: 'inv_stagnation', group: 'Investments', label: '0% return for 5 years',
+    apply: function (s) { s.portfolio.path = 'stagnation'; } },
+  { key: 'inv_conservative', group: 'Investments', label: '3% long-run return',
+    apply: function (s) { s.portfolio.path = 'conservative'; } },
+  { key: 'inv_crash', group: 'Investments', label: 'Crash then recovery (\u221220%, \u22125%, +12%, +9%, +7%)',
+    apply: function (s) { s.portfolio.path = 'crash'; } },
+  { key: 'house_drop', group: 'Housing', label: 'House value \u221220% immediately', opts: { homeShock: 0.8 } },
+  { key: 'house_flat', group: 'Housing', label: 'No house-price appreciation',
+    apply: function (s) { s.house.appreciation = 0; } },
+  { key: 'income_loss', group: 'Cash flow', label: 'One income disappears', incomeLoss: true },
+  { key: 'maintenance', group: 'Cash flow', label: '\u20ac50,000 unexpected maintenance in year 1', opts: { oneOffCost: 50000 } },
+  { key: 'gifts_stop', group: 'Cash flow', label: 'Annual parental gifts stop', opts: { giftsStop: true } },
+  { key: 'rate_shock', group: 'Financing', label: 'Reset rates +2 percentage points',
+    apply: function (s) { s.bank.resetRate += 0.02; s.family.resetRate += 0.02; } },
+  { key: 'family_refi', group: 'Financing', label: 'Family loan must refinance at bank terms',
+    apply: function (s) { s.family.resetRate = s.bank.resetRate; } }
+];
+
+function stressScenario(state, key, years) {
+  const def = STRESS_DEFS.filter(function (d) { return d.key === key; })[0];
+  if (!def) return null;
+  const s = clone(state);
+  if (def.apply) def.apply(s);
+  const opts = Object.assign({ years: years || 30 }, def.opts || {});
+  if (def.incomeLoss) {
+    const tot = s.household.partnerAIncome + s.household.partnerBIncome;
+    const share = tot > 0 ? s.household.partnerBIncome / tot : 0.4;
+    opts.incomeFactor = 1 - share;
+    s.household.partnerBIncome = 0;
+  }
+  const proj = projectScenario(s, opts);
+  const base = projectScenario(state, { years: years || 30 });
+  const y1 = proj.rows[0];
+  const last = proj.rows[proj.rows.length - 1];
+  const baseLast = base.rows[base.rows.length - 1];
+  let minLiquidity = Infinity, minYear = 0;
+  proj.rows.forEach(function (r) {
+    const liq = r.cash + r.portfolio;
+    if (liq < minLiquidity) { minLiquidity = liq; minYear = r.year; }
+  });
+  return {
+    def: def, label: def.label, group: def.group,
+    fcfYear1: y1.freeCashFlowMonthly,
+    liquidityYear5: proj.rows[Math.min(4, proj.rows.length - 1)].cash + proj.rows[Math.min(4, proj.rows.length - 1)].portfolio,
+    minLiquidity: minLiquidity, minLiquidityYear: minYear,
+    netWorthEnd: last.netWorth, netWorthDelta: last.netWorth - baseLast.netWorth,
+    liquidityExhaustedYear: proj.liquidityExhaustedYear,
+    projection: proj
+  };
+}
+
+/* ------------------------- CASH-FLOW PROFILE ---------------------------- */
+/**
+ * The purchase year is not representative: box 3 that year is still charged on
+ * the pre-purchase portfolio (peildatum 1 January), and that charge disappears
+ * afterwards. This separates the one-off year from the first normal year.
+ */
+function cashFlowProfile(state, calc, proj) {
+  calc = calc || calculateScenario(state);
+  proj = proj || projectScenario(state, { years: 30, calc: calc });
+  const r2 = proj.rows[1];
+  return {
+    year1: calc.freeCashFlow,
+    year1Box3: calc.box3.tax,
+    year2: r2 ? r2.freeCashFlowMonthly : calc.freeCashFlow,
+    year2Real: r2 ? r2.freeCashFlowMonthlyReal : calc.freeCashFlow,
+    year2Box3: r2 ? r2.box3 : 0,
+    box3OneOff: calc.box3.tax - (r2 ? r2.box3 : 0),
+    rows: proj.rows
+  };
+}
+
+/* --------------------------- SCENARIO SUMMARY --------------------------- */
+
+function scenarioSummary(state) {
+  const calc = calculateScenario(state);
+  const proj = projectScenario(state, { years: 30, calc: calc });
+  const profile = cashFlowProfile(state, calc, proj);
+  const at = function (y) { return proj.rows[y - 1] ? proj.rows[y - 1].netWorth : 0; };
+  return {
+    housePrice: state.house.price,
+    totalRequired: calc.totalRequired,
+    ownCapital: calc.funding.ownCapital,
+    gift: calc.gift.net,
+    bank: state.bank.amount,
+    family: state.family.amount,
+    totalDebt: calc.totalDebt,
+    portfolioLeft: calc.funding.portfolioLeft,
+    gap: calc.funding.gap,
+    ltv: calc.ltv,
+    grossDebtService: calc.grossDebtService,
+    grossPct: calc.grossDebtServicePct,
+    netHousing: calc.netHousingMonthly,
+    netPct: calc.netHousingPct,
+    freeCashFlow: calc.freeCashFlow,
+    freeCashFlowSteady: profile.year2Real,
+    box3: calc.box3.tax,
+    year1Interest: calc.year1Interest,
+    box1: calc.box1.effect,
+    homeEquity: calc.homeEquityAtPurchase,
+    nw5: at(5), nw10: at(10), nw20: at(20), nw30: at(30),
+    familyWide30: proj.rows[29] ? proj.rows[29].familyWideNetWorth : 0
+  };
+}
+
+/* ----------------------------- BACKUP FILE ------------------------------ */
+/* Portable JSON so saved structures survive a new domain, a cleared browser
+   or a move between phone and laptop. Pure functions: no DOM, no storage.  */
+
+const BACKUP_APP = 'dutch-home-finance';
+const BACKUP_VERSION = 1;
+
+function buildBackup(state, scenarios, now) {
+  return {
+    app: BACKUP_APP,
+    version: BACKUP_VERSION,
+    exportedAt: (now || new Date()).toISOString(),
+    rulesVerified: state.rules.verifiedDate,
+    currentPlan: clone(state),
+    scenarios: (scenarios || []).map(function (s) {
+      return { name: String(s.name), state: clone(s.state) };
+    })
+  };
+}
+
+function parseBackup(text) {
+  let data;
+  try { data = JSON.parse(text); }
+  catch (e) { return { ok: false, error: 'That file is not valid JSON.' }; }
+  if (!data || typeof data !== 'object') return { ok: false, error: 'That file is not a backup.' };
+  if (data.app !== BACKUP_APP) return { ok: false, error: 'That file was not exported from this calculator.' };
+  if (!Array.isArray(data.scenarios)) return { ok: false, error: 'The backup has no list of structures.' };
+  const scenarios = data.scenarios.filter(function (s) {
+    return s && typeof s.name === 'string' && s.state && s.state.house && s.state.bank;
+  });
+  if (scenarios.length !== data.scenarios.length && scenarios.length === 0)
+    return { ok: false, error: 'None of the structures in that file could be read.' };
+  const hasPlan = !!(data.currentPlan && data.currentPlan.house && data.currentPlan.bank);
+  return {
+    ok: true, scenarios: scenarios, currentPlan: hasPlan ? data.currentPlan : null,
+    skipped: data.scenarios.length - scenarios.length,
+    exportedAt: data.exportedAt || null, version: data.version || 0
+  };
+}
+
+/** Adds incoming structures without ever overwriting one you already have. */
+function mergeScenarios(existing, incoming) {
+  const list = (existing || []).slice();
+  const taken = {};
+  list.forEach(function (s) { taken[s.name] = true; });
+  let added = 0, renamed = 0;
+  (incoming || []).forEach(function (s) {
+    let name = s.name;
+    if (taken[name]) {
+      let n = 2;
+      while (taken[name + ' (' + n + ')']) n++;
+      name = name + ' (' + n + ')';
+      renamed++;
+    }
+    taken[name] = true;
+    list.push({ name: name, state: clone(s.state) });
+    added++;
+  });
+  return { list: list, added: added, renamed: renamed };
+}
+
+function backupFilename(now) {
+  const d = now || new Date();
+  const p = function (n) { return (n < 10 ? '0' : '') + n; };
+  return 'dutch-home-finance-' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '.json';
+}
+
+/* --------------------------- VALIDATION SUITE --------------------------- */
+
+function approx(a, b, tol) { return Math.abs(a - b) <= (tol == null ? 0.01 : tol); }
+function pctText(r) { return (r * 100).toFixed(2) + '%'; }
+
+function runValidation() {
+  const T = [];
+  const add = function (name, pass, detail) { T.push({ name: name, pass: !!pass, detail: detail || '' }); };
+  const S = clone(DEFAULT_STATE);
+
+  /* --- loans --- */
+  const bank = loanSchedule({ amount: 500000, rate: 0.04, termYears: 30, type: 'annuity', fixedYears: 30 });
+  add('Annuity payment \u20ac500k / 4% / 30y = \u20ac2,387.08',
+      approx(bank.initialPayment, 2387.08, 0.02), '\u20ac' + bank.initialPayment.toFixed(2));
+  const fam = loanSchedule({ amount: 250000, rate: 0.04, termYears: 30, type: 'annuity', fixedYears: 30 });
+  add('Annuity payment \u20ac250k / 4% / 30y = \u20ac1,193.54',
+      approx(fam.initialPayment, 1193.54, 0.02), '\u20ac' + fam.initialPayment.toFixed(2));
+  add('Combined gross debt service = \u20ac3,580.61',
+      approx(bank.initialPayment + fam.initialPayment, 3580.61, 0.03),
+      '\u20ac' + (bank.initialPayment + fam.initialPayment).toFixed(2));
+  add('Annuity fully amortises to zero',
+      approx(bank.months[bank.months.length - 1].balance, 0, 0.01),
+      bank.months[bank.months.length - 1].balance.toFixed(6));
+  const lin = loanSchedule({ amount: 360000, rate: 0.05, termYears: 30, type: 'linear', fixedYears: 30 });
+  add('Linear: monthly principal = \u20ac1,000 and first payment = \u20ac2,500',
+      approx(lin.months[0].principal, 1000, 0.01) && approx(lin.months[0].payment, 2500, 0.01),
+      '\u20ac' + lin.months[0].payment.toFixed(2));
+  const bal10 = bank.months[119].balance;
+  add('Outstanding balance after 10y (\u20ac500k/4%/30y) = \u20ac393,919.80',
+      approx(bal10, 393919.80, 1), '\u20ac' + bal10.toFixed(2));
+  const reset = loanSchedule({ amount: 500000, rate: 0.04, termYears: 30, type: 'annuity', fixedYears: 10, resetRate: 0.06 });
+  const expectedReset = annuityPayment(bal10, 0.06 / 12, 240);
+  add('Rate reset at month 121 recalculates the annuity on the remaining balance/term',
+      approx(reset.months[120].payment, expectedReset, 0.02),
+      '\u20ac' + reset.months[120].payment.toFixed(2) + ' vs \u20ac' + expectedReset.toFixed(2));
+  const io = loanSchedule({ amount: 300000, rate: 0.04, termYears: 30, type: 'interestOnly', fixedYears: 30 });
+  add('Interest-only: payment = interest, balance constant',
+      approx(io.months[0].payment, 1000, 0.01) && approx(io.months[100].balance, 300000, 0.01),
+      '\u20ac' + io.months[0].payment.toFixed(2));
+
+  /* --- funding --- */
+  const costs = purchaseCostBreakdown(S);
+  add('Default purchase costs = \u20ac95,500', approx(costs.total, 95500, 0.01), '\u20ac' + costs.total.toFixed(0));
+  const fundBench = automaticOwnCapital(1445500, 150000, 500000, 250000, 700000);
+  add('Benchmark: total required \u20ac1,445,500 \u2192 own capital \u20ac545,500',
+      approx(fundBench.ownCapital, 545500, 0.01), '\u20ac' + fundBench.ownCapital.toFixed(0));
+  add('Benchmark: portfolio remaining \u20ac154,500',
+      approx(fundBench.portfolioLeft, 154500, 0.01), '\u20ac' + fundBench.portfolioLeft.toFixed(0));
+  const gapCase = automaticOwnCapital(1445500, 0, 300000, 100000, 700000);
+  add('Funding gap detected when capital is short (\u20ac345,500)',
+      approx(gapCase.gap, 345500, 0.01) && gapCase.portfolioLeft === 0, '\u20ac' + gapCase.gap.toFixed(0));
+  const surplusCase = automaticOwnCapital(1000000, 150000, 700000, 300000, 700000);
+  add('Surplus is reported as cash, not silently reinvested (\u20ac150,000)',
+      approx(surplusCase.surplus, 150000, 0.01) && surplusCase.ownCapital === 0, '\u20ac' + surplusCase.surplus.toFixed(0));
+
+  /* --- tax --- */
+  add('Gift tax \u20ac150,000 to a child (exempt \u20ac6,908) = \u20ac14,309.20',
+      approx(giftTax(150000, 6908, S.rules), 14309.20, 0.01), '\u20ac' + giftTax(150000, 6908, S.rules).toFixed(2));
+  add('Gift tax uses the 20% bracket above \u20ac158,669',
+      approx(giftTax(300000, 0, S.rules), 158669 * 0.10 + (300000 - 158669) * 0.20, 0.01),
+      '\u20ac' + giftTax(300000, 0, S.rules).toFixed(2));
+  add('Eigenwoningforfait \u20ac400,000 = \u20ac1,400',
+      approx(eigenwoningforfait(400000, S.rules), 1400, 0.01));
+  add('Eigenwoningforfait \u20ac1,600,000 = \u20ac10,600 (villaforfait)',
+      approx(eigenwoningforfait(1600000, S.rules), 10600, 0.01), '\u20ac' + eigenwoningforfait(1600000, S.rules).toFixed(0));
+  const ewf135 = eigenwoningforfait(1350000, S.rules);
+  add('Eigenwoningforfait at the \u20ac1,350,000 threshold = \u20ac4,725', approx(ewf135, 4725, 0.01));
+  const qc = qualifyingDebtCeiling(S, costs);
+  add('Qualifying debt ceiling = price + acquisition + financing costs',
+      approx(qc, 1350000 + costs.acquisition + costs.financing, 0.01), '\u20ac' + qc.toFixed(0));
+  const S2 = clone(S); S2.box3.eigenwoningreserve = 100000;
+  add('Eigenwoningreserve reduces the qualifying ceiling',
+      approx(qualifyingDebtCeiling(S2, costs), qc - 100000, 0.01));
+  const mt = mortgageTaxEffect({ rules: S.rules, wozValue: 1350000, qualifyingInterest: 30000,
+    incomeA: 80000, incomeB: 52000, mode: 'auto', allocationA: 1 });
+  add('Box 1 effect is NOT interest \u00d7 rate: it nets off the eigenwoningforfait',
+      mt.effect < 30000 * S.rules.box1.maxDeductionRate - 1000,
+      '\u20ac' + mt.effect.toFixed(0) + ' vs naive \u20ac' + (30000 * 0.3756).toFixed(0));
+  const mtCap = partnerHomeEffect(200000, -10000, S.rules);
+  add('Deduction is capped at the 37.56% tariefsaanpassing rate even at a 49.5% marginal rate',
+      approx(mtCap, 3756, 0.01), '\u20ac' + mtCap.toFixed(2));
+  const hil = mortgageTaxEffect({ rules: S.rules, wozValue: 400000, qualifyingInterest: 0,
+    incomeA: 80000, incomeB: 52000, mode: 'auto', allocationA: 1 });
+  add('Wet Hillen (71.867%) applies when there is no deductible interest',
+      approx(hil.hillen, 1400 * 0.71867, 0.01), '\u20ac' + hil.hillen.toFixed(2));
+
+  const b3 = box3Tax({ rules: S.rules, partners: 2, cash: 0, investments: 700000, debt: 0, method: 'fictitious' });
+  const expB3 = 700000 * 0.06 * ((700000 - 118714) / 700000) * 0.36;
+  add('Box 3 on \u20ac700k investments (2 partners) = \u20ac' + expB3.toFixed(0),
+      approx(b3.tax, expB3, 0.01), '\u20ac' + b3.tax.toFixed(2));
+  const b3cash = box3Tax({ rules: S.rules, partners: 2, cash: 400000, investments: 0, debt: 0, method: 'fictitious' });
+  add('Box 3 is charged on cash too, and does not vanish when investments are zero',
+      b3cash.tax > 0, '\u20ac' + b3cash.tax.toFixed(2));
+  const b3small = box3Tax({ rules: S.rules, partners: 2, cash: 50000, investments: 0, debt: 0, method: 'fictitious' });
+  add('Box 3 is zero below the exemption', approx(b3small.tax, 0, 0.01));
+  const b3debt = box3Tax({ rules: S.rules, partners: 2, cash: 0, investments: 700000, debt: 200000, method: 'fictitious' });
+  add('Non-qualifying debt reduces the box 3 base', b3debt.tax < b3.tax, '\u20ac' + b3debt.tax.toFixed(2));
+
+  const Sfy = clone(S); Sfy.purchase.residentJan1 = false;
+  add('First-year box 3 = 0 when not a Dutch tax resident on 1 January',
+      approx(calculateScenario(Sfy).box3.tax, 0, 0.01));
+  const Sfy2 = clone(S);
+  add('First-year box 3 uses the 1 January (pre-purchase) portfolio',
+      approx(calculateScenario(Sfy2).box3.tax, expB3, 0.01),
+      '\u20ac' + calculateScenario(Sfy2).box3.tax.toFixed(0));
+
+  /* --- scenario + projection --- */
+  const calc = calculateScenario(S);
+  const Sbench = clone(S);
+  Sbench.bank.amount = 500000; Sbench.bank.rate = 0.04; Sbench.bank.termYears = 30; Sbench.bank.type = 'annuity';
+  Sbench.family.amount = 250000; Sbench.family.rate = 0.04; Sbench.family.termYears = 30; Sbench.family.type = 'annuity';
+  add('Benchmark structure (500k + 250k, 4%, 30y): gross debt service = \u20ac3,580.61',
+      approx(calculateScenario(Sbench).grossDebtService, 3580.61, 0.03),
+      '\u20ac' + calculateScenario(Sbench).grossDebtService.toFixed(2));
+  add('Current defaults price out consistently with their own loan terms',
+      approx(calc.grossDebtService, calc.loans.bank.payment + calc.loans.family.payment, 0.01),
+      '\u20ac' + calc.grossDebtService.toFixed(2) + '/mo at ' + pctText(S.bank.rate) + ' bank / ' + pctText(S.family.rate) + ' family');
+  add('Default scenario closes (no funding gap) with own capital \u20ac' + calc.funding.ownCapital.toFixed(0),
+      calc.funding.gap === 0, 'portfolio left \u20ac' + calc.funding.portfolioLeft.toFixed(0));
+  add('Funding identity: own capital + net gift + bank + family = total required',
+      approx(calc.funding.ownCapital + calc.gift.net + S.bank.amount + S.family.amount + calc.funding.gap - calc.funding.surplus,
+             calc.totalRequired, 0.01));
+
+  const proj = projectScenario(S, { years: 30, calc: calc });
+  const homeY10 = proj.rows[9].homeValue;
+  add('Home appreciation compounds: \u20ac1.35m at 2% for 10y = \u20ac' + (1350000 * Math.pow(1.02, 10)).toFixed(0),
+      approx(homeY10, 1350000 * Math.pow(1.02, 10), 1), '\u20ac' + homeY10.toFixed(0));
+  add('Home equity = home value \u2212 bank balance \u2212 family balance',
+      approx(proj.rows[9].homeEquity, proj.rows[9].homeValue - proj.rows[9].bankBalance - proj.rows[9].familyBalance, 0.01));
+  add('Net worth = home + portfolio + cash \u2212 debt',
+      approx(proj.rows[19].netWorth,
+             proj.rows[19].homeValue + proj.rows[19].portfolio + proj.rows[19].cash -
+             proj.rows[19].bankBalance - proj.rows[19].familyBalance, 0.01));
+  add('Principal repayment is not wealth destruction: debt falls as cash flow is spent',
+      proj.rows[9].bankBalance < S.bank.amount && proj.rows[29].bankBalance < 1,
+      'bank balance y10 \u20ac' + proj.rows[9].bankBalance.toFixed(0));
+
+  /* free-cash-flow accumulation, checked by rebuilding one year by hand */
+  const r1 = proj.rows[0];
+  const expectedPortfolioY1 = (function () {
+    let p = calc.funding.portfolioLeft * (1 + S.portfolio.nominalReturn - S.portfolio.fees);
+    let c = calc.startCash * (1 + S.portfolio.cashReturn);
+    const toCash = Math.max(0, Math.min(r1.freeCashFlow, S.portfolio.cashBuffer - c));
+    if (r1.freeCashFlow >= 0) { p += r1.freeCashFlow - toCash; }
+    else { const fromCash = Math.min(c, -r1.freeCashFlow); p -= (-r1.freeCashFlow - fromCash); }
+    return p;
+  })();
+  add('Free cash flow is accumulated consistently into cash/portfolio',
+      approx(r1.portfolio, expectedPortfolioY1, 1), '\u20ac' + r1.portfolio.toFixed(0));
+
+  const Sdef = clone(S); Sdef.household.netMonthly = 3000; Sdef.household.living = 5000;
+  const pdef = projectScenario(Sdef, { years: 30 });
+  add('Negative free cash flow draws down cash, then the portfolio, and flags exhaustion',
+      pdef.rows[0].freeCashFlow < 0 && pdef.rows[0].portfolio < proj.rows[0].portfolio);
+
+  /* --- cash-flow profile --- */
+  const prof = cashFlowProfile(S, calc, proj);
+  add('Year-1 cash flow carries a box 3 charge on the pre-purchase portfolio',
+      approx(prof.year1Box3, expB3, 0.01), '\u20ac' + prof.year1Box3.toFixed(0));
+  add('That box 3 charge is a one-off: year 2 is far lower',
+      prof.year2Box3 < prof.year1Box3 * 0.2,
+      '\u20ac' + prof.year1Box3.toFixed(0) + ' \u2192 \u20ac' + prof.year2Box3.toFixed(0));
+  add('Year-2 cash flow is higher than year 1 by roughly the box 3 one-off',
+      approx(prof.year2 - prof.year1, prof.box3OneOff / 12, 60),
+      '\u20ac' + (prof.year2 - prof.year1).toFixed(0) + '/mo vs \u20ac' + (prof.box3OneOff / 12).toFixed(0) + '/mo');
+  add('Cash flow in today\u2019s money = nominal / (1 + inflation)^year',
+      approx(proj.rows[9].freeCashFlowMonthlyReal,
+             proj.rows[9].freeCashFlowMonthly / Math.pow(1 + S.portfolio.inflation, 10), 0.01),
+      '\u20ac' + proj.rows[9].freeCashFlowMonthlyReal.toFixed(0) + '/mo at year 10');
+  add('Real cash flow is below nominal once inflation has run',
+      proj.rows[19].freeCashFlowMonthlyReal < proj.rows[19].freeCashFlowMonthly,
+      '\u20ac' + proj.rows[19].freeCashFlowMonthlyReal.toFixed(0) + ' vs \u20ac' + proj.rows[19].freeCashFlowMonthly.toFixed(0));
+
+  /* --- refinancing + stress --- */
+  const Sref = clone(S); Sref.bank.fixedYears = 10; Sref.bank.resetRate = 0.06;
+  const cref = calculateScenario(Sref);
+  add('Refinancing scenario: payment increases at the end of the fixed-rate period',
+      cref.loans.bank.resetPayment > cref.loans.bank.payment + 100,
+      '\u20ac' + cref.loans.bank.payment.toFixed(0) + ' \u2192 \u20ac' + cref.loans.bank.resetPayment.toFixed(0));
+  const st = stressScenario(S, 'rate_shock', 30);
+  add('Stress test runs and reports liquidity + net worth impact',
+      st && isFinite(st.netWorthDelta) && st.netWorthDelta < 0, '\u0394NW \u20ac' + Math.round(st.netWorthDelta).toLocaleString('nl-NL'));
+
+  /* --- extended family --- */
+  const p30 = proj.rows[29];
+  add('Extended-family view does not double count the family loan',
+      approx(p30.familyWideNetWorth, p30.netWorth + p30.familyBalance + p30.parentsCash, 0.01));
+  add('Family interest is tracked separately from bank interest',
+      p30.cumFamilyInterest > 0 && p30.cumBankInterest > p30.cumFamilyInterest,
+      'bank \u20ac' + Math.round(p30.cumBankInterest).toLocaleString('nl-NL') + ' / family \u20ac' + Math.round(p30.cumFamilyInterest).toLocaleString('nl-NL'));
+
+  /* --- Monte Carlo determinism --- */
+  const mcState = clone(S); mcState.mc.sims = 120;
+  const mc1 = monteCarloProjection(mcState, { years: 30 });
+  const mc2 = monteCarloProjection(mcState, { years: 30 });
+  add('Monte Carlo is reproducible with a fixed seed',
+      approx(mc1.bands[29].p50, mc2.bands[29].p50, 0.01));
+  add('Monte Carlo bands are ordered P10 < P50 < P90',
+      mc1.bands[29].p10 < mc1.bands[29].p50 && mc1.bands[29].p50 < mc1.bands[29].p90);
+
+  /* --- gift-tax unknown --- */
+  const Sg = clone(S); Sg.gift.status = 'unknown';
+  const cg = calculateScenario(Sg);
+  add('Gift-tax "unknown" applies Dutch gift tax and raises a visible warning',
+      cg.gift.tax > 0 && cg.warnings.some(function (w) { return /gift-tax status/i.test(w.text); }),
+      '\u20ac' + cg.gift.tax.toFixed(0));
+
+  /* --- backup file --- */
+  const bkScenarios = [{ name: 'Bank heavy', state: clone(S) }, { name: 'No bank', state: clone(S) }];
+  bkScenarios[1].state.bank.amount = 0;
+  const bk = buildBackup(S, bkScenarios, new Date('2026-08-13T12:00:00Z'));
+  const rt = parseBackup(JSON.stringify(bk));
+  add('Backup round-trips: export then import returns the same structures',
+      rt.ok && rt.scenarios.length === 2 && rt.scenarios[1].state.bank.amount === 0,
+      rt.ok ? rt.scenarios.length + ' structures' : rt.error);
+  add('Backup carries the current plan and the rules date',
+      rt.ok && rt.currentPlan.house.price === S.house.price && bk.rulesVerified === S.rules.verifiedDate);
+  add('Import rejects a file that is not JSON',
+      parseBackup('not json at all').ok === false);
+  add('Import rejects JSON from somewhere else',
+      parseBackup('{"app":"something-else","scenarios":[]}').ok === false);
+  add('Import rejects structures with no financial state',
+      parseBackup('{"app":"' + BACKUP_APP + '","scenarios":[{"name":"broken"}]}').ok === false);
+  const mg = mergeScenarios([{ name: 'Bank heavy', state: clone(S) }], rt.scenarios);
+  add('Import never overwrites an existing structure: duplicates are renamed',
+      mg.list.length === 3 && mg.renamed === 1 &&
+      mg.list.filter(function (x) { return x.name === 'Bank heavy'; }).length === 1 &&
+      mg.list.some(function (x) { return x.name === 'Bank heavy (2)'; }),
+      mg.list.map(function (x) { return x.name; }).join(', '));
+  add('Backup filename is dated',
+      backupFilename(new Date('2026-08-13T12:00:00Z')) === 'dutch-home-finance-2026-08-13.json',
+      backupFilename(new Date('2026-08-13T12:00:00Z')));
+
+  const passed = T.filter(function (t) { return t.pass; }).length;
+  return { tests: T, passed: passed, total: T.length };
+}
+
+/* =========================================================================
+   PART 3 — UI LAYER (mobile first). No financial logic lives here.
+   ========================================================================= */
+
+const STORE_STATE = 'dhfc.v1.state';
+const STORE_SCEN = 'dhfc.v1.scenarios';
+
+let state = loadState();
+let horizon = 30;
+let riskRendered = false;
+let currentView = 'plan';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_STATE);
+    if (raw) return mergeDefaults(JSON.parse(raw), clone(DEFAULT_STATE));
+  } catch (e) { /* ignore */ }
+  return clone(DEFAULT_STATE);
+}
+function mergeDefaults(saved, def) {
+  Object.keys(def).forEach(function (k) {
+    if (saved[k] == null) saved[k] = def[k];
+    else if (typeof def[k] === 'object' && !Array.isArray(def[k])) saved[k] = mergeDefaults(saved[k], def[k]);
+  });
+  return saved;
+}
+let saveTimer = null;
+function persist() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function () {
+    try { localStorage.setItem(STORE_STATE, JSON.stringify(state)); } catch (e) { }
+  }, 250);
+}
+
+/* ---------------------------- FORMATTERS -------------------------------- */
+const NF0 = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 });
+const NF2 = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function eur(v) { return '\u20ac' + NF0.format(Math.round(v || 0)); }
+function eur2(v) { return '\u20ac' + NF2.format(v || 0); }
+function eurSigned(v) { return (v < 0 ? '\u2212\u20ac' : '\u20ac') + NF0.format(Math.abs(Math.round(v || 0))); }
+function pct1(v) { return (v * 100).toFixed(1) + '%'; }
+function pct2(v) { return (v * 100).toFixed(2) + '%'; }
+function eurShort(v) {
+  const a = Math.abs(v), s = v < 0 ? '\u2212' : '';
+  if (a >= 1e6) return s + '\u20ac' + (a / 1e6).toFixed(a >= 1e7 ? 0 : 2).replace(/0$/, '').replace(/\.$/, '') + 'm';
+  if (a >= 1e3) return s + '\u20ac' + Math.round(a / 1e3) + 'k';
+  return s + '\u20ac' + Math.round(a);
+}
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+function $(id) { return document.getElementById(id); }
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+
+/* ------------------------ CORE INPUTS (steppers) ------------------------- */
+
+const CORE_FIELDS = [
+  { p: 'house.price', l: 'House price', step: 25000, min: 200000, max: 4000000,
+    chips: [1200000, 1350000, 1500000], color: 'own' },
+  { p: 'bank.amount', l: 'Bank mortgage', step: 50000, min: 0, max: 3000000,
+    chips: [0, 250000, 500000, 750000], color: 'bank' },
+  { p: 'family.amount', l: 'Family mortgage', step: 50000, min: 0, max: 3000000,
+    chips: [0, 250000, 500000, 750000], color: 'family' },
+  { p: 'gift.initial', l: 'Parental gift (gross)', step: 25000, min: 0, max: 2000000,
+    chips: [0, 100000, 150000], color: 'gift' },
+  { p: 'portfolio.before', l: 'Portfolio before purchase', step: 50000, min: 0, max: 5000000,
+    chips: [500000, 700000, 900000], color: 'own' }
+];
+
+const STEPPER_REFS = [];
+
+function makeStepper(f) {
+  const wrap = el('div', 'mf');
+  wrap.appendChild(el('div', 'lab', '<span>' + f.l + '</span><span class="sub" data-sub></span>'));
+  const ctl = el('div', 'ctl');
+  const minus = el('button', 'step', '\u2212'); minus.type = 'button'; minus.setAttribute('aria-label', 'decrease ' + f.l);
+  const plus = el('button', 'step', '+'); plus.type = 'button'; plus.setAttribute('aria-label', 'increase ' + f.l);
+  const input = document.createElement('input');
+  input.type = 'text'; input.className = 'amount'; input.inputMode = 'numeric';
+  input.setAttribute('aria-label', f.l);
+  ctl.appendChild(minus); ctl.appendChild(input); ctl.appendChild(plus);
+  wrap.appendChild(ctl);
+
+  const chips = el('div', 'chips');
+  f.chips.forEach(function (c) {
+    const b = el('button', null, eurShort(c)); b.type = 'button'; b.dataset.v = c;
+    b.addEventListener('click', function () { pushHistory(f.p); setPath(state, f.p, c); scheduleRender(); });
+    chips.appendChild(b);
+  });
+  wrap.appendChild(chips);
+
+  const bump = function (dir) {
+    const cur = Number(getPath(state, f.p)) || 0;
+    const snapped = Math.round(cur / f.step) * f.step;
+    let next = (Math.abs(snapped - cur) < 1 ? cur : (dir > 0 ? Math.ceil(cur / f.step) * f.step : Math.floor(cur / f.step) * f.step));
+    if (Math.abs(next - cur) < 1) next = cur + dir * f.step;
+    pushHistory(f.p);
+    setPath(state, f.p, clamp(next, f.min, f.max));
+    scheduleRender();
+  };
+  minus.addEventListener('click', function () { bump(-1); });
+  plus.addEventListener('click', function () { bump(1); });
+
+  input.addEventListener('focus', function () {
+    input.value = String(Math.round(Number(getPath(state, f.p)) || 0));
+    setTimeout(function () { input.select(); }, 0);
+  });
+  input.addEventListener('input', function () {
+    pushHistory(f.p);
+    const digits = input.value.replace(/[^\d]/g, '');
+    setPath(state, f.p, clamp(digits === '' ? 0 : Number(digits), f.min, f.max));
+    scheduleRender();
+  });
+  input.addEventListener('blur', function () { syncCore(); });
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') input.blur(); });
+
+  STEPPER_REFS.push({ f: f, input: input, chips: chips, sub: wrap.querySelector('[data-sub]') });
+  return wrap;
+}
+
+function syncCore(calc) {
+  STEPPER_REFS.forEach(function (r) {
+    const v = Number(getPath(state, r.f.p)) || 0;
+    if (document.activeElement !== r.input) r.input.value = eur(v);
+    r.chips.querySelectorAll('button').forEach(function (b) {
+      b.classList.toggle('on', Number(b.dataset.v) === v);
+    });
+    if (calc) {
+      let sub = '';
+      if (r.f.p === 'bank.amount' && calc.grossDebtService) sub = eur(calc.loans.bank.payment) + '/mo';
+      else if (r.f.p === 'family.amount') sub = eur(calc.loans.family.payment) + '/mo';
+      else if (r.f.p === 'gift.initial') sub = 'net ' + eur(calc.gift.net);
+      else if (r.f.p === 'portfolio.before') sub = eur(calc.funding.portfolioLeft) + ' left';
+      else if (r.f.p === 'house.price') sub = '+ ' + eur(calc.costs.total) + ' costs';
+      r.sub.textContent = sub;
+    }
+  });
+}
+
+/* ---------------------- ASSUMPTION FIELDS (compact) ---------------------- */
+
+const TAGS = { rule: 'RULE', model: 'ASSUMPTION', verify: 'VERIFY' };
+const CLS_OPTS = [['acq', 'Acquisition / improvement'], ['fin', 'Financing cost'], ['non', 'Non-qualifying']];
+const LOAN_TYPES = [['annuity', 'Annuity'], ['linear', 'Linear'], ['interestOnly', 'Interest-only']];
+
+const COST_FIELDS = [
+  { p: 'costs.transferTaxPct', l: 'Transfer tax rate', t: 'pct', tag: 'rule', hint: '2026: 2% for a main residence.' },
+  { p: 'costs.starterExemption', l: 'Starter exemption (under 35, first home)', t: 'check', tag: 'rule', hint: '2026 limit \u20ac555,000.' },
+  { p: 'costs.notary', l: 'Notary (deed of transfer)', t: 'money' },
+  { p: 'costs.advice', l: 'Mortgage advice', t: 'money' },
+  { p: 'costs.valuation', l: 'Valuation + inspection', t: 'money' },
+  { p: 'costs.agent', l: 'Purchase agent', t: 'money' },
+  { p: 'costs.moving', l: 'Moving', t: 'money' },
+  { p: 'costs.renovation', l: 'Renovation / improvement', t: 'money' },
+  { p: 'costs.other', l: 'Other costs', t: 'money' }
+];
+const COST_CLS_FIELDS = [
+  { p: 'costs.cls.transferTax', l: 'Transfer tax', t: 'select', o: CLS_OPTS, tag: 'verify' },
+  { p: 'costs.cls.notary', l: 'Notary', t: 'select', o: CLS_OPTS, tag: 'verify' },
+  { p: 'costs.cls.advice', l: 'Mortgage advice', t: 'select', o: CLS_OPTS, tag: 'verify' },
+  { p: 'costs.cls.valuation', l: 'Valuation + inspection', t: 'select', o: CLS_OPTS, tag: 'verify' },
+  { p: 'costs.cls.agent', l: 'Purchase agent', t: 'select', o: CLS_OPTS, tag: 'verify' },
+  { p: 'costs.cls.moving', l: 'Moving', t: 'select', o: CLS_OPTS, tag: 'verify' },
+  { p: 'costs.cls.renovation', l: 'Renovation', t: 'select', o: CLS_OPTS, tag: 'verify' },
+  { p: 'costs.cls.other', l: 'Other', t: 'select', o: CLS_OPTS, tag: 'verify' }
+];
+const BANK_FIELDS = [
+  { p: 'bank.rate', l: 'Interest rate', t: 'pct' },
+  { p: 'bank.termYears', l: 'Term (years)', t: 'num' },
+  { p: 'bank.type', l: 'Repayment type', t: 'select', o: LOAN_TYPES },
+  { p: 'bank.fixedYears', l: 'Fixed-rate period (years)', t: 'num' },
+  { p: 'bank.resetRate', l: 'Rate after fixed period', t: 'pct', tag: 'model' },
+  { p: 'bank.deductible', l: 'Assume interest deductibility', t: 'check', tag: 'verify' }
+];
+const FAMILY_FIELDS = [
+  { p: 'family.rate', l: 'Interest rate', t: 'pct' },
+  { p: 'family.termYears', l: 'Term (years)', t: 'num' },
+  { p: 'family.type', l: 'Repayment type', t: 'select', o: LOAN_TYPES },
+  { p: 'family.fixedYears', l: 'Fixed-rate period (years)', t: 'num' },
+  { p: 'family.resetRate', l: 'Rate after fixed period', t: 'pct', tag: 'model' },
+  { p: 'family.comparisonBankRate', l: 'Comparable bank rate', t: 'pct', tag: 'model', hint: 'Used only for the market-rate flag.' },
+  { p: 'family.comparisonBandPct', l: 'Accepted band around it', t: 'pct', tag: 'model' },
+  { p: 'family.secured', l: 'Secured (mortgage right registered)', t: 'check', tag: 'verify' },
+  { p: 'family.qualifyingUse', l: 'Used for qualifying home costs', t: 'check', tag: 'verify' },
+  { p: 'family.interestActuallyPaid', l: 'Interest actually paid', t: 'check', tag: 'verify' },
+  { p: 'family.reportedCorrectly', l: 'Reported to the Belastingdienst', t: 'check', tag: 'verify' },
+  { p: 'family.deductible', l: 'Assume interest deductibility', t: 'check', tag: 'verify' },
+  { p: 'gift.annual', l: 'Annual gift back to household (gross)', t: 'money' },
+  { p: 'gift.escalation', l: 'Annual gift escalation', t: 'pct', tag: 'model' }
+];
+const GIFT_FIELDS = [
+  { p: 'gift.status', l: 'Gift-tax treatment', t: 'select', tag: 'verify',
+    o: [['unknown', 'Unknown \u2014 verify (tax applied)'], ['dutch', 'Dutch gift tax applies'], ['none', 'No Dutch gift tax']] },
+  { p: 'gift.parentsResidence', l: "Donors' tax residence", t: 'select', tag: 'verify',
+    o: [['nl', 'Netherlands (current resident)'], ['abroad-recent', 'Emigrated from NL \u2014 Dutch national <10y / other nationality <1y'], ['never', 'Never lived in the Netherlands']],
+    hint: 'Dutch gift tax follows only the donor\u2019s residence, never the recipient\u2019s. A donor who never lived in the Netherlands triggers no Dutch gift tax and no return, regardless of nationality \u2014 this does not cover any gift or import tax that may apply where the donors or you live.' },
+  { p: 'gift.exemptionInitial', l: 'Exemption on the initial gift', t: 'money', tag: 'rule', hint: '2026: \u20ac6,908 annual; \u20ac33,129 one-off (age 18\u201340).' },
+  { p: 'gift.exemptionAnnual', l: 'Exemption on annual gifts', t: 'money', tag: 'rule' }
+];
+const HOUSEHOLD_FIELDS = [
+  { p: 'household.grossMonthly', l: 'Gross income / month', t: 'money' },
+  { p: 'household.netMonthly', l: 'Net income / month', t: 'money', hint: 'Excluding any housing tax effect \u2014 added separately.' },
+  { p: 'household.living', l: 'Living expenses / month', t: 'money' },
+  { p: 'household.childcare', l: 'Childcare / month', t: 'money' },
+  { p: 'household.incomeGrowth', l: 'Income growth', t: 'pct', tag: 'model' },
+  { p: 'household.partnerAIncome', l: 'Partner A box 1 income / year', t: 'money' },
+  { p: 'household.partnerBIncome', l: 'Partner B box 1 income / year', t: 'money' }
+];
+const HOUSING_FIELDS = [
+  { p: 'housing.mode', l: 'Mode', t: 'select', o: [['flat', 'Flat monthly budget'], ['detailed', 'Detailed estimate']] },
+  { p: 'housing.flatMonthly', l: 'Recurring housing budget / month', t: 'money', tag: 'model' },
+  { p: 'housing.maintenancePct', l: 'Maintenance (% of value, detailed)', t: 'pct', tag: 'model' },
+  { p: 'housing.utilitiesMonthly', l: 'Utilities + insurance / month', t: 'money', tag: 'model' },
+  { p: 'housing.municipalAnnual', l: 'Municipal charges / year', t: 'money', tag: 'model' }
+];
+const PORTFOLIO_FIELDS = [
+  { p: 'portfolio.nominalReturn', l: 'Expected nominal return', t: 'pct', tag: 'model' },
+  { p: 'portfolio.fees', l: 'Investment fees', t: 'pct', tag: 'model' },
+  { p: 'portfolio.inflation', l: 'Inflation', t: 'pct', tag: 'model' },
+  { p: 'house.appreciation', l: 'House appreciation', t: 'pct', tag: 'model', hint: 'Negative values allowed.' },
+  { p: 'house.wozRatio', l: 'WOZ as share of price', t: 'pct', tag: 'model' },
+  { p: 'portfolio.cashStart', l: 'Cash outside the portfolio', t: 'money' },
+  { p: 'portfolio.cashReturn', l: 'Cash return', t: 'pct', tag: 'model' },
+  { p: 'portfolio.cashBuffer', l: 'Target cash buffer', t: 'money', tag: 'model', hint: 'Surplus fills this first, then goes to investments.' }
+];
+const PURCHASE_FIELDS = [
+  { p: 'purchase.year', l: 'Purchase year', t: 'num' },
+  { p: 'purchase.month', l: 'Purchase month (1\u201312)', t: 'num' },
+  { p: 'purchase.residentJan1', l: 'Dutch tax resident on 1 January', t: 'check', tag: 'verify' },
+  { p: 'purchase.firstYearBox3Override', l: 'First-year box 3 override (blank = model)', t: 'num', tag: 'verify' }
+];
+const PATH_FIELDS = [
+  { p: 'portfolio.path', l: 'Return path', t: 'select',
+    o: [['base', 'Base \u2014 constant expected return'], ['stagnation', 'Five-year stagnation (0% \u00d7 5)'],
+        ['crash', 'Crash / recovery'], ['conservative', 'Conservative (3%)']] }
+];
+const MC_FIELDS = [
+  { p: 'mc.volatility', l: 'Annual volatility', t: 'pct', tag: 'model' },
+  { p: 'mc.sims', l: 'Simulations', t: 'num' },
+  { p: 'mc.seed', l: 'Random seed (fixed)', t: 'num' }
+];
+const RULES_BOX1_FIELDS = [
+  { p: 'rules.box1.maxDeductionRate', l: 'Max deduction rate', t: 'pct', tag: 'rule' },
+  { p: 'rules.box1.hillenPct', l: 'Wet Hillen deduction', t: 'pct', tag: 'rule' },
+  { p: 'rules.eigenwoningforfait.standardRate', l: 'Eigenwoningforfait rate', t: 'pct', tag: 'rule' },
+  { p: 'rules.eigenwoningforfait.highThreshold', l: 'High-value threshold', t: 'money', tag: 'rule' },
+  { p: 'rules.eigenwoningforfait.fixedAtHighThreshold', l: 'Fixed amount at threshold', t: 'money', tag: 'rule' },
+  { p: 'rules.eigenwoningforfait.highRate', l: 'Rate above threshold', t: 'pct', tag: 'rule' },
+  { p: 'rules.box1.brackets.0.upTo', l: 'Bracket 1 limit', t: 'money', tag: 'rule' },
+  { p: 'rules.box1.brackets.0.rate', l: 'Bracket 1 rate', t: 'pct', tag: 'rule' },
+  { p: 'rules.box1.brackets.1.upTo', l: 'Bracket 2 limit', t: 'money', tag: 'rule' },
+  { p: 'rules.box1.brackets.1.rate', l: 'Bracket 2 rate', t: 'pct', tag: 'rule' },
+  { p: 'rules.box1.brackets.2.rate', l: 'Top rate', t: 'pct', tag: 'rule' }
+];
+const RULES_BOX3_FIELDS = [
+  { p: 'rules.box3.rate', l: 'Box 3 tax rate', t: 'pct', tag: 'rule' },
+  { p: 'rules.box3.exemptionPerPerson', l: 'Allowance per person', t: 'money', tag: 'rule' },
+  { p: 'rules.box3.bankReturn', l: 'Fictitious return \u2014 cash', t: 'pct', tag: 'rule', hint: 'Provisional for 2026.' },
+  { p: 'rules.box3.investmentReturn', l: 'Fictitious return \u2014 investments', t: 'pct', tag: 'rule' },
+  { p: 'rules.box3.debtReturn', l: 'Fictitious return \u2014 debts', t: 'pct', tag: 'rule' },
+  { p: 'rules.box3.debtThresholdPerPerson', l: 'Debt threshold per person', t: 'money', tag: 'rule' }
+];
+const RULES_OTHER_FIELDS = [
+  { p: 'rules.transferTax.primaryResidence', l: 'Transfer tax \u2014 main residence', t: 'pct', tag: 'rule' },
+  { p: 'rules.transferTax.starterExemptionLimit', l: 'Starter exemption limit', t: 'money', tag: 'rule' },
+  { p: 'rules.gifts.annualChildExemption', l: 'Annual parent\u2013child exemption', t: 'money', tag: 'rule' },
+  { p: 'rules.gifts.oneTimeExemption18to40', l: 'One-off exemption (18\u201340)', t: 'money', tag: 'rule' },
+  { p: 'rules.gifts.brackets.0.upTo', l: '10% bracket limit', t: 'money', tag: 'rule' },
+  { p: 'rules.gifts.brackets.0.rate', l: 'Rate, first bracket', t: 'pct', tag: 'rule' },
+  { p: 'rules.gifts.brackets.1.rate', l: 'Rate, above', t: 'pct', tag: 'rule' }
+];
+const PARTNER_FIELDS = [
+  { p: 'household.allocationMode', l: 'Box 1 allocation', t: 'select', o: [['auto', 'Auto (best for household)'], ['manual', 'Manual']] },
+  { p: 'household.allocationA', l: 'Share to partner A (manual)', t: 'pct' },
+  { p: 'box3.method', l: 'Box 3 method', t: 'select',
+    o: [['fictitious', 'Fictitious return'], ['actual', 'Actual return (tegenbewijs)'], ['lower', 'Lower of the two']] },
+  { p: 'box3.actualReturnPct', l: 'Assumed actual return', t: 'pct', tag: 'model' },
+  { p: 'box3.partners', l: 'Fiscal partners (1 or 2)', t: 'num', tag: 'verify' }
+];
+const QUALDEBT_FIELDS = [
+  { p: 'box3.eigenwoningreserve', l: 'Eigenwoningreserve from a previous home', t: 'money', tag: 'verify' }
+];
+const PARENTS_FIELDS = [
+  { p: 'box3.parentsBox3OnClaim', l: "Charge box 3 on the parents' claim", t: 'check', tag: 'verify' },
+  { p: 'box3.parentsBox3Share', l: 'Share of that claim taxed', t: 'pct', tag: 'model' }
+];
+
+const FIELD_REFS = [];
+
+function numericMeta(f) {
+  const p = f.p, t = f.t;
+  let step = f.step, min = f.min, max = f.max;
+  if (step == null) {
+    if (t === 'pct') step = 0.001;
+    else if (t === 'money') step = /exemption|annual|Monthly|living|childcare|municipal|notary|advice|valuation|agent|moving|other|flat/.test(p) ? 100 : 500;
+    else if (p === 'mc.sims') step = 100;
+    else step = 1;
+  }
+  if (min == null) {
+    if (p === 'house.appreciation') min = -0.2;
+    else if (p === 'purchase.month') min = 1;
+    else if (p === 'purchase.year') min = 2020;
+    else if (p === 'box3.partners') min = 1;
+    else if (t === 'pct' || t === 'money') min = 0;
+    else if (/termYears|fixedYears/.test(p)) min = 0;
+  }
+  if (max == null) {
+    if (p === 'house.appreciation') max = 0.2;
+    else if (t === 'pct') max = 1;
+    else if (p === 'purchase.month') max = 12;
+    else if (p === 'purchase.year') max = 2040;
+    else if (p === 'box3.partners') max = 2;
+    else if (/termYears|fixedYears/.test(p)) max = 40;
+    else if (t === 'money') max = 1e8;
+  }
+  return { step: step, min: min, max: max };
+}
+
+function makeField(f) {
+  const wrap = el('div', 'f');
+  const lab = el('label', null, f.l + (f.tag ? ' <span class="tag ' + f.tag + '">' + TAGS[f.tag] + '</span>' : '') +
+    (f.hint ? '<span class="hint">' + f.hint + '</span>' : ''));
+  wrap.appendChild(lab);
+  let input, minus = null, plus = null;
+  if (f.t === 'select') {
+    input = document.createElement('select');
+    f.o.forEach(function (o) {
+      const op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; input.appendChild(op);
+    });
+    wrap.appendChild(input);
+  } else if (f.t === 'check') {
+    const sw = el('span', 'sw');
+    input = document.createElement('input'); input.type = 'checkbox';
+    sw.appendChild(input); sw.appendChild(document.createElement('i'));
+    wrap.appendChild(sw);
+  } else {
+    const meta = numericMeta(f);
+    const spin = el('span', 'spin');
+    minus = el('button', 'step', '\u2212'); minus.type = 'button'; minus.setAttribute('aria-label', 'decrease ' + f.l);
+    plus = el('button', 'step', '+'); plus.type = 'button'; plus.setAttribute('aria-label', 'increase ' + f.l);
+    input = document.createElement('input');
+    input.type = 'number'; input.inputMode = 'decimal';
+    input.step = f.t === 'pct' ? '0.01' : String(meta.step);
+    spin.appendChild(minus);
+    spin.appendChild(input);
+    if (f.t === 'pct') spin.appendChild(el('span', 'unit', '%'));
+    spin.appendChild(plus);
+    wrap.appendChild(spin);
+    const bump = function (dir) {
+      let cur = Number(getPath(state, f.p));
+      if (!isFinite(cur)) cur = 0;
+      const step = meta.step;
+      const snapped = Math.round(cur / step) * step;
+      let next = (Math.abs(snapped - cur) < step * 0.05 ? cur : (dir > 0 ? Math.ceil(cur / step) * step : Math.floor(cur / step) * step));
+      if (Math.abs(next - cur) < step * 0.05) next = cur + dir * step;
+      next = Math.round(next / step) * step;
+      if (f.t === 'pct') next = Math.round(next * 1e6) / 1e6;
+      else if (f.t === 'money') next = Math.round(next * 100) / 100;
+      if (meta.min != null) next = Math.max(meta.min, next);
+      if (meta.max != null) next = Math.min(meta.max, next);
+      pushHistory(f.p);
+      setPath(state, f.p, next);
+      scheduleRender();
+    };
+    minus.addEventListener('click', function () { bump(-1); });
+    plus.addEventListener('click', function () { bump(1); });
+  }
+  const read = function () {
+    if (f.t === 'check') return input.checked;
+    if (f.t === 'select') return input.value;
+    if (input.value === '') return f.p === 'purchase.firstYearBox3Override' ? null : 0;
+    const v = parseFloat(input.value);
+    if (isNaN(v)) return 0;
+    return f.t === 'pct' ? v / 100 : v;
+  };
+  const commit = function () { pushHistory(f.p); setPath(state, f.p, read()); scheduleRender(); };
+  input.addEventListener('input', commit);
+  input.addEventListener('change', commit);
+  FIELD_REFS.push({ f: f, input: input, minus: minus, plus: plus });
+  return wrap;
+}
+function mountFields(id, list) {
+  const c = $(id);
+  if (!c) { console.error('Missing container', id); return; }
+  list.forEach(function (f) { c.appendChild(makeField(f)); });
+}
+function syncFields() {
+  FIELD_REFS.forEach(function (r) {
+    if (document.activeElement !== r.input) {
+      const v = getPath(state, r.f.p);
+      if (r.f.t === 'check') r.input.checked = !!v;
+      else if (r.f.t === 'select') r.input.value = v;
+      else if (r.f.t === 'pct') r.input.value = v == null ? '' : Math.round(v * 100000) / 1000;
+      else r.input.value = (v == null ? '' : v);
+    }
+    if (r.minus) {
+      const meta = numericMeta(r.f);
+      const n = Number(getPath(state, r.f.p));
+      const cur = isFinite(n) ? n : 0;
+      r.minus.disabled = meta.min != null && cur <= meta.min + 1e-12;
+      r.plus.disabled = meta.max != null && cur >= meta.max - 1e-12;
+    }
+  });
+}
+
+/* ------------------------------ CHARTS ---------------------------------- */
+
+const CHART_META = {};
+function lineChart(series, opts) {
+  opts = opts || {};
+  const W = 700, H = opts.height || 240;
+  const M = { l: 46, r: 10, t: 8, b: 20 };
+  const n = series[0].values.length;
+  let min = 0, max = 0;
+  series.forEach(function (s) { s.values.forEach(function (v) { if (v > max) max = v; if (v < min) min = v; }); });
+  if (opts.bands) opts.bands.forEach(function (b) { b.hi.forEach(function (v) { if (v > max) max = v; }); b.lo.forEach(function (v) { if (v < min) min = v; }); });
+  max *= 1.06; if (max === 0) max = 1;
+  const x = function (i) { return M.l + (W - M.l - M.r) * (n === 1 ? 0 : i / (n - 1)); };
+  const y = function (v) { return M.t + (H - M.t - M.b) * (1 - (v - min) / (max - min)); };
+  let g = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = min + (max - min) * i / 4;
+    g += '<line x1="' + M.l + '" y1="' + y(v).toFixed(1) + '" x2="' + (W - M.r) + '" y2="' + y(v).toFixed(1) + '" stroke="var(--line)"/>' +
+      '<text x="' + (M.l - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end" font-size="11" fill="var(--muted)" font-family="ui-monospace,monospace">' + eurShort(v) + '</text>';
+  }
+  const step = n > 20 ? 10 : (n > 10 ? 5 : 2);
+  for (let i = step - 1; i < n; i += step) {
+    g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="ui-monospace,monospace">' + (i + 1) + 'y</text>';
+  }
+  if (opts.bands) opts.bands.forEach(function (b) {
+    let d = '';
+    b.hi.forEach(function (v, i) { d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1) + ' '; });
+    for (let i = b.lo.length - 1; i >= 0; i--) d += 'L' + x(i).toFixed(1) + ' ' + y(b.lo[i]).toFixed(1) + ' ';
+    g += '<path d="' + d + 'Z" fill="' + b.fill + '"/>';
+  });
+  series.forEach(function (s) {
+    let d = '';
+    s.values.forEach(function (v, i) { d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1) + ' '; });
+    g += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="' + (s.width || 2) + '" stroke-linejoin="round"' +
+      (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/>';
+  });
+  if (opts.key) CHART_META[opts.key] = { W: W, H: H, M: M, n: n, x: x, y: y };
+  return '<svg class="' + (opts.key ? 'scrub' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="projection chart">' +
+    g + '<g id="' + (opts.key || 'g') + '-scrub"></g></svg>';
+}
+
+/** Stacked bars, one per year. stacks[].values[i] is the slice for year i. */
+function stackedBarChart(stacks, opts) {
+  opts = opts || {};
+  const W = 700, H = opts.height || 200;
+  const M = { l: 46, r: 10, t: 8, b: 20 };
+  const n = stacks[0].values.length;
+  let max = 0;
+  for (let i = 0; i < n; i++) {
+    let sum = 0;
+    stacks.forEach(function (s) { sum += Math.max(0, s.values[i] || 0); });
+    if (sum > max) max = sum;
+  }
+  max *= 1.08; if (max === 0) max = 1;
+  const inner = W - M.l - M.r;
+  const slot = inner / n;
+  const barW = Math.max(2.2, slot * 0.72);
+  const x = function (i) { return M.l + slot * (i + 0.5); };
+  const y = function (v) { return M.t + (H - M.t - M.b) * (1 - v / max); };
+  let g = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = max * i / 4;
+    g += '<line x1="' + M.l + '" y1="' + y(v).toFixed(1) + '" x2="' + (W - M.r) + '" y2="' + y(v).toFixed(1) + '" stroke="var(--line)"/>' +
+      '<text x="' + (M.l - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end" font-size="11" fill="var(--muted)" font-family="ui-monospace,monospace">' + eurShort(v) + '</text>';
+  }
+  const step = n > 20 ? 10 : (n > 10 ? 5 : 2);
+  for (let i = step - 1; i < n; i += step) {
+    g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="ui-monospace,monospace">' + (i + 1) + 'y</text>';
+  }
+  for (let i = 0; i < n; i++) {
+    let acc = 0;
+    const cx = x(i);
+    stacks.forEach(function (s) {
+      const v = Math.max(0, s.values[i] || 0);
+      if (v <= 0) return;
+      const yTop = y(acc + v), yBot = y(acc);
+      g += '<rect data-i="' + i + '" x="' + (cx - barW / 2).toFixed(1) + '" y="' + yTop.toFixed(1) +
+        '" width="' + barW.toFixed(1) + '" height="' + Math.max(0.4, yBot - yTop).toFixed(1) +
+        '" fill="' + s.color + '"' + (s.opacity != null ? ' fill-opacity="' + s.opacity + '"' : '') + '/>';
+      acc += v;
+    });
+  }
+  if (opts.key) CHART_META[opts.key] = { W: W, H: H, M: M, n: n, x: x, y: y, slot: slot, barW: barW, max: max };
+  return '<svg class="' + (opts.key ? 'scrub' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="monthly payment mix">' +
+    g + '<g id="' + (opts.key || 'g') + '-scrub"></g></svg>';
+}
+
+/* ---- scrubbing: drag or hover the chart to read any year ---- */
+let scrubRows = [], scrubSeries = [];
+function setScrub(i) {
+  const meta = CHART_META.lt, g = document.getElementById('lt-scrub');
+  if (!meta || !g || !scrubRows.length) return;
+  const idx = i == null ? scrubRows.length - 1 : clamp(i, 0, scrubRows.length - 1);
+  if (i == null) g.innerHTML = '';
+  else {
+    const px = meta.x(idx);
+    g.innerHTML = '<line x1="' + px.toFixed(1) + '" y1="' + meta.M.t + '" x2="' + px.toFixed(1) + '" y2="' + (meta.H - meta.M.b) +
+      '" stroke="var(--line-2)" stroke-width="1.5"/>' +
+      scrubSeries.map(function (s) {
+        return '<circle cx="' + px.toFixed(1) + '" cy="' + meta.y(s.values[idx]).toFixed(1) + '" r="4" fill="' + s.color +
+          '" stroke="var(--card)" stroke-width="2"/>';
+      }).join('');
+  }
+  const r = scrubRows[idx];
+  document.getElementById('chart-readout').innerHTML =
+    '<div class="yr">Year ' + r.year + '</div>' +
+    '<div>Net worth<b>' + eurShort(r.netWorth) + '</b></div>' +
+    '<div>Home equity<b>' + eurShort(r.homeEquity) + '</b></div>' +
+    '<div>Portfolio<b>' + eurShort(r.portfolio + r.cash) + '</b></div>' +
+    '<div>Debt left<b>' + eurShort(r.bankBalance + r.familyBalance) + '</b></div>' +
+    '<div>Cash flow / mo<b>' + eurSigned(r.freeCashFlowMonthlyReal) + '</b></div>';
+}
+function attachScrub(containerId) {
+  const svg = document.querySelector('#' + containerId + ' svg');
+  const meta = CHART_META.lt;
+  if (!svg || !meta) return;
+  const at = function (e) {
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width) return;
+    const px = (e.clientX - rect.left) / rect.width * meta.W;
+    const span = (meta.W - meta.M.l - meta.M.r) / Math.max(1, meta.n - 1);
+    setScrub(Math.round((px - meta.M.l) / span));
+  };
+  svg.addEventListener('pointerdown', at);
+  svg.addEventListener('pointermove', at);
+  svg.addEventListener('pointerleave', function () { setScrub(null); });
+  svg.addEventListener('pointercancel', function () { setScrub(null); });
+}
+
+let mixRows = [];
+function setDebtMixScrub(i) {
+  const meta = CHART_META.debtmix, g = document.getElementById('debtmix-scrub');
+  if (!meta || !g || !mixRows.length) return;
+  const idx = i == null ? mixRows.length - 1 : clamp(i, 0, mixRows.length - 1);
+  if (i == null) g.innerHTML = '';
+  else {
+    const px = meta.x(idx);
+    g.innerHTML = '<rect x="' + (px - meta.barW / 2 - 1).toFixed(1) + '" y="' + meta.M.t +
+      '" width="' + (meta.barW + 2).toFixed(1) + '" height="' + (meta.H - meta.M.t - meta.M.b).toFixed(1) +
+      '" fill="none" stroke="var(--ink)" stroke-opacity=".28" stroke-width="1.5"/>';
+  }
+  const r = mixRows[idx];
+  const el = document.getElementById('chart-debtmix-readout');
+  if (!el) return;
+  el.innerHTML =
+    '<div class="yr">Year ' + r.year + '</div>' +
+    '<div>Payment / mo<b>' + eur2(r.pay) + '</b></div>' +
+    '<div>Interest / mo<b>' + eur2(r.interest) + '</b></div>' +
+    '<div>Principal / mo<b>' + eur2(r.principal) + '</b></div>' +
+    '<div>Debt left<b>' + eurShort(r.debt) + '</b></div>';
+}
+function attachBarScrub(containerId) {
+  const svg = document.querySelector('#' + containerId + ' svg');
+  const meta = CHART_META.debtmix;
+  if (!svg || !meta) return;
+  const at = function (e) {
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width) return;
+    const px = (e.clientX - rect.left) / rect.width * meta.W;
+    setDebtMixScrub(Math.floor((px - meta.M.l) / meta.slot));
+  };
+  svg.addEventListener('pointerdown', at);
+  svg.addEventListener('pointermove', at);
+  svg.addEventListener('pointerleave', function () { setDebtMixScrub(null); });
+  svg.addEventListener('pointercancel', function () { setDebtMixScrub(null); });
+}
+
+/* ---------------------------- RENDERING --------------------------------- */
+
+const HISTORY = [];
+let lastPushAt = 0, lastPushPath = '';
+function pushHistory(path) {
+  const now = Date.now();
+  if (path === lastPushPath && now - lastPushAt < 800) { lastPushAt = now; return; }
+  HISTORY.push(JSON.stringify(state));
+  if (HISTORY.length > 30) HISTORY.shift();
+  lastPushAt = now; lastPushPath = path;
+}
+function undo() {
+  if (!HISTORY.length) return;
+  state = mergeDefaults(JSON.parse(HISTORY.pop()), clone(DEFAULT_STATE));
+  lastPushPath = '';
+  scheduleRender();
+}
+
+let rafPending = false;
+function scheduleRender() {
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(function () { rafPending = false; render(); });
+}
+
+function render() {
+  const calc = calculateScenario(state);
+  const proj = projectScenario(state, { years: 30, calc: calc });
+  const profile = cashFlowProfile(state, calc, proj);
+  syncCore(calc);
+  syncFields();
+  renderPulse(calc, profile);
+  renderBanner(calc);
+  renderFunding(calc);
+  if (currentView === 'plan') {
+    renderMonthly(calc, profile);
+    renderLongTerm(proj);
+    renderWarnings(calc);
+  }
+  if (currentView === 'compare') renderCompare();
+  if (currentView === 'risk') renderRisk(calc, proj);
+  persist();
+}
+
+let PREV_PULSE = null, deltaTimer = null;
+function renderPulse(calc, profile) {
+  const raw = [calc.funding.ownCapital, calc.funding.portfolioLeft, calc.grossDebtService, profile.year2Real];
+  const p = [
+    { k: 'Own capital', v: eur(raw[0]) },
+    { k: 'Portfolio left', v: eur(raw[1]) },
+    { k: 'Per month', v: eur(raw[2]) },
+    { k: 'Cash flow y2+', v: eurSigned(raw[3]), c: raw[3] < 0 ? 'neg' : 'pos' }
+  ];
+  $('pulse').innerHTML = p.map(function (x, i) {
+    return '<div class="p"><span class="k">' + x.k + '</span><span class="v ' + (x.c || '') + '">' + x.v +
+      '</span><span class="d" id="pulse-d' + i + '"></span></div>';
+  }).join('');
+  if (PREV_PULSE) {
+    let any = false;
+    raw.forEach(function (v, i) {
+      const d = Math.round(v) - Math.round(PREV_PULSE[i]);
+      if (Math.abs(d) >= 1) {
+        const e = $('pulse-d' + i);
+        e.textContent = (d > 0 ? '\u25b2 ' : '\u25bc ') + eur(Math.abs(d));
+        e.classList.add('on');
+        any = true;
+      }
+    });
+    if (any) {
+      clearTimeout(deltaTimer);
+      deltaTimer = setTimeout(function () {
+        [0, 1, 2, 3].forEach(function (i) { const e = $('pulse-d' + i); if (e) e.classList.remove('on'); });
+      }, 2600);
+    }
+  }
+  PREV_PULSE = raw;
+  $('btn-undo').disabled = !HISTORY.length;
+}
+
+function renderBanner(calc) {
+  const b = $('funding-banner');
+  if (calc.funding.gap > 0.5) {
+    b.innerHTML = '<div class="alert gap"><div><strong>Funding gap</strong><div class="sm">Financing plus the whole portfolio is short of what the purchase needs.</div></div><div class="v">' + eur(calc.funding.gap) + '</div></div>';
+  } else if (calc.funding.surplus > 0.5) {
+    b.innerHTML = '<div class="alert sur"><div><strong>Surplus cash</strong><div class="sm">More financing than the purchase needs. It sits in cash and is taxed in box 3 \u2014 not silently reinvested.</div></div><div class="v">' + eur(calc.funding.surplus) + '</div></div>';
+  } else b.innerHTML = '';
+}
+
+function big(k, v, s, cls) {
+  return '<div class="b"><span class="k">' + k + '</span><span class="v ' + (cls || '') + '">' + v + '</span><span class="s">' + (s || '') + '</span></div>';
+}
+
+function renderFunding(calc) {
+  const f = calc.funding;
+  const parts = [
+    { k: 'Own', v: f.ownCapital, c: 'own' },
+    { k: 'Gift', v: calc.gift.net, c: 'gift' },
+    { k: 'Bank', v: state.bank.amount, c: 'bank' },
+    { k: 'Family', v: state.family.amount, c: 'family' }
+  ];
+  if (f.gap > 0.5) parts.push({ k: 'Gap', v: f.gap, c: 'warn' });
+  const tot = parts.reduce(function (a, p) { return a + p.v; }, 0) || 1;
+  $('fund-bar').innerHTML = parts.map(function (p) {
+    return '<span class="sw-' + p.c + '" style="width:' + (p.v / tot * 100).toFixed(2) + '%" title="' + p.k + '"></span>';
+  }).join('');
+  $('fund-legend').innerHTML = parts.filter(function (p) { return p.v > 0.5; }).map(function (p) {
+    return '<span><i class="sw-' + p.c + '"></i>' + p.k + ' <b>' + eurShort(p.v) + '</b></span>';
+  }).join('');
+  $('fund-meta').textContent = eur(calc.totalRequired) + ' required  \u00b7  ' + pct1(calc.ltv) + ' LTV';
+  $('fund-calc').textContent =
+    'TOTAL REQUIRED      = house price + purchase costs\n' +
+    '                    = ' + eur(state.house.price) + ' + ' + eur(calc.costs.total) + ' = ' + eur(calc.totalRequired) + '\n\n' +
+    'NET GIFT            = gross gift \u2212 estimated gift tax\n' +
+    '                    = ' + eur(calc.gift.gross) + ' \u2212 ' + eur(calc.gift.tax) + ' = ' + eur(calc.gift.net) + '\n\n' +
+    'FROM PORTFOLIO      = total required \u2212 net gift \u2212 bank \u2212 family\n' +
+    '                    = ' + eurSigned(calc.funding.needed) + '\n' +
+    'OWN CAPITAL USED    = clamp(that, 0, portfolio) = ' + eur(f.ownCapital) + '\n' +
+    'PORTFOLIO REMAINING = ' + eur(state.portfolio.before) + ' \u2212 ' + eur(f.ownCapital) + ' = ' + eur(f.portfolioLeft) + '\n' +
+    'SURPLUS / GAP       = ' + eur(f.surplus) + ' / ' + eur(f.gap) + '\n\n' +
+    'PURCHASE COSTS\n' + calc.costs.items.map(function (i) {
+      return '  ' + (i.label + '                                  ').slice(0, 34) + (' ' + eur(i.amount)).slice(-11) +
+        '  [' + ({ acq: 'acquisition', fin: 'financing', non: 'non-qualifying' })[i.cls] + ']';
+    }).join('\n');
+}
+
+function renderMonthly(calc, profile) {
+  const s = state.household;
+  const prev = $('monthly-rows');
+  const openKeys = [];
+  if (prev) prev.querySelectorAll('details[data-g]').forEach(function (d) {
+    if (d.open) openKeys.push(d.dataset.g);
+  });
+
+  $('monthly-big').innerHTML =
+    big('Gross debt service', eur(calc.grossDebtService), pct1(calc.grossDebtServicePct) + ' of gross income') +
+    big('Net housing cost', eur(calc.netHousingMonthly), pct1(calc.netHousingPct) + ' of net income') +
+    big('Free cash flow', eurSigned(profile.year2Real), 'from year 2 \u00b7 today\u2019s money', profile.year2Real < 0 ? 'neg' : '');
+
+  const r = function (k, v, cls) {
+    return '<tr class="' + (cls || 'dim') + '"><td>' + k + '</td><td>' + v + '</td></tr>';
+  };
+  const m1 = function (sched) { return sched.months[0] || { interest: 0, principal: 0 }; };
+  const bm = m1(calc.loans.bank.schedule), fm = m1(calc.loans.family.schedule);
+  const debtInt = bm.interest + fm.interest, debtPri = bm.principal + fm.principal;
+  const grp = function (key, label, value, valueCls, rows) {
+    return '<details data-g="' + key + '"><summary><span>' + label + '</span>' +
+      '<span class="mv' + (valueCls ? ' ' + valueCls : '') + '">' + value + '</span></summary>' +
+      '<table class="rows">' + rows + '</table></details>';
+  };
+  const y1Cls = calc.freeCashFlow < 0 ? 'neg' : 'pos';
+  const y2Cls = profile.year2Real < 0 ? 'neg' : 'pos';
+  $('monthly-rows').innerHTML =
+    grp('debt', 'Gross monthly debt service', eur2(calc.grossDebtService), '',
+      r('Bank payment', eur2(calc.loans.bank.payment)) +
+      r('Interest', eur2(bm.interest), 'sub') +
+      r('Principal', eur2(bm.principal), 'sub') +
+      r('Family payment', eur2(calc.loans.family.payment)) +
+      r('Interest', eur2(fm.interest), 'sub') +
+      r('Principal', eur2(fm.principal), 'sub') +
+      r('Interest (total)', eur2(debtInt), 'split') +
+      r('Principal (total)', eur2(debtPri), 'dim')) +
+    grp('housing', 'Estimated net housing cost', eur(calc.netHousingMonthly), '',
+      r('Recurring housing costs', eur(calc.recurringMonthly)) +
+      r('Box 1 housing tax effect', eurSigned(-calc.box1.effect / 12))) +
+    grp('fcf', 'Free cash flow \u2014 year 1', eurSigned(calc.freeCashFlow), y1Cls,
+      r('Net household income', eur(s.netMonthly)) +
+      r('\u2212 Living costs', '\u2212' + eur(s.living)) +
+      r('\u2212 Childcare', '\u2212' + eur(s.childcare)) +
+      r('+ Net parental gifts / 12', '+' + eur(calc.gift.annualNet / 12)) +
+      r('\u2212 Box 3 tax / 12', '\u2212' + eur(calc.box3.tax / 12))) +
+    '<div class="fcf-final"><span>From year 2 onward <span class="muted" style="font-weight:400">(today\u2019s money)</span></span>' +
+      '<span class="mv ' + y2Cls + '">' + eurSigned(profile.year2Real) + '</span></div>';
+  openKeys.forEach(function (k) {
+    const d = $('monthly-rows').querySelector('details[data-g="' + k + '"]');
+    if (d) d.open = true;
+  });
+  $('fcf-note').innerHTML = 'The table above is the purchase year. Box 3 that year is still charged on the <b>' +
+    eur(state.portfolio.before) + '</b> you held on 1 January, costing <b>' + eur(profile.year1Box3 / 12) +
+    '</b> a month; from year 2 it falls to <b>' + eur(profile.year2Box3 / 12) + '</b> a month as it tracks what you actually still hold.';
+
+  const bl = state.bank, fl = state.family;
+  $('loan-calc').textContent =
+    'BANK\n  principal ' + eur(bl.amount) + '   rate ' + pct2(bl.rate) + '   term ' + bl.termYears + 'y   ' + bl.type + '\n' +
+    '  monthly payment ' + eur2(calc.loans.bank.payment) +
+    (calc.loans.bank.resetPayment ? '\n  after reset in year ' + bl.fixedYears + ' at ' + pct2(bl.resetRate) + ': ' + eur2(calc.loans.bank.resetPayment) : '') +
+    '\n\nFAMILY\n  principal ' + eur(fl.amount) + '   rate ' + pct2(fl.rate) + '   term ' + fl.termYears + 'y   ' + fl.type + '\n' +
+    '  monthly payment ' + eur2(calc.loans.family.payment) +
+    (calc.loans.family.resetPayment ? '\n  after reset in year ' + fl.fixedYears + ' at ' + pct2(fl.resetRate) + ': ' + eur2(calc.loans.family.resetPayment) : '') +
+    '\n\nannuity = P \u00d7 i / (1 \u2212 (1+i)^\u2212n),  i = rate/12,  n = months\nAt the end of the fixed period the payment is recomputed on the\nremaining balance and remaining term at the reset rate.';
+
+  const b1 = calc.box1;
+  $('box1-calc').textContent =
+    'qualifying interest, year 1     ' + eur(b1.qualifyingInterest) + '\n' +
+    'eigenwoningforfait (WOZ ' + eur(state.house.price * state.house.wozRatio) + ')  ' + eur(b1.ewf) + '\n' +
+    'Wet Hillen deduction            ' + eur(b1.hillen) + '\n' +
+    'saldo eigen woning              ' + eurSigned(b1.saldo) + '\n' +
+    'allocated to partner A          ' + pct1(b1.allocationA) + ' (' + state.household.allocationMode + ')\n' +
+    'marginal rates A / B            ' + pct2(b1.marginalA) + ' / ' + pct2(b1.marginalB) + '\n' +
+    'deduction rate cap              ' + pct2(state.rules.box1.maxDeductionRate) + '\n' +
+    'estimated box 1 effect          ' + eur(b1.effect) + '/year  (' + eur(b1.effect / 12) + '/month)\n\n' +
+    'An estimate of the box 1 result of owning this home, not a\nguaranteed refund. Not interest \u00d7 rate: the forfait is netted\noff and the deduction rate is capped.';
+
+  const b3 = calc.box3;
+  $('box3-calc').textContent = b3.notResident
+    ? 'Not a Dutch tax resident on 1 January of the purchase year, so\nfirst-year box 3 is modelled as \u20ac0. Verify your own position.'
+    : (b3.override ? 'Manual first-year override: ' + eur(b3.tax) :
+      'PEILDATUM 1 JANUARY (still the pre-purchase position)\n' +
+      '  cash                  ' + eur(state.portfolio.cashStart) + '\n' +
+      '  investments           ' + eur(state.portfolio.before) + '\n' +
+      '  grondslag             ' + eur(b3.grondslag) + '\n' +
+      '  allowance             ' + eur(b3.exemption) + '  (' + state.box3.partners + ' \u00d7 ' + eur(state.rules.box3.exemptionPerPerson) + ')\n' +
+      '  fictitious return     ' + eur(b3.forfaitReturn) + '\n' +
+      '  taxable share         ' + eur(b3.taxableFictitious) + '\n' +
+      '  tax at ' + pct1(state.rules.box3.rate) + '          ' + eur(b3.fictitious) + '\n' +
+      '  actual-return method  ' + eur(b3.actual) + '\n' +
+      '  in use (' + state.box3.method + ')  \u2192  ' + eur(b3.tax) + '\n\n' +
+      'In the projection box 3 is recomputed each year from that\nyear\u2019s 1 January cash and investments, and it reduces cash.');
+}
+
+function renderLongTerm(proj) {
+  const rows = proj.rows.slice(0, horizon);
+  const series = [
+    { name: 'Home equity', color: 'var(--own)', values: rows.map(function (r) { return r.homeEquity; }) },
+    { name: 'Portfolio + cash', color: 'var(--chart-net)', values: rows.map(function (r) { return r.portfolio + r.cash; }) },
+    { name: 'Bank debt', color: 'var(--bank)', values: rows.map(function (r) { return r.bankBalance; }) },
+    { name: 'Family debt', color: 'var(--family)', values: rows.map(function (r) { return r.familyBalance; }) },
+    { name: 'Net worth', color: 'var(--muted)', dash: '4 4', values: rows.map(function (r) { return r.netWorth; }) }
+  ];
+  $('chart-longterm').innerHTML = lineChart(series, { height: 230, key: 'lt' });
+  scrubRows = rows; scrubSeries = series.slice(0, 4);
+  attachScrub('chart-longterm');
+  setScrub(null);
+  $('chart-legend').innerHTML = series.map(function (s) {
+    return '<span><i style="background:' + s.color + '"></i>' + s.name + '</span>';
+  }).join('');
+  const PATHS = { base: 'Base path', stagnation: 'Five-year stagnation', crash: 'Crash / recovery', conservative: 'Conservative 3%' };
+  $('path-label').textContent = PATHS[state.portfolio.path] + ' \u00b7 ' + pct1(state.portfolio.nominalReturn) +
+    ' portfolio \u00b7 ' + pct1(state.house.appreciation) + ' house';
+
+  const bankAnn = proj.calc.loans.bank.annual, famAnn = proj.calc.loans.family.annual;
+  mixRows = rows.map(function (r) {
+    const by = loanYear(bankAnn, r.year), fy = loanYear(famAnn, r.year);
+    return {
+      year: r.year,
+      bankInt: by.interest / 12, bankPri: by.principal / 12,
+      famInt: fy.interest / 12, famPri: fy.principal / 12,
+      interest: (by.interest + fy.interest) / 12,
+      principal: (by.principal + fy.principal) / 12,
+      pay: (by.payment + fy.payment) / 12,
+      debt: by.endBalance + fy.endBalance
+    };
+  });
+  const mixStacks = [
+    { name: 'Bank principal', color: 'var(--bank)', values: mixRows.map(function (m) { return m.bankPri; }) },
+    { name: 'Family principal', color: 'var(--family)', values: mixRows.map(function (m) { return m.famPri; }) },
+    { name: 'Bank interest', color: 'var(--bank)', opacity: 0.38, values: mixRows.map(function (m) { return m.bankInt; }) },
+    { name: 'Family interest', color: 'var(--family)', opacity: 0.38, values: mixRows.map(function (m) { return m.famInt; }) }
+  ];
+  $('chart-debtmix').innerHTML = stackedBarChart(mixStacks, { height: 200, key: 'debtmix' });
+  attachBarScrub('chart-debtmix');
+  setDebtMixScrub(null);
+  $('chart-debtmix-legend').innerHTML = mixStacks.map(function (s) {
+    return '<span><i style="background:' + s.color + (s.opacity != null ? ';opacity:' + s.opacity : '') + '"></i>' + s.name + '</span>';
+  }).join('');
+
+  const marks = [5, 10, 20, 30].filter(function (y) { return y <= horizon; });
+  let h = '<thead><tr><th>Year</th>' + marks.map(function (y) { return '<th>' + y + '</th>'; }).join('') + '</tr></thead><tbody>';
+  const row = function (label, fn) {
+    return '<tr><td>' + label + '</td>' + marks.map(function (y) { return '<td>' + fn(proj.rows[y - 1]) + '</td>'; }).join('') + '</tr>';
+  };
+  h += row('<strong>Net worth</strong>', function (r) { return '<strong>' + eur(r.netWorth) + '</strong>'; });
+  h += row('In today\u2019s money', function (r) { return eur(r.netWorthReal); });
+  h += row('Home equity', function (r) { return eur(r.homeEquity); });
+  h += row('Portfolio', function (r) { return eur(r.portfolio); });
+  h += row('Cash', function (r) { return eur(r.cash); });
+  h += row('Debt left', function (r) { return eur(r.bankBalance + r.familyBalance); });
+  h += row('Debt service / mo', function (r) { return eur(r.debtService / 12); });
+  h += row('Interest / mo', function (r) { return eur(r.interest / 12); });
+  h += row('Principal / mo', function (r) { return eur(r.principal / 12); });
+  h += row('Box 3 that year', function (r) { return eur(r.box3); });
+  h += row('Cash flow / mo (today\u2019s money)', function (r) { return eurSigned(r.freeCashFlowMonthlyReal); });
+  $('lt-table').innerHTML = h + '</tbody>';
+}
+
+function renderWarnings(calc) {
+  $('warn-card').style.display = calc.warnings.length ? '' : 'none';
+  $('warnings').innerHTML = calc.warnings.map(function (w) {
+    return '<div class="flag ' + w.level + '">' + w.text + '</div>';
+  }).join('');
+}
+
+/* ---------------------------- SCENARIOS --------------------------------- */
+
+/* ---- backup: download, or share on iOS where downloads are awkward ---- */
+function exportBackup() {
+  const payload = buildBackup(state, loadScenarios());
+  const name = backupFilename();
+  const text = JSON.stringify(payload, null, 2);
+  const note = $('backup-note');
+  const done = function (msg) { note.textContent = msg; };
+  try {
+    const file = new File([text], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+      navigator.share({ files: [file], title: name })
+        .then(function () { done('Exported ' + payload.scenarios.length + ' structures as ' + name + '.'); })
+        .catch(function () { downloadBlob(text, name, done, payload); });
+      return;
+    }
+  } catch (err) { /* File/share unsupported: fall through to a plain download */ }
+  downloadBlob(text, name, done, payload);
+}
+function downloadBlob(text, name, done, payload) {
+  try {
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    done('Exported ' + payload.scenarios.length + ' structures and the current plan as ' + name + '.');
+  } catch (err) {
+    done('Could not create the file in this browser.');
+  }
+}
+
+function importBackup(file) {
+  const note = $('backup-note');
+  const reader = new FileReader();
+  reader.onerror = function () { note.textContent = 'Could not read that file.'; };
+  reader.onload = function () {
+    const res = parseBackup(String(reader.result));
+    if (!res.ok) { note.textContent = res.error; return; }
+    const when = res.exportedAt ? new Date(res.exportedAt).toLocaleDateString() : 'an earlier session';
+    if (!confirm('Import ' + res.scenarios.length + ' structure' + (res.scenarios.length === 1 ? '' : 's') +
+                 ' from ' + when + '?\n\nThey are added to your list. Nothing you already have is overwritten.')) return;
+    const merged = mergeScenarios(loadScenarios(), res.scenarios);
+    saveScenarios(merged.list);
+    let msg = 'Added ' + merged.added + ' structure' + (merged.added === 1 ? '' : 's') +
+      (merged.renamed ? ', ' + merged.renamed + ' renamed to avoid a clash' : '') + '.';
+    if (res.skipped) msg += ' ' + res.skipped + ' could not be read and were skipped.';
+    if (res.currentPlan && confirm('Also load the current plan from that file into the calculator?\n\nYour present inputs can be brought back with Undo.')) {
+      pushHistory('import');
+      state = mergeDefaults(clone(res.currentPlan), clone(DEFAULT_STATE));
+      msg += ' Current plan loaded.';
+    }
+    note.textContent = msg;
+    scheduleRender();
+  };
+  reader.readAsText(file);
+}
+
+function loadScenarios() { try { return JSON.parse(localStorage.getItem(STORE_SCEN) || '[]'); } catch (e) { return []; } }
+function saveScenarios(l) { try { localStorage.setItem(STORE_SCEN, JSON.stringify(l)); } catch (e) { alert('Browser storage is full or blocked.'); } }
+function presetScenarios() {
+  const mk = function (name, mods) {
+    const s = clone(DEFAULT_STATE);
+    Object.keys(mods).forEach(function (p) { setPath(s, p, mods[p]); });
+    return { name: name, state: s };
+  };
+  return [
+    mk('Bank heavy', { 'bank.amount': 500000, 'family.amount': 250000 }),
+    mk('Family heavy', { 'bank.amount': 250000, 'family.amount': 500000 }),
+    mk('No bank', { 'bank.amount': 0, 'family.amount': 750000 }),
+    mk('More equity', { 'bank.amount': 300000, 'family.amount': 250000 })
+  ];
+}
+
+let compareMode = 'val';
+function renderCompare() {
+  const list = loadScenarios();
+  const lc = $('scenario-list');
+  lc.innerHTML = list.length ? list.map(function (s, i) {
+    const m = scenarioSummary(mergeDefaults(clone(s.state), clone(DEFAULT_STATE)));
+    return '<div class="scn"><div class="top"><span class="nm">' + escapeHtml(s.name) + '</span>' +
+      '<span class="sm muted mono">' + eurShort(s.state.house.price) + '</span></div>' +
+      '<div class="mini">' +
+      '<div>Bank<b>' + eurShort(m.bank) + '</b></div>' +
+      '<div>Family<b>' + eurShort(m.family) + '</b></div>' +
+      '<div>Own capital<b>' + eurShort(m.ownCapital) + '</b></div>' +
+      '<div>Per month<b>' + eur(m.grossDebtService) + '</b></div>' +
+      '<div>Cash flow y2+<b class="' + (m.freeCashFlowSteady < 0 ? 'neg' : '') + '">' + eurSigned(m.freeCashFlowSteady) + '</b></div>' +
+      '<div>Net worth 20y<b>' + eurShort(m.nw20) + '</b></div></div>' +
+      '<div class="acts"><button class="btn sm" data-act="load" data-i="' + i + '">Load</button>' +
+      '<button class="btn sm" data-act="update" data-i="' + i + '">Update</button>' +
+      '<button class="btn sm" data-act="rename" data-i="' + i + '">Rename</button>' +
+      '<button class="btn sm dgr" data-act="del" data-i="' + i + '">Delete</button></div></div>';
+  }).join('') : '<div class="card"><p class="lede" style="margin:0">Nothing saved yet. Save the current plan, change one number, then save again.</p></div>';
+
+  lc.querySelectorAll('button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      const i = Number(b.dataset.i), act = b.dataset.act, l = loadScenarios();
+      if (act === 'load') { pushHistory('load'); state = mergeDefaults(clone(l[i].state), clone(DEFAULT_STATE)); switchView('plan'); }
+      else if (act === 'del') { l.splice(i, 1); saveScenarios(l); scheduleRender(); }
+      else if (act === 'update') { l[i].state = clone(state); saveScenarios(l); scheduleRender(); }
+      else if (act === 'rename') { const n = prompt('New name', l[i].name); if (n) { l[i].name = n; saveScenarios(l); scheduleRender(); } }
+    });
+  });
+
+  const cols = [{ name: 'Current', sum: scenarioSummary(state) }].concat(list.map(function (s) {
+    return { name: s.name, sum: scenarioSummary(mergeDefaults(clone(s.state), clone(DEFAULT_STATE))) };
+  }));
+  const money = function (v) { return eur(v); };
+  const M = [
+    { h: 'Decision numbers' },
+    { l: 'Bank mortgage', g: function (m) { return m.bank; }, hero: 1 },
+    { l: 'Family mortgage', g: function (m) { return m.family; }, hero: 1 },
+    { l: 'Own capital used', g: function (m) { return m.ownCapital; }, hero: 1 },
+    { l: 'Portfolio remaining', g: function (m) { return m.portfolioLeft; }, hero: 1 },
+    { l: 'Gross debt service / mo', g: function (m) { return m.grossDebtService; }, hero: 1,
+      f: function (m) { return eur(m.grossDebtService) + ' \u00b7 ' + pct1(m.grossPct); } },
+    { l: 'Net housing cost / mo', g: function (m) { return m.netHousing; }, hero: 1,
+      f: function (m) { return eur(m.netHousing) + ' \u00b7 ' + pct1(m.netPct); } },
+    { l: 'Cash flow / mo (from y2, today)', g: function (m) { return m.freeCashFlowSteady; }, hero: 1, signed: 1 },
+    { l: 'Net worth \u2014 20y', g: function (m) { return m.nw20; }, hero: 1 },
+    { h: 'Detail' },
+    { l: 'House price', g: function (m) { return m.housePrice; } },
+    { l: 'Total required', g: function (m) { return m.totalRequired; } },
+    { l: 'Net gift', g: function (m) { return m.gift; } },
+    { l: 'Total debt', g: function (m) { return m.totalDebt; } },
+    { l: 'Loan-to-value', g: function (m) { return m.ltv; }, pct: 1 },
+    { l: 'Funding gap', g: function (m) { return m.gap; } },
+    { l: 'Cash flow / mo (year 1)', g: function (m) { return m.freeCashFlow; }, signed: 1 },
+    { l: 'Box 3, year 1', g: function (m) { return m.box3; } },
+    { l: 'Interest, year 1', g: function (m) { return m.year1Interest; } },
+    { l: 'Box 1 effect, year 1', g: function (m) { return m.box1; } },
+    { l: 'Home equity at purchase', g: function (m) { return m.homeEquity; } },
+    { l: 'Net worth \u2014 5y', g: function (m) { return m.nw5; } },
+    { l: 'Net worth \u2014 10y', g: function (m) { return m.nw10; } },
+    { l: 'Net worth \u2014 30y', g: function (m) { return m.nw30; } },
+    { l: 'Family-wide net worth \u2014 30y', g: function (m) { return m.familyWide30; } }
+  ];
+  const diffMode = compareMode === 'diff' && cols.length > 1;
+  $('cmp-lede').textContent = diffMode
+    ? 'Every column shown as the difference from the current plan.'
+    : 'Current plan first. Values that differ are shaded.';
+  let h = '<thead><tr><th>Metric</th>' + cols.map(function (c, i) {
+    return '<th>' + escapeHtml(c.name) + (diffMode && i === 0 ? ' (base)' : '') + '</th>';
+  }).join('') + '</tr></thead><tbody>';
+  M.forEach(function (m) {
+    if (m.h) { h += '<tr class="head"><td colspan="' + (cols.length + 1) + '">' + m.h + '</td></tr>'; return; }
+    const baseNum = m.g(cols[0].sum);
+    h += '<tr><td>' + (m.hero ? '<strong>' + m.l + '</strong>' : m.l) + '</td>' + cols.map(function (c, i) {
+      const num = m.g(c.sum);
+      let v, cls = '';
+      if (diffMode && i > 0) {
+        const d = num - baseNum;
+        if (Math.abs(d) < (m.pct ? 0.0001 : 0.5)) v = '\u2013';
+        else { v = m.pct ? (d > 0 ? '+' : '\u2212') + Math.abs(d * 100).toFixed(1) + 'pp' : eurSigned(d); cls = 'hl'; }
+      } else if (diffMode) {
+        v = m.pct ? pct1(num) : (m.f ? m.f(c.sum) : (m.signed ? eurSigned(num) : money(num)));
+      } else {
+        v = m.pct ? pct1(num) : (m.f ? m.f(c.sum) : (m.signed ? eurSigned(num) : money(num)));
+        if (i > 0 && Math.abs(num - baseNum) > (m.pct ? 0.0001 : 0.5)) cls = 'hl';
+      }
+      return '<td class="' + cls + '">' + (m.hero ? '<strong>' + v + '</strong>' : v) + '</td>';
+    }).join('') + '</tr>';
+  });
+  $('compare-table').innerHTML = h + '</tbody>';
+}
+
+/* ------------------------------ DETAIL VIEW ------------------------------ */
+
+function renderRisk(calc, proj) {
+  const paths = [['base', 'Base'], ['stagnation', 'Stagnation \u00d7 5y'], ['crash', 'Crash / recovery'], ['conservative', 'Conservative 3%']];
+  let ph = '<thead><tr><th>Path</th><th>Portfolio 10y</th><th>30y</th><th>Net worth 30y</th><th>Real 30y</th></tr></thead><tbody>';
+  paths.forEach(function (p) {
+    const s = clone(state); s.portfolio.path = p[0];
+    const pr = projectScenario(s, { years: 30 });
+    ph += '<tr' + (p[0] === state.portfolio.path ? ' class="hl"' : '') + '><td>' + p[1] + '</td><td>' +
+      eur(pr.rows[9].portfolio) + '</td><td>' + eur(pr.rows[29].portfolio) + '</td><td>' + eur(pr.rows[29].netWorth) + '</td><td>' +
+      eur(pr.rows[29].netWorthReal) + '</td></tr>';
+  });
+  $('paths-table').innerHTML = ph + '</tbody>';
+
+  const mc = monteCarloProjection(state, { years: 30 });
+  $('chart-mc').innerHTML = lineChart([{ name: 'Median', color: 'var(--chart-net)', values: mc.bands.map(function (b) { return b.p50; }) }],
+    { height: 200, bands: [{ hi: mc.bands.map(function (b) { return b.p90; }), lo: mc.bands.map(function (b) { return b.p10; }), fill: 'var(--band)' }] });
+  let mh = '<thead><tr><th>Net worth</th><th>5y</th><th>10y</th><th>20y</th><th>30y</th></tr></thead><tbody>';
+  [['p90', 'P90'], ['p50', 'Median'], ['p10', 'P10']].forEach(function (k) {
+    mh += '<tr><td>' + k[1] + '</td>' + [5, 10, 20, 30].map(function (y) { return '<td>' + eur(mc.bands[y - 1][k[0]]) + '</td>'; }).join('') + '</tr>';
+  });
+  $('mc-table').innerHTML = mh + '</tbody>';
+
+  let sh = '<thead><tr><th>Stress</th><th>Cash flow y1</th><th>Lowest liquidity</th><th>Net worth 30y</th><th>\u0394 vs plan</th></tr></thead><tbody>';
+  let lastGroup = '';
+  STRESS_DEFS.forEach(function (d) {
+    const r = stressScenario(state, d.key, 30);
+    if (d.group !== lastGroup) { sh += '<tr class="head"><td colspan="5">' + d.group + '</td></tr>'; lastGroup = d.group; }
+    sh += '<tr><td>' + d.label + '</td><td class="' + (r.fcfYear1 < 0 ? 'neg' : '') + '">' + eurSigned(r.fcfYear1) + '</td><td>' +
+      eur(r.minLiquidity) + ' (y' + r.minLiquidityYear + ')' + (r.liquidityExhaustedYear ? ' \u2014 exhausted y' + r.liquidityExhaustedYear : '') +
+      '</td><td>' + eur(r.netWorthEnd) + '</td><td class="' + (r.netWorthDelta < 0 ? 'neg' : 'pos') + '">' + eurSigned(r.netWorthDelta) + '</td></tr>';
+  });
+  $('stress-table').innerHTML = sh + '</tbody>';
+
+  const last = proj.rows[29];
+  $('family-economics').innerHTML =
+    '<h3 style="margin-top:4px">Household view</h3><table class="rows">' +
+    '<tr><td>Family loan still owed at 30y</td><td>' + eur(last.familyBalance) + '</td></tr>' +
+    '<tr><td>Interest paid to the bank</td><td>' + eur(last.cumBankInterest) + '</td></tr>' +
+    '<tr><td>Interest paid to the family</td><td>' + eur(last.cumFamilyInterest) + '</td></tr>' +
+    '<tr class="sum"><td>Household net worth at 30y</td><td>' + eur(last.netWorth) + '</td></tr></table>' +
+    '<h3 style="margin-top:16px">Extended-family view</h3><table class="rows">' +
+    '<tr><td>Parents\u2019 outstanding claim</td><td>' + eur(last.parentsClaim) + '</td></tr>' +
+    '<tr><td>Parents\u2019 accumulated cash</td><td>' + eurSigned(last.parentsCash) + '</td></tr>' +
+    '<tr><td>Gifts returned to the household</td><td>' + eur(last.cumGifts) + '</td></tr>' +
+    '<tr><td>Box 3 on the parents\u2019 claim</td><td>' + eur(last.cumParentsTax) + '</td></tr>' +
+    '<tr class="sum"><td>Family-wide net worth at 30y</td><td>' + eur(last.familyWideNetWorth) + '</td></tr></table>' +
+    '<p class="note">' + eur(last.cumBankInterest) + ' of interest left the family for the bank; ' + eur(last.cumFamilyInterest) +
+    ' stayed inside it. Nearly the same monthly effect, very different family-wide effect. The extended-family view never improves household affordability \u2014 they are kept separate deliberately.</p>';
+
+  $('partner-calc').textContent =
+    'partner A  ' + eur(state.household.partnerAIncome) + '   marginal ' + pct2(calc.box1.marginalA) + '\n' +
+    'partner B  ' + eur(state.household.partnerBIncome) + '   marginal ' + pct2(calc.box1.marginalB) + '\n' +
+    'saldo eigen woning ' + eurSigned(calc.box1.saldo) + ' split ' + pct1(calc.box1.allocationA) + ' / ' + pct1(1 - calc.box1.allocationA) + '\n' +
+    'estimated box 1 effect ' + eur(calc.box1.effect) + '/year\n\n' +
+    'Auto mode tries allocations in 5% steps against each partner\u2019s\nreal bracket table and caps any deduction at ' + pct2(state.rules.box1.maxDeductionRate) + '.';
+
+  const q = calc.qualifying;
+  $('qualdebt-calc').textContent =
+    'acquisition + improvement (incl. price)  ' + eur(state.house.price + calc.costs.acquisition) + '\n' +
+    'financing costs                          ' + eur(calc.costs.financing) + '\n' +
+    'non-qualifying consumption costs         ' + eur(calc.costs.nonQualifying) + '\n' +
+    'eigenwoningreserve                     \u2212 ' + eur(state.box3.eigenwoningreserve) + '\n' +
+    'ceiling for qualifying home debt         ' + eur(q.ceiling) + '\n\n' +
+    'debt treated as eligible                 ' + eur(q.eligibleDebt) + '\n' +
+    'qualifying (eigenwoningschuld)           ' + eur(q.qualifyingDebt) + '\n' +
+    'non-qualifying debt \u2192 box 3              ' + eur(q.nonQualifyingDebt) + '\n' +
+    'share of interest deductible             ' + pct1(q.ratio) + '\n' +
+    'family loan qualifies                    ' + (q.familyQualifies ? 'yes' : 'no') + '\n\n' +
+    'Cost classification is a planning assumption \u2014 confirm each\nitem against current Belastingdienst guidance.';
+
+  const f = state.family;
+  const lo = f.comparisonBankRate * (1 - f.comparisonBandPct), hi = f.comparisonBankRate * (1 + f.comparisonBandPct);
+  const chk = function (ok, label, note) {
+    return '<tr><td>' + label + (note ? '<br><span class="muted sm">' + note + '</span>' : '') + '</td><td class="' + (ok ? 'pos' : 'neg') + '">' +
+      (ok ? '\u2713' : 'check') + '</td></tr>';
+  };
+  $('family-checklist').innerHTML = '<table class="rows">' +
+    chk(true, 'Primary residence use', 'assumed \u2014 you live there') +
+    chk(f.qualifyingUse, 'Funds used for qualifying acquisition or improvement') +
+    chk(f.type === 'annuity' || f.type === 'linear', 'Annuity or linear repayment', 'post-2013 requirement') +
+    chk(f.termYears <= 30, 'Repaid within 30 years', f.termYears + ' years') +
+    chk(f.interestActuallyPaid, 'Interest actually paid') +
+    chk(f.reportedCorrectly, 'Reported to the Belastingdienst', 'opgaaf lening eigen woning') +
+    chk(f.rate >= lo && f.rate <= hi, 'Market-rate planning flag', pct2(f.rate) + ' vs band ' + pct2(lo) + '\u2013' + pct2(hi)) +
+    chk(f.secured, 'Security and ranking recorded', f.secured ? 'registered' : 'unsecured \u2014 affects market conformity') +
+    '</table><div class="flag info">Bank capacity is an external constraint. A bank indication of ' + eur(state.bank.amount) +
+    ' should not be combined mechanically with family borrowing without lender confirmation. This is a planning simulator, not a Dutch lender underwriting engine.</div>';
+
+  $('formulas').textContent = FORMULA_TEXT;
+  $('sources-list').innerHTML = RULE_SOURCES.map(function (s) {
+    return '<li><a href="' + s.url + '" target="_blank" rel="noopener">' + s.label + '</a></li>';
+  }).join('');
+  $('scope-text').innerHTML = SCOPE_HTML;
+
+  if (!riskRendered) {
+    const v = runValidation();
+    $('validation-summary').textContent = 'Validation \u2014 ' + v.passed + ' / ' + v.total + ' checks passed';
+    $('validation-list').innerHTML = '<tbody>' + v.tests.map(function (t) {
+      return '<tr><td>' + t.name + '</td><td class="' + (t.pass ? 'pos' : 'neg') + '">' + (t.pass ? 'pass' : 'FAIL') + '</td></tr>';
+    }).join('') + '</tbody>';
+    $('dom-check').textContent = domCheck();
+    riskRendered = true;
+  }
+}
+
+const SCOPE_HTML =
+  '<p><strong>This is a financial planning tool, not tax or mortgage advice.</strong> It models Dutch rules as verified on the date shown, using assumptions you can edit. These genuinely need a Dutch adviser:</p><ul style="padding-left:18px">' +
+  '<li>Whether your family-loan rate is market-conform for its term, security and ranking.</li>' +
+  '<li>Whether Dutch gift tax applies given the donors\u2019 residence and nationality history, including the 10-year rule for emigrated Dutch nationals.</li>' +
+  '<li>Which purchase costs count toward your eigenwoningschuld, and any eigenwoningreserve from an earlier home.</li>' +
+  '<li>Bank underwriting capacity once a family loan is disclosed.</li>' +
+  '<li>Your personal box 1 position (30% ruling, non-resident status, partner qualification) and the box 3 tegenbewijsregeling.</li>' +
+  '<li>The box 3 regime is changing; this follows the 2026 forfaitary system with an actual-return alternative.</li></ul>';
+
+const FORMULA_TEXT =
+'FUNDING\n' +
+'  total required        = house price + purchase costs\n' +
+'  net gift              = gross gift \u2212 gift tax\n' +
+'  needed from portfolio = total required \u2212 net gift \u2212 bank \u2212 family\n' +
+'  own capital used      = clamp(needed, 0, portfolio before)\n' +
+'  portfolio remaining   = portfolio before \u2212 own capital used\n' +
+'  surplus / gap         = max(0, \u2212needed) / max(0, needed \u2212 portfolio)\n\n' +
+'LOANS\n' +
+'  i = annual rate / 12,  n = term in months\n' +
+'  annuity payment       = P \u00d7 i / (1 \u2212 (1+i)^\u2212n)\n' +
+'  linear                = P/n + balance \u00d7 i\n' +
+'  interest-only         = balance \u00d7 i\n' +
+'  at month fixed\u00d712+1 the rate becomes the reset rate and the\n' +
+'  payment is recomputed on the remaining balance and term\n\n' +
+'BOX 1 \u2014 EIGEN WONING\n' +
+'  eigenwoningforfait = WOZ \u00d7 0.35% up to \u20ac1,350,000;\n' +
+'                       \u20ac4,725 + 2.35% of the excess above it\n' +
+'  Hillen             = (EWF \u2212 deductible costs) \u00d7 71.867% if positive\n' +
+'  saldo              = EWF \u2212 qualifying interest \u2212 Hillen\n' +
+'  effect per partner = tax(income) \u2212 tax(income + allocated saldo),\n' +
+'                       deduction capped at 37.56% of its amount\n' +
+'  qualifying interest = interest \u00d7 min(1, ceiling / eligible debt)\n\n' +
+'BOX 3 (2026 forfaitary system)\n' +
+'  return    = cash \u00d7 1.28% + investments \u00d7 6.00% \u2212 debt \u00d7 2.70%\n' +
+'  grondslag = cash + investments \u2212 box 3 debt above the threshold\n' +
+'  taxable   = return \u00d7 (grondslag \u2212 allowance) / grondslag\n' +
+'  tax       = taxable \u00d7 36%\n\n' +
+'PROJECTION (each year)\n' +
+'  free cash flow = net income + net gifts + box 1 effect\n' +
+'                   \u2212 debt service \u2212 recurring housing \u2212 living\n' +
+'                   \u2212 childcare \u2212 box 3 tax\n' +
+'  surplus fills the cash buffer first, then goes to investments\n' +
+'  deficit draws on cash first, then the portfolio\n' +
+'  portfolio   = portfolio \u00d7 (1 + return \u2212 fees), then cash flow\n' +
+'  home value  = price \u00d7 (1 + appreciation)^years\n' +
+'  home equity = home value \u2212 bank \u2212 family\n' +
+'  net worth   = home + portfolio + cash \u2212 bank \u2212 family';
+
+/* --------------------------- SELF-CHECKS -------------------------------- */
+
+const REQUIRED_IDS = ['tabs-top', 'tabs-bottom', 'pulse', 'chart-readout', 'cmp-mode', 'cmp-lede',
+  'btn-undo', 'btn-reset', 'verified-stamp', 'funding-banner', 'fld-core', 'fld-costs',
+  'fld-bank', 'fld-family', 'fld-gift', 'fld-household', 'fld-housing', 'fld-portfolio', 'fld-purchase', 'fund-bar',
+  'fund-legend', 'fund-meta', 'fund-calc', 'monthly-big', 'monthly-rows', 'fcf-note', 'loan-calc', 'box1-calc', 'box3-calc',
+  'chart-longterm', 'chart-legend', 'chart-debtmix', 'chart-debtmix-legend', 'chart-debtmix-readout', 'debtmix-label', 'mix', 'lt-table', 'path-label', 'horizon-seg', 'warnings', 'warn-card',
+  'scenario-name', 'btn-save', 'btn-presets', 'btn-export', 'btn-import', 'import-file', 'backup-note',
+  'scenario-list', 'compare-table', 'fld-paths', 'paths-table', 'fld-mc',
+  'chart-mc', 'mc-table', 'stress-table', 'family-economics', 'fld-parents', 'fld-rules-box1', 'fld-rules-box3',
+  'fld-rules-other', 'sources-list', 'fld-partner', 'partner-calc', 'fld-qualdebt', 'qualdebt-calc', 'family-checklist',
+  'formulas', 'validation-summary', 'validation-list', 'dom-check', 'rules-stamp', 'scope-text',
+  'view-plan', 'view-compare', 'view-risk'];
+
+function domCheck() {
+  const missing = REQUIRED_IDS.filter(function (id) { return !document.getElementById(id); });
+  const seen = {}, dupes = [];
+  document.querySelectorAll('[id]').forEach(function (n) { if (seen[n.id]) dupes.push(n.id); seen[n.id] = 1; });
+  return 'DOM check: ' + (REQUIRED_IDS.length - missing.length) + '/' + REQUIRED_IDS.length + ' required elements found' +
+    (missing.length ? ' \u2014 MISSING: ' + missing.join(', ') : '') +
+    ' \u00b7 duplicate ids: ' + (dupes.length ? dupes.join(', ') : 'none') +
+    ' \u00b7 localStorage: ' + (storageWorks() ? 'available' : 'unavailable');
+}
+function storageWorks() {
+  try { localStorage.setItem('dhfc.test', '1'); localStorage.removeItem('dhfc.test'); return true; } catch (e) { return false; }
+}
+
+/* ------------------------------- BOOT ----------------------------------- */
+
+function switchView(v) {
+  currentView = v;
+  ['plan', 'compare', 'risk'].forEach(function (x) { $('view-' + x).classList.toggle('active', x === v); });
+  ['tabs-top', 'tabs-bottom'].forEach(function (nav) {
+    $(nav).querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b.dataset.view === v); });
+  });
+  if (v !== 'risk') riskRendered = false;
+  window.scrollTo(0, 0);
+  render();
+}
+
+function boot() {
+  $('verified-stamp').innerHTML = 'rules verified<br>' + state.rules.verifiedDate;
+  $('rules-stamp').textContent = 'Verified ' + state.rules.verifiedDate + '. Every value is editable.';
+
+  CORE_FIELDS.forEach(function (f) { $('fld-core').appendChild(makeStepper(f)); });
+
+  mountFields('fld-costs', COST_FIELDS);
+  const cls = el('details', null, '<summary>Classification for qualifying debt</summary><div class="db" id="fld-costs-cls"></div>');
+  $('fld-costs').appendChild(cls);
+  mountFields('fld-costs-cls', COST_CLS_FIELDS);
+  mountFields('fld-bank', BANK_FIELDS);
+  mountFields('fld-family', FAMILY_FIELDS);
+  mountFields('fld-gift', GIFT_FIELDS);
+  mountFields('fld-household', HOUSEHOLD_FIELDS);
+  mountFields('fld-housing', HOUSING_FIELDS);
+  mountFields('fld-portfolio', PORTFOLIO_FIELDS);
+  mountFields('fld-purchase', PURCHASE_FIELDS);
+  mountFields('fld-paths', PATH_FIELDS);
+  mountFields('fld-mc', MC_FIELDS);
+  mountFields('fld-rules-box1', RULES_BOX1_FIELDS);
+  mountFields('fld-rules-box3', RULES_BOX3_FIELDS);
+  mountFields('fld-rules-other', RULES_OTHER_FIELDS);
+  mountFields('fld-partner', PARTNER_FIELDS);
+  mountFields('fld-qualdebt', QUALDEBT_FIELDS);
+  mountFields('fld-parents', PARENTS_FIELDS);
+
+  ['tabs-top', 'tabs-bottom'].forEach(function (nav) {
+    $(nav).querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () { switchView(b.dataset.view); });
+    });
+  });
+  $('horizon-seg').querySelectorAll('button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      horizon = Number(b.dataset.y);
+      $('horizon-seg').querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      scheduleRender();
+    });
+  });
+  $('btn-undo').addEventListener('click', undo);
+  $('btn-reset').addEventListener('click', function () {
+    if (!confirm('Reset every input back to the starting defaults? Saved structures are kept.')) return;
+    pushHistory('reset');
+    state = clone(DEFAULT_STATE);
+    scheduleRender();
+  });
+  $('cmp-mode').querySelectorAll('button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      compareMode = b.dataset.m;
+      $('cmp-mode').querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      scheduleRender();
+    });
+  });
+  $('btn-save').addEventListener('click', function () {
+    const n = $('scenario-name');
+    const name = (n.value || '').trim() || ('Structure ' + (loadScenarios().length + 1));
+    const l = loadScenarios(); l.push({ name: name, state: clone(state) });
+    saveScenarios(l); n.value = ''; scheduleRender();
+  });
+  $('btn-export').addEventListener('click', exportBackup);
+  $('btn-import').addEventListener('click', function () { $('import-file').click(); });
+  $('import-file').addEventListener('change', function (e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';                     // let the same file be picked again
+    if (file) importBackup(file);
+  });
+  $('btn-presets').addEventListener('click', function () {
+    const l = loadScenarios();
+    presetScenarios().forEach(function (p) { if (!l.some(function (x) { return x.name === p.name; })) l.push(p); });
+    saveScenarios(l); scheduleRender();
+  });
+
+  render();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+
+</script>
+<script>
+/* PWA wiring. Silently inert when the file is opened straight from disk
+   (file://), where service workers are not available.                    */
+(function () {
+  try {
+    var securish = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (securish && 'serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () { /* offline-first still works */ });
+      });
+    }
+    /* Ask the browser not to evict saved scenarios under storage pressure. */
+    if (navigator.storage && navigator.storage.persist && navigator.storage.persisted) {
+      navigator.storage.persisted().then(function (already) {
+        if (!already) navigator.storage.persist();
+      });
+    }
+  } catch (e) { /* never block the app on PWA plumbing */ }
+})();
+</script>
+</body>
+</html>
