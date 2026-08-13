@@ -14,6 +14,16 @@ export type WorkbenchItem = {
 
 export const items: WorkbenchItem[] = [
   {
+    title: "8090 MIB Doc Challenge",
+    href: "/mib-doc-challenge/index.html",
+    kind: "tools",
+    date: "2026-08-01",
+    description:
+      "An offline pipeline for extracting structured records and decisions from damaged PDF case packets.",
+    tags: ["Document AI", "OCR", "Safety"],
+    previewImage: "/mib-doc-challenge/assets/mib-000376-p1.webp",
+  },
+  {
     title: "ENERGYNEST visual",
     href: "/4EN/index.html",
     kind: "tools",
