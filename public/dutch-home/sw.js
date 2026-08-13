@@ -2,7 +2,7 @@
    Bump BUILD on every deploy. Everything is precached, so the app works
    fully offline; navigations are network-first so a reload while online
    always picks up a new build.                                          */
-const BUILD = '2026-08-13b';
+const BUILD = '2026-08-13c';
 const CACHE = 'dhfc-' + BUILD;
 
 const ASSETS = [
