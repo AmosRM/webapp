@@ -30,6 +30,11 @@ const nextConfig: NextConfig = {
         destination: "/mib-doc-challenge/index.html",
         permanent: false,
       },
+      {
+        source: "/CINET",
+        destination: "/CINET/index.html",
+        permanent: false,
+      },
     ];
   },
 };

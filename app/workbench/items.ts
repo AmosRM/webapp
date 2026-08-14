@@ -15,7 +15,7 @@ export type WorkbenchItem = {
 export const items: WorkbenchItem[] = [
   {
     title: "8090 MIB Doc Challenge",
-    href: "/mib-doc-challenge/index.html",
+    href: "/mib-doc-challenge",
     kind: "tools",
     date: "2026-08-01",
     description:
@@ -25,7 +25,7 @@ export const items: WorkbenchItem[] = [
   },
   {
     title: "ENERGYNEST visual",
-    href: "/4EN/index.html",
+    href: "/4EN",
     kind: "tools",
     date: "2026-04-12",
     description:
@@ -44,7 +44,7 @@ export const items: WorkbenchItem[] = [
   },
   {
     title: "PeakWind",
-    href: "/AmosMatti/index.html",
+    href: "/AmosMatti",
     kind: "presentations",
     date: "2026-02-22",
     description:
@@ -54,7 +54,7 @@ export const items: WorkbenchItem[] = [
   },
   {
     title: "CINET presentation",
-    href: "/CINET/index.html",
+    href: "/CINET",
     kind: "presentations",
     date: "2026-04-09",
     description:
