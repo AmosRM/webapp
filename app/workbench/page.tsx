@@ -13,9 +13,14 @@ export const metadata: Metadata = {
   },
 };
 
-function fileFor(item: WorkbenchItem) {
+/* A local href is either a file (/x/y.html) or a directory served by its
+   index (/CINET). Check both, or a short URL silently drops its card.   */
+function filesFor(item: WorkbenchItem) {
   const stripped = item.href.replace(/^\//, "");
-  return stripped.endsWith(".html") ? stripped : `${stripped}.html`;
+  if (stripped.endsWith(".html")) {
+    return [stripped];
+  }
+  return [`${stripped}.html`, path.join(stripped, "index.html")];
 }
 
 export default function WorkbenchPage() {
@@ -25,7 +30,7 @@ export default function WorkbenchPage() {
       return true;
     }
 
-    return existsSync(path.join(publicDir, fileFor(it)));
+    return filesFor(it).some((f) => existsSync(path.join(publicDir, f)));
   });
 
   return <WorkbenchClient items={present} />;
