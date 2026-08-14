@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         source: "/cardline/support",
         destination: "/cardline/support.html",
       },
+      {
+        source: "/dutch-home",
+        destination: "/dutch-home/index.html",
+      },
     ];
   },
 };
