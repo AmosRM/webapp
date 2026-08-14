@@ -3,103 +3,146 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="How I built and evaluated an offline PDF processing pipeline for the 8090 MIB Doc Challenge." />
+    <meta name="description" content="A case study of the 8090 MIB Doc Challenge and the offline document pipeline I built for it." />
     <title>8090 MIB Doc Challenge · Lumino AI</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <header class="nav">
+    <header class="site-nav">
       <a href="/workbench">← Workbench</a>
-      <span>Lumino AI · Case study 014</span>
+      <span>Case study · 014</span>
     </header>
 
     <main>
-      <section class="hero">
-        <p class="kicker">Case study · August 2026</p>
-        <div class="hero-grid">
-          <h1>The 8090 MIB<br />Doc Challenge.</h1>
-          <div class="intro">
-            <p>I built an offline pipeline that reads damaged PDF case packets, extracts a structured record, and returns a decision.</p>
-            <dl>
-              <div><dt>Data</dt><dd>1,000 labelled · 5,000 unlabelled</dd></div>
-              <div><dt>Limit</dt><dd>Offline · CPU-only · 6 seconds per PDF</dd></div>
-              <div><dt>Result</dt><dd>117.36 / 150 on labelled training data</dd></div>
-            </dl>
+      <article>
+        <header class="story-head">
+          <div class="story-title">
+            <p class="overline">Project note 014 · August 2026</p>
+            <h1>8090 MIB Doc Challenge</h1>
+            <p class="deck">A document-processing competition in which participants built an offline system for reading messy PDF packets and deciding whether each case should be approved, denied, or reviewed.</p>
+            <p class="hiring-note">8090 used the public challenge as part of its hiring process: the work itself was the application.</p>
           </div>
-        </div>
-      </section>
 
-      <section class="split section">
-        <div><p class="kicker">01 · The challenge</p><h2>What the challenge asked for.</h2></div>
-        <div class="copy">
-          <p>The 8090 MIB Doc Challenge was a document-processing competition. Each input was a messy PDF packet containing forms, receipts, sponsor letters, biometric slips, registry pages, and manual notes. The output was one structured applicant record and one decision: approved, denied, or needs review.</p>
-          <p>The submitted system had to run inside Docker with no network, using CPU only, and average less than six seconds per PDF. The dataset included scans, damaged pages, conflicting evidence, and hidden text intended to mislead a naive extractor.</p>
-        </div>
-      </section>
-
-      <section class="section simulator-section">
-        <div class="split heading">
-          <div><p class="kicker">02 · The solution</p><h2>Three examples from the pipeline.</h2></div>
-          <p>Switch between the cases to see the source pages, extracted evidence, and final decision.</p>
-        </div>
-        <div class="tabs" id="case-tabs" role="tablist" aria-label="Case scenarios"></div>
-        <div class="simulator" id="case-panel" role="tabpanel">
-          <div class="document-column">
-            <div class="toolbar">
-              <div><span>Packet page</span><strong id="page-title"></strong></div>
-              <div class="controls">
-                <button id="overlay-toggle" type="button" aria-pressed="true">Hide evidence</button>
-                <button id="previous-page" type="button" aria-label="Previous packet page">←</button>
-                <span id="page-count"></span>
-                <button id="next-page" type="button" aria-label="Next packet page">→</button>
-              </div>
+          <figure class="packet-lead">
+            <div class="packet-images">
+              <img class="packet-main" src="./assets/mib-000003-p1.webp" alt="A damaged intake page from case MIB-000003" />
+              <img src="./assets/mib-000002-p3.webp" alt="A clean intake form from case MIB-000002" />
+              <img src="./assets/mib-000376-p1.webp" alt="A damaged biometric slip from case MIB-000376" />
             </div>
-            <div class="document-stage"><div class="document-sheet" id="document-sheet"></div></div>
-            <div class="page-buttons" id="page-buttons" aria-label="Packet pages"></div>
+            <figcaption>Examples from the synthetic public data: an incomplete intake page, a clean form, and a damaged biometric slip.</figcaption>
+          </figure>
+
+          <dl class="brief-facts">
+            <div><dt>Challenge window</dt><dd>20 July–3 August 2026</dd></div>
+            <div><dt>Training set</dt><dd>1,000 labelled PDFs</dd></div>
+            <div><dt>Validation set</dt><dd>5,000 unlabelled PDFs</dd></div>
+            <div><dt>Runtime</dt><dd>Offline, CPU only</dd></div>
+            <div><dt>Time budget</dt><dd>6 seconds per PDF</dd></div>
+            <div><dt>Output</dt><dd>Record + decision + confidence</dd></div>
+          </dl>
+        </header>
+
+        <section class="chapter competition" aria-labelledby="competition-title">
+          <header class="chapter-heading">
+            <p class="chapter-no">01 / The competition</p>
+            <h2 id="competition-title">What the challenge was</h2>
+          </header>
+          <div class="article-copy">
+            <p class="standfirst">8090 released a complete document-engineering problem in public and invited candidates to submit working solutions.</p>
+            <p>The setting was fictional: the Men in Black immigration desk needed a replacement intake system. Each case arrived as a packet of forms, receipts, sponsor letters, biometric slips, registry portraits, inspection stamps, and manual notes.</p>
+            <p>The engineering constraints were not fictional. A submission had to run inside Docker without a network connection, on CPU, under a fixed memory limit. It had to extract ten fields and classify every packet as <code>APPROVED</code>, <code>DENIED</code>, or <code>NEEDS_REVIEW</code>.</p>
+            <p>Clean PDFs were only the starting point. The data included scans, rotations, occlusion, conflicting amendments, missing pages, and white-on-white answer-key injections. Scoring rewarded extraction, classification, and calibrated confidence. Unsafe approvals carried the largest penalty.</p>
           </div>
-          <aside class="evidence-column" id="evidence-column"></aside>
-        </div>
-      </section>
+          <aside class="margin-note">
+            <span>Hiring format</span>
+            <p>The brief, evaluator, example data, runtime contract, and submissions were public. Top submissions went directly to the hiring team.</p>
+          </aside>
+        </section>
 
-      <section class="section">
-        <div class="split heading">
-          <div><p class="kicker">How it worked</p><h2>The processing steps.</h2></div>
-          <p>The pipeline used visible PDF text first, rejected hidden content, applied OCR where needed, kept the source of each value, and then applied deterministic decision rules.</p>
-        </div>
-        <ol class="pipeline">
-          <li><span>01</span><strong>Read</strong><small>Visible text and rendered pixels</small></li>
-          <li><span>02</span><strong>Filter</strong><small>Remove hidden and off-page instructions</small></li>
-          <li><span>03</span><strong>Recover</strong><small>Use OCR where evidence is weak</small></li>
-          <li><span>04</span><strong>Trace</strong><small>Keep page, geometry, source, and trust</small></li>
-          <li><span>05</span><strong>Decide</strong><small>Approve, deny, or send to review</small></li>
-        </ol>
-      </section>
+        <section class="chapter solution" aria-labelledby="solution-title">
+          <header class="chapter-heading">
+            <p class="chapter-no">02 / The approach</p>
+            <h2 id="solution-title">How I approached it</h2>
+          </header>
+          <div class="article-copy">
+            <p class="standfirst">The solution treated every extracted value as a claim that had to point back to visible evidence in the packet.</p>
+            <p>It starts with native PDF text and rendered pixels, rejects hidden or off-page instructions, then applies OCR only where the visible evidence is weak. Each candidate value keeps its page, geometry, source, confidence, and visibility status.</p>
+            <p>Deterministic rules resolve the final decision. If decisive evidence is missing or contradictory, the case is sent to review rather than completed by inference.</p>
+          </div>
 
-      <section class="section results">
-        <div class="split heading">
-          <div><p class="kicker">03 · The result</p><h2>Where the solution ended up.</h2></div>
-          <p>The final release scored 117.36 out of 150 on the 1,000 labelled training cases. The winning competition score was 130.</p>
-        </div>
-        <div class="score-comparison">
-          <div class="score-row"><div><span>My solution</span><strong>117.36</strong></div><i><b style="width:78.24%"></b></i></div>
-          <div class="score-row"><div><span>Winning score</span><strong>130.00</strong></div><i><b style="width:86.67%"></b></i></div>
-          <p><strong>Difference: 12.64 points out of 150.</strong></p>
-          <small>The 117.36 result was reproduced locally on the labelled training set. The winning score came from the competition evaluation, so this is not a like-for-like leaderboard rank.</small>
-        </div>
-        <div class="metrics">
-          <article><strong>0</strong><b>unsafe approvals</b><p>On the 1,000 labelled training cases.</p></article>
-          <article><strong>1.202s</strong><b>per PDF</b><p>Official constrained, offline serial run.</p></article>
-          <article><strong>5,000 / 5,000</strong><b>validation records</b><p>No missing, extra, or duplicate case IDs.</p></article>
-        </div>
-      </section>
+          <ol class="pipeline" aria-label="Processing pipeline">
+            <li><span>01</span><strong>Read</strong><small>Native text and rendered pages</small></li>
+            <li><span>02</span><strong>Check visibility</strong><small>Exclude hidden and off-page text</small></li>
+            <li><span>03</span><strong>Recover</strong><small>Run selective OCR on weak regions</small></li>
+            <li><span>04</span><strong>Keep provenance</strong><small>Page, geometry, source, confidence</small></li>
+            <li><span>05</span><strong>Apply rules</strong><small>Approve, deny, or request review</small></li>
+          </ol>
+        </section>
 
-      <section class="section links">
-        <p class="kicker">Project files</p><h2>Source code and challenge brief.</h2>
-        <p><a href="https://github.com/AmosRM/mib-doc-solution" target="_blank" rel="noreferrer">View source code ↗</a> <a href="https://github.com/8090-inc/mib-doc-challenge" target="_blank" rel="noreferrer">View the 8090 challenge ↗</a></p>
-        <small>Displayed packet fragments come from the synthetic, MIT-licensed 8090 MIB Doc Challenge dataset. They contain no real applicant data.</small>
-      </section>
+        <section class="chapter cases" aria-labelledby="cases-title">
+          <header class="case-intro">
+            <div>
+              <p class="chapter-no">03 / Examples</p>
+              <h2 id="cases-title">Three packets, step by step</h2>
+            </div>
+            <p>These are recorded outputs from the solution. Change the case or page, then select an annotation to see why the evidence was accepted, ignored, or left unresolved.</p>
+          </header>
+
+          <div class="tabs" id="case-tabs" role="tablist" aria-label="Case scenarios"></div>
+          <div class="simulator" id="case-panel" role="tabpanel">
+            <div class="document-column">
+              <div class="toolbar">
+                <div><span>Packet page</span><strong id="page-title"></strong></div>
+                <div class="controls">
+                  <button id="overlay-toggle" type="button" aria-pressed="true">Hide evidence</button>
+                  <button id="previous-page" type="button" aria-label="Previous packet page">←</button>
+                  <span id="page-count"></span>
+                  <button id="next-page" type="button" aria-label="Next packet page">→</button>
+                </div>
+              </div>
+              <div class="document-stage"><div class="document-sheet" id="document-sheet"></div></div>
+              <div class="page-buttons" id="page-buttons" aria-label="Packet pages"></div>
+            </div>
+            <aside class="evidence-column" id="evidence-column"></aside>
+          </div>
+        </section>
+
+        <section class="chapter outcome" aria-labelledby="outcome-title">
+          <header class="chapter-heading">
+            <p class="chapter-no">04 / Result</p>
+            <h2 id="outcome-title">Where the project ended</h2>
+          </header>
+          <div class="outcome-lead">
+            <p>The final version processed every validation packet, averaged 1.202 seconds per PDF, and produced no unsafe approvals on the labelled training evaluation.</p>
+          </div>
+          <dl class="release-notes">
+            <div><dt>Training score</dt><dd>117.36 <small>/ 150</small></dd></div>
+            <div><dt>Leading score</dt><dd>130.00 <small>/ 150</small></dd></div>
+            <div><dt>Difference</dt><dd>12.64 <small>points</small></dd></div>
+          </dl>
+          <p class="score-note">A small but important qualification: 117.36 is the locally reproduced score on the labelled training set. The 130 figure is the leading competition score, so this gives context rather than a like-for-like leaderboard position.</p>
+          <div class="release-detail">
+            <p><strong>0</strong><span>unsafe approvals across 1,000 labelled cases</span></p>
+            <p><strong>1.202s</strong><span>average runtime per PDF</span></p>
+            <p><strong>5,000 / 5,000</strong><span>validation records produced</span></p>
+          </div>
+        </section>
+
+        <section class="source-note">
+          <div>
+            <p class="chapter-no">05 / References</p>
+            <h2>Code, brief, and attribution</h2>
+          </div>
+          <div class="source-links">
+            <a href="https://github.com/AmosRM/mib-doc-solution" target="_blank" rel="noreferrer">Solution repository ↗</a>
+            <a href="https://github.com/8090-inc/mib-doc-challenge" target="_blank" rel="noreferrer">8090 challenge repository ↗</a>
+          </div>
+          <p class="attribution">The displayed packets are synthetic and MIT-licensed. They contain no real applicant data.</p>
+        </section>
+      </article>
     </main>
-    <footer><span>Lumino AI · 8090 MIB Doc Challenge</span><a href="/workbench">Back to workbench</a></footer>
+
+    <footer class="site-footer"><span>Lumino AI · Workbench 014</span><a href="/workbench">Back to workbench</a></footer>
     <script src="./app.js"></script>
   </body>
 </html>
