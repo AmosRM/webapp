@@ -75,6 +75,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tbtn.play{color:var(--ink);border-color:var(--line-2)}
 .tbtn.play[aria-pressed="true"]{background:var(--south);border-color:var(--south);color:#05171d}
 .tbtn svg{display:block}
+.tbtn.ride{text-decoration:none;color:var(--ink);border-color:var(--north)}.tbtn.ride:hover{background:var(--north);color:#10202e}
 .slider{display:flex;align-items:center;gap:8px;height:28px;padding:0 11px;background:var(--glass);
   border:1px solid var(--line);border-radius:4px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .slider label{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
@@ -643,6 +644,7 @@ body #compass:focus-visible{outline:2px solid var(--south);outline-offset:3px}
 
 <div id="tools">
   <div class="trow">
+    <a class="tbtn ride" href="roadtrip.html" title="Watch the whole trip play out on a 3D map">&#9654; Ride along</a>
     <button class="tbtn" id="reset">Whole trip</button>
     <button class="tbtn" id="oqbtn" aria-pressed="false">To decide <span id="oqn">0</span></button>
     <button class="tbtn" id="mapmenu" aria-expanded="false" aria-controls="mapextras">Map</button>
