@@ -14,6 +14,26 @@ export type WorkbenchItem = {
 
 export const items: WorkbenchItem[] = [
   {
+    title: "Wagnerkade 21",
+    href: "/wagnerkade",
+    kind: "tools",
+    date: "2026-09-29",
+    description:
+      "3D floor plan of Wagnerkade 21 in Heemstede, with property notes and photographs.",
+    tags: ["Tool", "3D", "Floor plan"],
+    previewImage: "/wagnerkade/photos/001.jpg",
+  },
+  {
+    title: "Dutch home financing",
+    href: "/dutch-home",
+    kind: "tools",
+    date: "2026-08-13",
+    description:
+      "Installable calculator for buying a Dutch home: mortgages, gifts, box 1 and box 3 tax, and cash flow over time.",
+    tags: ["Tool", "Finance", "PWA"],
+    previewImage: "/workbench/dutch-home-preview.png",
+  },
+  {
     title: "8090 MIB Doc Challenge",
     href: "/mib-doc-challenge",
     kind: "tools",
