@@ -1,0 +1,73 @@
+{
+ "entry": "index.html",
+ "external": {
+  "three.js (ES modules, loaded at run time)": [
+   "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+   "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  ]
+ },
+ "files": [
+  {
+   "bytes": 271001,
+   "path": "index.html",
+   "sha256": "defb671bda7841ab94d0f96b8f67564bf31a4a1a7ec3e5aefc4bd95e0a3d8e74"
+  },
+  {
+   "bytes": 151892,
+   "path": "photos/001.jpg",
+   "sha256": "45cd86a70c7cf3ba5df64b112dee0178ec95431635f3f46dc2c932c248fbb38a"
+  },
+  {
+   "bytes": 101963,
+   "path": "photos/002.jpg",
+   "sha256": "af08f84326e1ee75409fd6549e15fc44759b47562ccc7c4a4d93f22137960d8c"
+  },
+  {
+   "bytes": 90236,
+   "path": "photos/008.jpg",
+   "sha256": "6aadea9d0fe671756d5bed9302329cc6ed75884a361f6df298b8dae946f5d703"
+  },
+  {
+   "bytes": 86383,
+   "path": "photos/019.jpg",
+   "sha256": "a0b345a70c006e06972db64100d329954eb5b0d2ae058926ffc6028460151c06"
+  },
+  {
+   "bytes": 87217,
+   "path": "photos/035.jpg",
+   "sha256": "efa8487c8cb7c78784ededb25b4afcd9c1fb42c88a99e32e8fb23e8ba765ec44"
+  },
+  {
+   "bytes": 72077,
+   "path": "photos/053.jpg",
+   "sha256": "4382f6577926a93c1d59799ad6511cfaf7ddb4144e01495a6f26d6cce1afa655"
+  },
+  {
+   "bytes": 78487,
+   "path": "photos/062.jpg",
+   "sha256": "0ed476a2470500cdcb8573b7cd2c264c5fa2d0baf3e1eaeb7983ec1b29efaace"
+  },
+  {
+   "bytes": 399633,
+   "path": "photos/069.jpg",
+   "sha256": "085fb3d82e216a08b1e43437a5c8db2a94fbe2914841908f9a1dfe16c135dabb"
+  },
+  {
+   "bytes": 205140,
+   "path": "photos/073.jpg",
+   "sha256": "08fb90887b98a7c28222b979e662c91ac46751fb5190145de34da33a947dcec5"
+  }
+ ],
+ "room": "wagnerkade",
+ "sources": {
+  "photos/001.jpg": "../wagnerkade-21-photos/001.jpg",
+  "photos/002.jpg": "../wagnerkade-21-photos/002.jpg",
+  "photos/008.jpg": "../wagnerkade-21-photos/008.jpg",
+  "photos/019.jpg": "../wagnerkade-21-photos/019.jpg",
+  "photos/035.jpg": "../wagnerkade-21-photos/035.jpg",
+  "photos/053.jpg": "../wagnerkade-21-photos/053.jpg",
+  "photos/062.jpg": "../wagnerkade-21-photos/062.jpg",
+  "photos/069.jpg": "../wagnerkade-21-photos/069.jpg",
+  "photos/073.jpg": "../wagnerkade-21-photos/073.jpg"
+ }
+}
