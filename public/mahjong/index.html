@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#15594a"><meta name="description" content="Learn and score Chinese Official Mahjong (MCR). Works offline."><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Mahjong"><title>Mahjong, one hand at a time</title>
+<style>
+:root{--paper:#f7f4eb;--ink:#183b35;--muted:#5d6b62;--green:#15594a;--line:#d4dacf;--white:#fffdf7;--gold:#e6b75b;--red:#b83e35;--blue:#235c92}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6}button,input,select{font:inherit}button,a,input,select,summary{-webkit-tap-highlight-color:transparent}button{cursor:pointer}a{color:var(--green);text-underline-offset:3px}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #bd7b15;outline-offset:4px}.wrap{max-width:1140px;padding:0 28px;margin:auto}header{border-bottom:1px solid var(--line);background:var(--white)}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0}.brand{font-weight:750;font-size:18px;letter-spacing:-.5px}.brand span{display:inline-grid;place-items:center;width:33px;height:38px;background:var(--green);color:white;border-radius:6px;margin-right:10px}.tag,.eyebrow{font-size:11px;font-weight:750;letter-spacing:1.8px;text-transform:uppercase}.tag{border:1px solid var(--line);border-radius:99px;padding:5px 11px;color:var(--muted)}.eyebrow{color:var(--green)}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}.btn{border:1px solid var(--green);border-radius:8px;padding:11px 18px;background:var(--green);color:white;font-weight:650;min-height:44px}.btn.alt{background:transparent;color:var(--green)}.notice{background:#efe6d3;border-left:4px solid #b38433;padding:14px 18px;border-radius:0 9px 9px 0;font-size:14px;margin:5px 0 24px}main{padding:22px 0 48px}.panel[hidden]{display:none}h2{font-family:Georgia,serif;font-size:34px;line-height:1.2;font-weight:400;letter-spacing:-.6px;margin:0 0 10px}h3{font-size:18px;line-height:1.35;margin:0 0 10px}h4{margin:0 0 8px}p{margin:0 0 14px}.sectionhead{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px}.sub{color:var(--muted);font-size:14px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:var(--white);border:1px solid var(--line);padding:22px;border-radius:14px;min-width:0}.card p:last-child{margin-bottom:0}.tile{display:inline-flex;position:relative;width:43px;height:59px;padding:3px 2px 4px;background:#fffdf4;border:1px solid #c6ccb7;border-radius:5px;box-shadow:0 3px 0 #afc3aa;flex-shrink:0;vertical-align:middle}.tile svg{width:100%;height:100%}.tiles{display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding-bottom:5px}.group{display:flex;gap:3px;padding-bottom:3px;flex-wrap:wrap;max-width:100%}.hand{display:flex;flex-wrap:wrap;gap:13px;margin:18px 0 11px;align-items:start}.label{font-size:11px;color:var(--muted);display:block;margin-top:6px}.tilepick{border:0;background:transparent;padding:3px 2px 7px;border-radius:5px;min-height:66px}.tilepick:hover,.tilepick[aria-pressed=true]{background:#e6eddf}.explorer{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.chips{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0}.chip{border:1px solid var(--line);color:var(--green);background:var(--white);border-radius:99px;padding:7px 12px;min-height:40px;font-size:13px}.chip[aria-pressed=true]{background:var(--green);color:white}.big-stat{font-family:Georgia,serif;font-size:40px;color:var(--green);line-height:1}.num{font-size:11px;color:var(--green);letter-spacing:1px;font-weight:700;margin-bottom:10px}.divider{border-top:1px solid var(--line);margin:30px 0}.dark{background:var(--green);color:white}.dark .sub{color:#d5e6d8}.small{font-size:13px}.steps{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.steps span{background:#e8eee3;padding:8px 13px;border-radius:7px;font-weight:650}.field{width:100%;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink)}.pattern-top{display:flex;justify-content:space-between;align-items:start;gap:10px}.points{flex-shrink:0;border-radius:7px;padding:5px 8px;background:#e9efdf;font-size:13px;font-weight:750}.pattern{display:flex;flex-direction:column}.pattern .hand{margin-top:auto;padding-top:15px}.pattern .tile{width:32px;height:45px}.pattern .hand{gap:8px}.pattern details{margin-top:10px;font-size:13px;color:var(--muted)}summary{cursor:pointer;font-weight:650;color:var(--green);min-height:32px}details p{margin:10px 0}table{border-collapse:collapse;width:100%;font-size:14px}td,th{text-align:left;padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;color:var(--muted)}.photos{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.photos img{width:100%;height:400px;object-fit:contain;background:#e7e4da;border-radius:10px}figure{margin:0}figcaption{font-size:12px;color:var(--muted);margin:8px 0}.quiz{max-width:800px;margin:auto}.quiz-bar{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;font-size:13px}.progress{height:5px;background:#dce4d7;border-radius:8px;margin-bottom:24px}.progress i{display:block;height:100%;background:var(--green);border-radius:8px}.qtitle{font-size:22px;margin:16px 0}.answer{display:block;width:100%;text-align:left;border:1px solid var(--line);padding:13px 16px;margin:10px 0;border-radius:9px;background:var(--white);color:var(--ink);min-height:48px}.answer:hover{background:#e9f0e5}.answer.correct{background:#dcebd9;border-color:#267447}.answer.wrong{background:#f6e3df;border-color:var(--red)}.answer:disabled{cursor:default;color:var(--ink);opacity:1}.feedback{border-left:4px solid var(--green);background:#e9efdf;padding:16px;border-radius:0 9px 9px 0;margin-top:16px}.feedback.error{border-color:var(--red);background:#f6e3df}.score-block{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:20px 0}.score-row{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:12px 0;border-top:1px solid var(--line)}input[type=number]{width:80px}.auditlist{padding-left:20px}.auditlist li{margin:10px 0}code{font-size:12px;overflow-wrap:anywhere;background:#e9eee4;padding:3px 5px;border-radius:4px}footer{border-top:1px solid var(--line);padding:23px 0;font-size:12px;color:var(--muted)}[hidden]{display:none!important}@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.wrap{padding:0 18px}.grid,.two,.photos{grid-template-columns:1fr}.card{padding:18px}.sectionhead{display:block}.sectionhead .tag{display:inline-block;margin-top:10px}.photos img{height:360px}.tile{width:37px;height:53px}.hand{gap:10px}.pattern .tile{width:34px;height:48px}.score-block{align-items:start}td,th{padding:10px 5px;font-size:12px}h2{font-size:30px}}@media(prefers-reduced-motion:no-preference){button{transition:background .15s,border-color .15s}}@media print{.actions,button,#practice{display:none!important}.panel{display:block!important}.card{break-inside:avoid}.grid{grid-template-columns:1fr 1fr}.photos{display:none}body{background:white}.wrap{max-width:none}details p{display:block}}
+
+/* Second edition: study navigation, visible tile codes, and practice feedback. */
+.study-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.tool-btn{background:var(--white);border:1px solid var(--line);border-radius:7px;color:var(--green);padding:7px 11px;min-height:40px;font-size:12px;font-weight:650}.tool-btn[aria-pressed=true]{background:#e7eee0}.tile svg{flex:1;min-height:0}.tile{flex-direction:column}.tile-code{display:none;font-size:9px;line-height:11px;font-weight:750;text-align:center;color:#496255;white-space:nowrap}.tile-labels .tile-code{display:block}.tile-labels .tile{height:70px}.tile-labels .pattern .tile{height:56px}.tile-labels .tilepick{min-height:79px}.tile-labels .pattern .tile-code{font-size:8px}.group-frame{padding:6px;background:#f0f3ea;border-radius:7px;border:1px solid transparent;min-width:0;max-width:100%}.group-frame.core{background:#fff1ce;border-color:#d3ae59}.group-caption{display:block;font-size:9px;margin-top:6px;color:#596553;line-height:1.2;text-align:center}.pattern .hand{gap:7px}.hand-legend{font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}.hand-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;background:#fff1ce;border:1px solid #d3ae59;margin-right:5px}.hand-legend i.rest{background:#f0f3ea;border-color:#d4dacf}.saved-btn{border:1px solid var(--line);background:transparent;color:var(--green);border-radius:6px;padding:4px 9px;min-height:35px;font-size:12px;margin-top:13px;align-self:start}.saved-btn[aria-pressed=true]{background:#e7eee0}.library-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.library-bar button{border:1px solid var(--line);border-radius:8px;background:var(--white);padding:9px 12px;color:var(--green);font-weight:650;font-size:13px;min-height:44px}.library-bar button[aria-pressed=true]{background:var(--green);color:white}.learn-next{display:flex;justify-content:space-between;align-items:center;gap:20px;background:#e8eedf;border:1px solid var(--line);padding:18px 20px;border-radius:12px;margin:24px 0 0}.learn-next p{margin:4px 0 0}.study-progress{margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:14px 18px;background:#e8eedf;border:1px solid var(--line);border-radius:12px;font-size:13px}.study-progress p{margin:0}.empty-state{grid-column:1/-1;background:#fffdf7;border:1px dashed var(--line);padding:30px;border-radius:12px;text-align:center}.compare-box{margin:22px 0}.compare-box .two{margin-top:15px}.compare-box .tiles{margin:12px 0}.quiz-config{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:10px 0 18px}.quiz-config label{display:flex;align-items:center;gap:9px;font-size:13px}.quiz-config select{min-height:40px;background:var(--white);padding:7px 10px;border:1px solid var(--line);border-radius:8px;color:var(--green)}.answer span.answer-letter{display:inline-grid;place-items:center;border:1px solid var(--line);width:25px;height:25px;border-radius:6px;margin-right:10px;font-size:11px;color:var(--muted)}.quiz .hand{justify-content:center;background:#edf1e6;padding:18px;border-radius:9px}.quiz .tile{width:40px}.quiz h3.qtitle{font-size:23px}.practice-layout{display:grid;grid-template-columns:1fr;gap:26px}.wait-card{margin-top:26px}.wait-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.wait-option{background:var(--white);border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;min-height:74px;color:var(--green)}.wait-option.correct{background:#dcebd9;border-color:#267447}.wait-option.wrong{background:#f6e3df;border-color:var(--red)}.wait-option:disabled{color:var(--ink);opacity:1;cursor:default}.wait-count{font-size:12px;font-weight:700;color:var(--green)}.unfinished{border:1px dashed #b98425;background:#fff1ce;padding:6px;border-radius:6px}.tile-gap{width:37px;height:70px;border:1px dashed #b98425;border-radius:5px;display:grid;place-items:center;color:#a47a28;font-weight:750}.builder-tile{border:0;background:transparent;padding:0 0 4px}.builder-tile:hover{opacity:.75}.storage-note{font-size:11px;color:var(--muted);margin-top:6px}.mini-step{font-size:12px;letter-spacing:.5px;color:var(--green);font-weight:650}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}.compare-cell{background:#f0f3ea;border-radius:8px;padding:14px}.compare-cell .hand{gap:6px;margin-top:12px}.compare-cell .tile{width:30px;height:53px}.privacy-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
+@media(min-width:901px){#setCards{grid-template-columns:repeat(4,minmax(0,1fr))}.pattern .group{gap:2px}}
+@media(max-width:600px){.learn-next{align-items:start;flex-direction:column;gap:12px}.study-progress{padding:14px}.compare-grid{grid-template-columns:1fr}.pattern .tile{width:32px}.pattern .card{padding:16px}.group-frame{padding:5px}.tile-labels .tile{height:65px}.tile-labels .pattern .tile{height:54px}.tile-gap{height:65px;width:35px}.quiz .tile{width:34px}.quiz-config{align-items:start}.top{align-items:center}.brand{font-size:16px}.library-bar{gap:5px}.library-bar button{font-size:12px;padding:8px 10px}.wait-options{gap:7px}.wait-option{padding:10px 5px}.quiz .hand{gap:7px;padding:14px 8px}.tool-btn{font-size:11px;padding:7px 9px}.top .study-tools{gap:5px}.pattern .hand{gap:6px}.tile-labels .compare-cell .tile{height:53px}}
+@media(max-width:600px){#patterns .sectionhead .tag,#patterns.starter-view #patternFilters,#patterns.starter-view #libraryIntro,.hand-legend span:last-child{display:none}#patterns .sectionhead{margin-bottom:16px}#patterns .sectionhead p{margin-bottom:0}#patterns h2{font-size:28px}.hand-legend{margin-top:8px}}
+@media print{.study-tools,.study-progress,.learn-next,.saved-btn,.library-bar,.compare-box{display:none!important}.pattern details p{display:block}.tile-code{display:block!important}}
+
+/* Hand scorer */
+.scorer-flow{display:grid;gap:16px;max-width:720px}
+.scorer-tray{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;padding:12px;background:#f0f3ea;border-radius:9px;margin-top:14px}
+.scorer-tray .tile,.scorer-result .hand .tile{width:32px;height:45px}
+.tile-labels .scorer-tray .tile,.tile-labels .scorer-result .hand .tile{height:56px}
+.scorer-tray .tile-code{font-size:8px}
+.scorer-tiles{display:flex;flex-wrap:wrap;gap:3px}
+.scorer-tile{border:0;background:transparent;padding:0 0 4px;border-radius:6px}
+.scorer-tile.win .tile{border-color:#b98425;box-shadow:0 3px 0 #d3ae59,0 0 0 2px var(--gold)}
+.slot{width:32px;height:45px;border:1.5px dashed #b9c4b3;border-radius:5px;box-sizing:border-box}
+.tile-labels .slot{height:56px}
+.scorer-meld{border:1px solid var(--line);background:var(--white);border-radius:7px;padding:5px;color:#596553}
+.scorer-meld .group{display:flex;flex-wrap:nowrap}
+.scorer-hint{background:#fff1ce;border:1px solid #d3ae59;border-radius:8px;padding:9px 12px;font-size:14px;font-weight:650;margin:12px 0 0}
+.scorer-palette{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;margin:14px 0 4px;padding:6px;border-radius:9px;border:1px solid transparent}
+.scorer-palette.armed{background:#fff8e6;border-color:#d3ae59}
+.scorer-palette button{border:0;background:transparent;padding:0 0 4px;border-radius:5px;min-width:0}
+.scorer-palette button:disabled{opacity:.25;cursor:default}
+.scorer-palette .tile,.tile-labels .scorer-palette .tile{width:100%;max-width:46px;height:auto}
+.scorer-palette .tile svg{flex:none;height:auto;aspect-ratio:4/5}
+.scorer-add-label{margin:14px 0 0}
+.scorer-add{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.scorer-add .chip:disabled{opacity:.4;cursor:default}
+#scorer .actions{margin-top:18px}
+.field-label{margin:14px 0 0}
+.field-label+.chips{margin:8px 0 4px}
+.tile-chip{padding:5px 7px 3px;border-radius:9px;min-height:0}
+.tile-chip .tile{width:30px;height:42px;box-shadow:none}
+.tile-labels .tile-chip .tile{height:52px}
+.tile-chip[aria-pressed=true]{background:#fff1ce;border-color:#b98425;box-shadow:0 0 0 2px var(--gold)}
+#scorerWin .chip{padding:10px 16px;font-size:14px;font-weight:650}
+#scorerWinds{margin-top:10px}
+.score-row select.field,.score-row input.field{width:auto;min-width:110px}
+.scorer-rare{margin-top:6px;font-size:13px}
+.scorer-flags{display:grid;gap:10px;padding:6px 0 2px}
+.scorer-flags label{display:flex;gap:9px;align-items:flex-start;font-size:13px}
+.scorer-flags label.off{color:#8d968e}
+.scorer-flags input{width:18px;height:18px;margin:1px 0 0;flex-shrink:0;accent-color:var(--green)}
+.scorer-result.good{border-color:#15594a;background:#eef4e8}
+.scorer-result.short{border-color:#b83e35;background:#fbf0ed}
+.scorer-result.short .big-stat{color:var(--red)}
+.scorer-result .score-block{margin:0 0 8px;justify-content:flex-start;gap:22px}
+.scorer-result .big-stat{font-size:54px}
+#scorerVerdict{font-size:18px}
+.fan-table td{padding:9px 4px}
+.fan-table td:last-child{text-align:right;white-space:nowrap;font-weight:750;width:1%}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.card-actions .saved-btn{margin-top:0}
+@media(max-width:600px){.scorer-palette{gap:3px;padding:4px}.scorer-tray{padding:10px 8px;gap:6px}.scorer-tray .tile,.slot,.scorer-result .hand .tile{width:29px}}
+@media print{.card-actions,#scorer .actions,#scorerPalette,#scorerArm,.scorer-add-label{display:none!important}}
+
+/* Scoring walkthrough */
+.steps-list{list-style:none;margin:0;padding:0;display:grid;gap:14px;max-width:720px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
+.step-num{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--green);color:white;font-family:Georgia,serif;font-size:20px}
+.step h3{margin:6px 0 6px;font-size:19px}
+.step p{margin:0 0 4px;font-size:16px}
+.step .hand .tile{width:34px;height:48px}
+.tile-labels .step .hand .tile{height:58px}
+.sum{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:16px}
+.sum b{color:var(--green);font-size:19px}
+.includes,.plain{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px;font-size:15px}
+.includes li{padding:9px 12px;background:#f0f3ea;border-radius:8px}
+.plain li{padding-left:16px;position:relative}
+.plain li::before{content:'';position:absolute;left:0;top:.65em;width:6px;height:6px;border-radius:50%;background:var(--green)}
+.try{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.try label{display:grid;gap:5px;font-size:13px;color:var(--muted)}
+.try-result{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:12px 14px;background:#f0f3ea;border-radius:9px}
+.try-result p{margin:0}
+.pay{margin-top:4px;font-size:15px}
+.pay th{font-size:15px;color:var(--ink);white-space:nowrap;padding-right:18px}
+.pay tr:last-child th,.pay tr:last-child td{border-bottom:0}
+#scoring details,#scoring .learn-next,#scorer .learn-next{max-width:720px}
+@media(max-width:600px){.step{grid-template-columns:1fr;gap:6px}.step-num{width:34px;height:34px;font-size:17px}.step .hand .tile{width:30px}}
+
+/* App shell: a fixed bar with the section tabs; on phones the tabs become a bottom bar. */
+.appbar{position:sticky;top:0;z-index:9;padding-top:env(safe-area-inset-top)}
+.top{padding-top:8px;padding-bottom:8px;gap:20px}
+.brand{white-space:nowrap}
+.brand span{width:28px;height:32px;margin-right:9px}
+.tabs{display:flex;gap:4px;flex:1;justify-content:center;min-width:0}
+.tabs button{display:flex;align-items:center;gap:6px;white-space:nowrap;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:8px 12px;min-height:44px;font-size:14px;font-weight:650}
+.tabs button:hover{background:#eef2e8}
+.tabs button[aria-selected=true]{background:var(--green);color:white}
+.tab-num{font-size:11px;opacity:.7}
+.tab-short{display:none}
+main{padding-top:28px}
+footer{padding-bottom:calc(23px + env(safe-area-inset-bottom))}
+@media(max-width:1000px){.top{flex-wrap:wrap;row-gap:2px}.tabs{order:3;flex-basis:100%;justify-content:flex-start;overflow-x:auto;scrollbar-width:none}}
+@media(max-width:600px){.top{padding-top:6px;padding-bottom:6px}.brand{font-size:16px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:9;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;overflow:visible;background:var(--white);border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+.tabs button{flex-direction:column;gap:0;padding:5px 0;min-height:48px;font-size:10.5px;line-height:1.3;letter-spacing:-.2px}
+.tabs button[aria-selected=true]{background:#e7eee0;color:var(--green)}
+.tab-num{font-size:10px}.tab-long{display:none}.tab-short{display:block}
+main{padding-top:20px}
+footer{padding-bottom:calc(84px + env(safe-area-inset-bottom))}}
+@media print{.tabs,.study-tools{display:none!important}.appbar{position:static}}
+</style></head><body>
+<header class="appbar"><div class="wrap top"><div class="brand"><span>中</span>One hand at a time</div><nav class="tabs" role="tablist" aria-label="Sections"><button role="tab" id="tab-basics" aria-controls="basics" aria-selected="true" data-go="basics"><span class="tab-num">01</span><span class="tab-long">Tiles & sets</span><span class="tab-short">Tiles</span></button><button role="tab" id="tab-patterns" aria-controls="patterns" aria-selected="false" data-go="patterns"><span class="tab-num">02</span><span class="tab-long">Patterns</span><span class="tab-short">Patterns</span></button><button role="tab" id="tab-scoring" aria-controls="scoring" aria-selected="false" data-go="scoring"><span class="tab-num">03</span><span class="tab-long">Scoring</span><span class="tab-short">Scoring</span></button><button role="tab" id="tab-scorer" aria-controls="scorer" aria-selected="false" data-go="scorer"><span class="tab-num">04</span><span class="tab-long">Hand scorer</span><span class="tab-short">Scorer</span></button><button role="tab" id="tab-practice" aria-controls="practice" aria-selected="false" data-go="practice"><span class="tab-num">05</span><span class="tab-long">Practice</span><span class="tab-short">Practice</span></button></nav><div class="study-tools"><button class="tool-btn" id="toggleTileLabels" aria-pressed="true">Tile labels: on</button></div></div></header>
+<div class="wrap">
+<main>
+<section id="basics" class="panel" role="tabpanel" aria-labelledby="tab-basics"><div class="sectionhead"><div><h2>Meet the tiles.</h2><p class="sub">Tap a tile to learn its name.</p></div></div><div class="card"><div id="families" class="chips"></div><div id="tileExplorer" class="explorer"></div><p id="tileDescription" aria-live="polite"></p></div>
+<div class="divider"></div><h2>Four sets + one pair.</h2><p class="sub">A winning hand is 14 tiles.</p><div class="grid" id="setCards"></div><div class="card" style="margin-top:18px"><h3>A complete ordinary hand</h3><div class="hand" id="basicHand"></div><div class="steps"><span>3</span><span>+ 3</span><span>+ 3</span><span>+ 3</span><span>+ 2 = 14</span></div></div>
+<div class="two" style="margin-top:18px"><div class="card"><h3>Build a set</h3><p class="small sub">Tap 2–4 tiles. Tap one again below to remove it.</p><label for="buildSuit" class="small">Tile family</label><select class="field" id="buildSuit"><option value="B">Bamboo</option><option value="D">Dots</option><option value="C">Characters</option><option value="H">Honors</option></select><div id="builderPalette" class="explorer"></div><div id="builderHand" class="hand"></div><p id="builderResult" aria-live="polite">Choose your tiles.</p><div class="actions"><button class="btn alt" id="clearBuilder">Clear tiles</button><button class="btn alt" id="undoBuilder">Undo last tile</button></div></div><div class="card"><h3>On your turn</h3><ul class="plain"><li>Draw a tile, then discard one.</li><li><strong>Chow:</strong> claim only from the player before you.</li><li><strong>Pung or kong:</strong> claim from anyone.</li><li>A win beats a pung; a pung beats a chow.</li><li>A kong uses four tiles, so draw a replacement.</li><li>Flowers are set aside and replaced.</li></ul></div></div><div class="learn-next"><div><span class="mini-step">Next lesson · 02</span><h3 style="margin:4px 0">Six useful patterns.</h3></div><button class="btn" data-go="patterns">Explore patterns →</button></div></section>
+<section id="patterns" class="panel" role="tabpanel" aria-labelledby="tab-patterns" hidden><div class="sectionhead"><div><h2>Patterns.</h2><p class="sub">Gold groups make the pattern.</p></div></div><div id="libraryViews" class="library-bar" aria-label="Pattern collection"></div><div id="patternFilters" class="chips"></div><p id="patternCount" class="small sub" aria-live="polite"></p><div class="hand-legend" style="margin-bottom:16px"><span><i></i>Pattern core</span><span><i class="rest"></i>Example completion</span></div><div id="patternCards" class="grid"></div><details class="card compare-box"><summary>Easy to mix up</summary><div class="compare-grid"><div class="compare-cell"><h3>Pure vs Mixed Straight</h3><div id="comparePure" class="hand"></div><p class="small"><strong>Pure Straight · 16</strong> — one suit for these three chows.</p><div id="compareMixed" class="hand"></div><p class="small"><strong>Mixed Straight · 8</strong> — a different suit for each chow.</p></div><div class="compare-cell"><h3>Full vs Half Flush</h3><p class="small"><strong>Full Flush · 24</strong><br>Every tile is in one numbered suit. No honors.</p><div id="compareFull" class="hand"></div><p class="small"><strong>Half Flush · 6</strong><br>One numbered suit plus honors.</p><div id="compareHalf" class="hand"></div></div></div></details></section>
+<section id="scoring" class="panel" role="tabpanel" aria-labelledby="tab-scoring" hidden><div class="sectionhead"><div><h2>Scoring in five steps.</h2></div></div>
+<ol class="steps-list">
+<li class="card step"><span class="step-num">1</span><div><h3>Make the shape</h3><p>Four sets and a pair.</p><div class="hand" id="scoreShape"></div></div></li>
+<li class="card step"><span class="step-num">2</span><div><h3>Add up your fan</h3><p>Every pattern in the hand has a point value. Add them.</p><div class="hand" id="scoreHand"></div><p class="sum"><span>All Types <b>6</b></span><span>+ Dragon Pung <b>2</b></span><span>= <b>8</b></span></p></div></li>
+<li class="card step"><span class="step-num">3</span><div><h3>Skip what is already included</h3><p>When one fan guarantees another, count only the bigger one.</p><ul class="includes"><li><b>Full Flush</b> includes No Honors</li><li><b>All Chows</b> includes No Honors</li><li><b>Mixed Triple Chow</b> includes Mixed Double Chow</li><li><b>Fully Concealed Hand</b> includes Self-Drawn</li></ul></div></li>
+<li class="card step"><span class="step-num">4</span><div><h3>Reach 8</h3><p>You need 8 points to win. Flowers are added after, never before.</p><div class="try"><label for="fanInput"><span>Fan points</span><input class="field" id="fanInput" type="number" min="0" max="1000" value="6" inputmode="numeric"></label><label for="flowerInput"><span>Flowers</span><input class="field" id="flowerInput" type="number" min="0" max="8" value="2" inputmode="numeric"></label><div class="try-result"><span class="big-stat" id="qualifyingValue">6</span><div><strong id="minimumResult">Below the minimum</strong><p id="settledValue" class="small sub"></p></div></div></div></div></li>
+<li class="card step"><span class="step-num">5</span><div><h3>Get paid</h3><table class="pay"><tbody><tr><th>Self-drawn</th><td>All three pay <b>8 + your points</b></td></tr><tr><th>On a discard</th><td>The discarder pays <b>8 + your points</b><br>The other two pay <b>8</b></td></tr></tbody></table></div></li>
+</ol>
+<details class="card" style="margin-top:16px"><summary>Claimed or concealed?</summary><ul class="plain"><li>Most patterns still score with claimed sets.</li><li><strong>Concealed Hand · 2:</strong> nothing claimed, won on a discard.</li><li><strong>Fully Concealed Hand · 4:</strong> nothing claimed, self-drawn.</li><li>A pung finished by a discard is not a concealed pung.</li></ul></details>
+<div class="learn-next"><div><span class="mini-step">Next · 04</span><h3 style="margin:4px 0">Score a real hand.</h3></div><button class="btn" data-go="scorer">Open the scorer →</button></div></section>
+<section id="scorer" class="panel" role="tabpanel" aria-labelledby="tab-scorer" hidden><div class="sectionhead"><div><h2>Score a hand.</h2></div></div>
+<div class="scorer-flow">
+<div class="card"><h3>1 · Your tiles</h3><div id="scorerHand" class="scorer-tray"></div><p class="small sub" id="scorerCount" aria-live="polite"></p><p class="scorer-hint" id="scorerHint" aria-live="polite" hidden></p><div id="scorerPalette" class="scorer-palette"></div><p class="small sub scorer-add-label">Claimed a set or made a kong? Add it whole:</p><div class="scorer-add" id="scorerArm" role="group" aria-label="Add a whole set"></div><div class="actions"><button class="btn alt" id="scorerExample">Try an example</button><button class="btn alt" id="scorerClear">Clear</button></div></div>
+<div class="card" id="scorerWinCard" hidden><h3>2 · The win</h3><p class="small sub field-label">Winning tile</p><div class="chips" id="scorerWinTile" role="group" aria-label="Winning tile"></div><p class="small sub field-label">How you won</p><div class="chips" id="scorerWin" role="group" aria-label="Winning method"></div><div id="scorerWinds" hidden><label class="score-row" for="seatWind"><span>Your seat</span><select class="field" id="seatWind"><option value="E">East</option><option value="S">South</option><option value="W">West</option><option value="N">North</option></select></label><label class="score-row" for="roundWind"><span>Round</span><select class="field" id="roundWind"><option value="E">East</option><option value="S">South</option><option value="W">West</option><option value="N">North</option></select></label></div><label class="score-row" for="scorerFlowers"><span>Flowers</span><input class="field" id="scorerFlowers" type="number" min="0" max="8" value="0" inputmode="numeric"></label><details class="scorer-rare"><summary>Rare bonuses</summary><div class="scorer-flags"><label><input type="checkbox" id="flagLastOfKind"> Last copy of the winning tile</label><label><input type="checkbox" id="flagLastTile"> <span id="flagLastTileLabel">Last discard of the game</span></label><label><input type="checkbox" id="flagReplacement"> Kong replacement tile</label><label><input type="checkbox" id="flagRobKong"> Robbed a kong</label></div></details></div>
+<div class="card scorer-result" id="scorerResult" aria-live="polite"></div>
+</div></section>
+<section id="practice" class="panel" role="tabpanel" aria-labelledby="tab-practice" hidden><div class="sectionhead"><div><h2>Learn by looking.</h2></div></div><div class="study-progress"><p id="studyProgress" aria-live="polite">Your study progress</p><span class="small sub" id="storageStatus">Saved in this browser</span><button class="tool-btn" id="resetProgress">Reset</button></div><div class="quiz"><div class="chips" id="quizModes"></div><div class="quiz-config"><label for="roundLength">Round length <select id="roundLength"><option value="5">5 questions</option><option value="10">10 questions</option><option value="all">All in this topic</option></select></label><button class="tool-btn" id="newRound">Start a new shuffled round</button></div><div id="quizArea"></div><div class="card wait-card"><div class="eyebrow">One tile away</div><h3 style="margin-top:10px">Complete this hand</h3><div id="waitArea"></div></div></div></section>
+</main></div>
+<script>
+'use strict';
+// Mahjong Competition Rules (Chinese Official) hand scorer.
+// Pure logic with no DOM access: the page inlines this file, and the node tests require it.
+// Rule references are to the WMO rulebook: fan list §3.8.1, scoring principles §3.9.1, Appendix 1.
+const MahjongScorer = (() => {
+  const SUITS = ['B', 'D', 'C'];
+  const WINDS = ['E', 'S', 'W', 'N'];
+  const DRAGONS = ['R', 'G', 'Wh'];
+  const TILES = [...SUITS.flatMap(s => [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => s + n)), ...WINDS, ...DRAGONS];
+  const INDEX = Object.fromEntries(TILES.map((t, i) => [t, i]));
+  const MINIMUM = 8;
+
+  const isSuited = i => i < 27;
+  const isHonor = i => i >= 27;
+  const isWind = i => i >= 27 && i < 31;
+  const isDragon = i => i >= 31;
+  const suitOf = i => Math.floor(i / 9);
+  const rankOf = i => i % 9 + 1;
+  const isTerminal = i => isSuited(i) && (rankOf(i) === 1 || rankOf(i) === 9);
+
+  // [name, points, one-line description]. Order follows the rulebook's fan numbering.
+  const FAN_LIST = [
+    ['Big Four Winds', 88, 'Pungs or kongs of all four winds.'],
+    ['Big Three Dragons', 88, 'Pungs or kongs of all three dragons.'],
+    ['All Green', 88, 'Only bamboo 2, 3, 4, 6, 8 and green dragons.'],
+    ['Nine Gates', 88, 'Concealed 1112345678999 in one suit, waiting on all nine ranks.'],
+    ['Four Kongs', 88, 'Four kongs, melded or concealed.'],
+    ['Seven Shifted Pairs', 88, 'Seven consecutive pairs in one suit.'],
+    ['Thirteen Orphans', 88, 'One of each terminal and honor, plus one duplicate.'],
+    ['All Terminals', 64, 'Only 1s and 9s.'],
+    ['Little Four Winds', 64, 'Three wind pungs and a pair of the fourth wind.'],
+    ['Little Three Dragons', 64, 'Two dragon pungs and a pair of the third dragon.'],
+    ['All Honors', 64, 'Only winds and dragons.'],
+    ['Four Concealed Pungs', 64, 'Four pungs or kongs made without claiming a discard.'],
+    ['Pure Terminal Chows', 64, '123 123 789 789 and a pair of 5s, all in one suit.'],
+    ['Quadruple Chow', 48, 'The same chow four times in one suit.'],
+    ['Four Pure Shifted Pungs', 48, 'Four pungs in one suit, each one rank above the last.'],
+    ['Four Pure Shifted Chows', 32, 'Four chows in one suit, each shifted up by one, or each by two.'],
+    ['Three Kongs', 32, 'Three kongs, melded or concealed.'],
+    ['All Terminals and Honors', 32, 'Only 1s, 9s, winds and dragons.'],
+    ['Seven Pairs', 24, 'Seven pairs, all concealed.'],
+    ['Greater Honors and Knitted Tiles', 24, 'All seven honors plus seven singles from the knitted sequences.'],
+    ['All Even Pungs', 24, 'Pungs and a pair of 2s, 4s, 6s and 8s only.'],
+    ['Full Flush', 24, 'Every tile in one suit, no honors.'],
+    ['Pure Triple Chow', 24, 'The same chow three times in one suit.'],
+    ['Pure Shifted Pungs', 24, 'Three pungs in one suit, each one rank above the last.'],
+    ['Upper Tiles', 24, 'Only 7s, 8s and 9s.'],
+    ['Middle Tiles', 24, 'Only 4s, 5s and 6s.'],
+    ['Lower Tiles', 24, 'Only 1s, 2s and 3s.'],
+    ['Pure Straight', 16, '123, 456 and 789 in one suit.'],
+    ['Three-Suited Terminal Chows', 16, '123 and 789 in two suits, with a pair of 5s in the third.'],
+    ['Pure Shifted Chows', 16, 'Three chows in one suit, each shifted up by one, or each by two.'],
+    ['All Fives', 16, 'Every set and the pair contains a 5.'],
+    ['Triple Pung', 16, 'Pungs of the same rank in all three suits.'],
+    ['Three Concealed Pungs', 16, 'Three pungs or kongs made without claiming a discard.'],
+    ['Lesser Honors and Knitted Tiles', 12, 'Fourteen different singles: honors plus tiles from the knitted sequences.'],
+    ['Knitted Straight', 12, '147, 258 and 369, each in a different suit.'],
+    ['Upper Four', 12, 'Only 6s, 7s, 8s and 9s.'],
+    ['Lower Four', 12, 'Only 1s, 2s, 3s and 4s.'],
+    ['Big Three Winds', 12, 'Pungs or kongs of three winds.'],
+    ['Mixed Straight', 8, '123, 456 and 789, each in a different suit.'],
+    ['Reversible Tiles', 8, 'Only tiles that look the same upside down.'],
+    ['Mixed Triple Chow', 8, 'The same chow in all three suits.'],
+    ['Mixed Shifted Pungs', 8, 'Three pungs, one per suit, each one rank above the last.'],
+    ['Chicken Hand', 8, 'A winning hand that scores no other fan.'],
+    ['Last Tile Draw', 8, 'Self-drawn win on the last tile of the wall.'],
+    ['Last Tile Claim', 8, 'Win on the last discard of the game.'],
+    ['Out with Replacement Tile', 8, 'Win on the replacement tile drawn after a kong.'],
+    ['Robbing the Kong', 8, 'Win on the tile another player adds to a melded pung.'],
+    ['Two Concealed Kongs', 8, 'Two concealed kongs.'],
+    ['All Pungs', 6, 'Four pungs or kongs and a pair.'],
+    ['Half Flush', 6, 'One suit together with honors.'],
+    ['Mixed Shifted Chows', 6, 'Three chows, one per suit, each shifted up by one.'],
+    ['All Types', 6, 'All three suits, a wind and a dragon.'],
+    ['Melded Hand', 6, 'All four sets claimed, winning on a discard for the pair.'],
+    ['Melded and Concealed Kong', 6, 'One melded kong and one concealed kong.'],
+    ['Two Dragon Pungs', 6, 'Two pungs or kongs of dragons.'],
+    ['Outside Hand', 4, 'Every set and the pair contains a terminal or honor.'],
+    ['Fully Concealed Hand', 4, 'Nothing claimed, and won by self-draw.'],
+    ['Two Melded Kongs', 4, 'Two melded kongs.'],
+    ['Last Tile', 4, 'Win on the fourth copy when the other three are visible.'],
+    ['Dragon Pung', 2, 'A pung or kong of dragons.'],
+    ['Prevalent Wind', 2, 'A pung or kong of the round wind.'],
+    ['Seat Wind', 2, 'A pung or kong of your seat wind.'],
+    ['Concealed Hand', 2, 'Nothing claimed, and won on a discard.'],
+    ['All Chows', 2, 'Four chows and a suited pair.'],
+    ['Tile Hog', 2, 'All four copies of a tile, not declared as a kong.'],
+    ['Double Pung', 2, 'Pungs of the same rank in two suits.'],
+    ['Two Concealed Pungs', 2, 'Two pungs made without claiming a discard.'],
+    ['Concealed Kong', 2, 'A kong made from four self-drawn tiles.'],
+    ['All Simples', 2, 'No 1s, 9s or honors.'],
+    ['Pure Double Chow', 1, 'The same chow twice in one suit.'],
+    ['Mixed Double Chow', 1, 'The same chow in two suits.'],
+    ['Short Straight', 1, 'Two chows in one suit making six in a row.'],
+    ['Two Terminal Chows', 1, '123 and 789 in one suit.'],
+    ['Pung of Terminals or Honors', 1, 'A pung of 1s, 9s or a wind that is not your seat or round wind.'],
+    ['Melded Kong', 1, 'A kong claimed from a discard or added to a melded pung.'],
+    ['One Voided Suit', 1, 'Exactly two of the three suits.'],
+    ['No Honors', 1, 'No winds or dragons.'],
+    ['Edge Wait', 1, 'Waiting only for the 3 of 1-2-3 or the 7 of 7-8-9.'],
+    ['Closed Wait', 1, 'Waiting only for the middle tile of a chow.'],
+    ['Single Wait', 1, 'Waiting only for the tile that completes the pair.'],
+    ['Self-Drawn', 1, 'Winning on a tile you drew yourself.'],
+    ['Flower Tiles', 1, 'One point per flower, added after the 8-point minimum is met.'],
+  ];
+  const FANS = Object.fromEntries(FAN_LIST.map(([name, points, desc], order) => [name, { name, points, desc, order }]));
+
+  // Non-Repeat Principle: a fan on the left makes the fans on the right inevitable, so they do not score.
+  const NO_HONORS = 'No Honors';
+  const WAITS = ['Edge Wait', 'Closed Wait', 'Single Wait'];
+  const EXCLUDES = {
+    'Big Four Winds': ['Big Three Winds', 'All Pungs', 'Prevalent Wind', 'Seat Wind', 'Pung of Terminals or Honors'],
+    'Big Three Dragons': ['Two Dragon Pungs', 'Dragon Pung'],
+    'Nine Gates': ['Full Flush', 'Concealed Hand', 'Pung of Terminals or Honors', NO_HONORS, ...WAITS],
+    'Four Kongs': ['All Pungs', 'Single Wait'],
+    'Seven Shifted Pairs': ['Seven Pairs', 'Full Flush', NO_HONORS],
+    'All Terminals': ['All Pungs', 'Outside Hand', 'Pung of Terminals or Honors', NO_HONORS],
+    'Little Four Winds': ['Big Three Winds'],
+    'Little Three Dragons': ['Two Dragon Pungs', 'Dragon Pung'],
+    'All Honors': ['All Pungs', 'Outside Hand', 'Pung of Terminals or Honors'],
+    'Four Concealed Pungs': ['All Pungs', 'Concealed Hand', 'Three Concealed Pungs', 'Two Concealed Pungs'],
+    'Pure Terminal Chows': ['Full Flush', 'All Chows', NO_HONORS],
+    'Quadruple Chow': ['Tile Hog'],
+    'Four Pure Shifted Pungs': ['All Pungs'],
+    'All Terminals and Honors': ['All Pungs', 'Outside Hand', 'Pung of Terminals or Honors'],
+    'All Even Pungs': ['All Pungs', 'All Simples', NO_HONORS],
+    'Full Flush': [NO_HONORS],
+    'Upper Tiles': ['Upper Four', NO_HONORS],
+    'Middle Tiles': ['All Simples', NO_HONORS],
+    'Lower Tiles': ['Lower Four', NO_HONORS],
+    'Three-Suited Terminal Chows': ['All Chows', NO_HONORS],
+    'All Fives': ['All Simples', NO_HONORS],
+    'Upper Four': [NO_HONORS],
+    'Lower Four': [NO_HONORS],
+    'Reversible Tiles': ['One Voided Suit'],
+    'Last Tile Draw': ['Self-Drawn'],
+    'Out with Replacement Tile': ['Self-Drawn'],
+    'Robbing the Kong': ['Last Tile'],
+    'Melded Hand': ['Single Wait'],
+    'Fully Concealed Hand': ['Self-Drawn'],
+    'All Chows': [NO_HONORS],
+    'All Simples': [NO_HONORS],
+  };
+
+  const GREEN = new Set(['B2', 'B3', 'B4', 'B6', 'B8', 'G'].map(t => INDEX[t]));
+  const REVERSIBLE = new Set(['D1', 'D2', 'D3', 'D4', 'D5', 'D8', 'D9', 'B2', 'B4', 'B5', 'B6', 'B8', 'B9', 'Wh'].map(t => INDEX[t]));
+  const ORPHANS = TILES.map((_, i) => i).filter(i => isHonor(i) || isTerminal(i));
+  // Each entry gives, per suit, the first rank of its knitted sequence (1 → 147, 2 → 258, 3 → 369).
+  const KNITTED_ORDERS = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]];
+  const knittedTiles = order => order.flatMap((start, suit) => [0, 3, 6].map(step => suit * 9 + start - 1 + step));
+
+  const setTiles = s => s.kind === 'chow' ? [s.first, s.first + 1, s.first + 2] : Array(s.kind === 'kong' ? 4 : 3).fill(s.first);
+  const sum = counts => counts.reduce((a, b) => a + b, 0);
+
+  // ---- Hand shapes ---------------------------------------------------------
+
+  function splitSets(counts, need, from, acc, emit) {
+    if (need === 0) {
+      emit(acc.slice());
+      return;
+    }
+    let i = from;
+    while (i < 34 && counts[i] === 0) i++;
+    if (i === 34) return;
+    if (counts[i] >= 3) {
+      counts[i] -= 3;
+      acc.push({ kind: 'pung', first: i });
+      splitSets(counts, need - 1, i, acc, emit);
+      acc.pop();
+      counts[i] += 3;
+    }
+    if (isSuited(i) && rankOf(i) <= 7 && counts[i + 1] && counts[i + 2]) {
+      counts[i]--; counts[i + 1]--; counts[i + 2]--;
+      acc.push({ kind: 'chow', first: i });
+      splitSets(counts, need - 1, i, acc, emit);
+      acc.pop();
+      counts[i]++; counts[i + 1]++; counts[i + 2]++;
+    }
+  }
+
+  // Every way to read `counts` as `need` sets plus a pair.
+  function standardSplits(counts, need) {
+    const seen = new Set();
+    const out = [];
+    if (sum(counts) !== need * 3 + 2) return out;
+    for (let pair = 0; pair < 34; pair++) {
+      if (counts[pair] < 2) continue;
+      counts[pair] -= 2;
+      splitSets(counts, need, 0, [], sets => {
+        const key = pair + '|' + sets.map(s => s.kind[0] + s.first).sort().join(',');
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push({ sets, pair });
+        }
+      });
+      counts[pair] += 2;
+    }
+    return out;
+  }
+
+  // All winning readings of the concealed tiles, given how many sets are already declared.
+  function readings(counts, declared) {
+    const out = standardSplits(counts, 4 - declared).map(r => ({ type: 'standard', ...r }));
+    if (declared <= 1) {
+      for (const order of KNITTED_ORDERS) {
+        const knit = knittedTiles(order);
+        if (!knit.every(i => counts[i])) continue;
+        const rest = counts.slice();
+        knit.forEach(i => rest[i]--);
+        for (const r of standardSplits(rest, 1 - declared)) out.push({ type: 'knitted', order, ...r });
+      }
+    }
+    if (declared === 0 && sum(counts) === 14) {
+      if (counts.every(c => c % 2 === 0)) {
+        out.push({ type: 'pairs', pairs: counts.flatMap((c, i) => Array(c / 2).fill(i)) });
+      }
+      if (ORPHANS.every(i => counts[i]) && sum(ORPHANS.map(i => counts[i])) === 14) out.push({ type: 'orphans' });
+      if (counts.every(c => c <= 1)) {
+        const suited = counts.flatMap((c, i) => c && isSuited(i) ? [i] : []);
+        const order = KNITTED_ORDERS.find(o => suited.every(i => knittedTiles(o).includes(i)));
+        if (order) out.push({ type: 'honorsKnitted', order });
+      }
+    }
+    return out;
+  }
+
+  // ---- Fans that depend on how the chows and pungs relate ------------------
+
+  function tripleChowFan(firsts) {
+    const [a, b, c] = firsts.slice().sort((x, y) => x - y);
+    const suits = new Set([a, b, c].map(suitOf));
+    if (suits.size === 1) {
+      if (a === c) return 'Pure Triple Chow';
+      if (b - a === 3 && c - b === 3) return 'Pure Straight';
+      if (b - a === c - b && (b - a === 1 || b - a === 2)) return 'Pure Shifted Chows';
+    } else if (suits.size === 3) {
+      const [x, y, z] = [a, b, c].map(rankOf).sort((p, q) => p - q);
+      if (x === z) return 'Mixed Triple Chow';
+      if (x === 1 && y === 4 && z === 7) return 'Mixed Straight';
+      if (y === x + 1 && z === y + 1) return 'Mixed Shifted Chows';
+    }
+    return null;
+  }
+
+  function fourChowFan(firsts, pair) {
+    const s = firsts.slice().sort((x, y) => x - y);
+    const suits = new Set(s.map(suitOf));
+    if (s[0] === s[3]) return 'Quadruple Chow';
+    if (suits.size === 1) {
+      const step = s[1] - s[0];
+      if ((step === 1 || step === 2) && s[2] - s[1] === step && s[3] - s[2] === step) return 'Four Pure Shifted Chows';
+    }
+    if (!isSuited(pair) || rankOf(pair) !== 5) return null;
+    const terminalChows = s.every(f => rankOf(f) === 1 || rankOf(f) === 7);
+    const balanced = [...suits].every(suit => {
+      const ranks = s.filter(f => suitOf(f) === suit).map(rankOf);
+      return ranks.filter(r => r === 1).length === ranks.filter(r => r === 7).length;
+    });
+    if (!terminalChows || !balanced) return null;
+    if (suits.size === 1 && suits.has(suitOf(pair))) return 'Pure Terminal Chows';
+    if (suits.size === 2 && !suits.has(suitOf(pair))) return 'Three-Suited Terminal Chows';
+    return null;
+  }
+
+  function doubleChowFan(a, b) {
+    if (a === b) return 'Pure Double Chow';
+    if (suitOf(a) !== suitOf(b)) return rankOf(a) === rankOf(b) ? 'Mixed Double Chow' : null;
+    const gap = Math.abs(a - b);
+    return gap === 3 ? 'Short Straight' : gap === 6 ? 'Two Terminal Chows' : null;
+  }
+
+  // Best chow combination under the Account-Once Principle: after one fan joins some chows, each
+  // further fan must bring in a chow that has not been used yet. Sets already joined form a group,
+  // and a two-chow fan only counts when it links two different groups.
+  function chowFans(chows, pair) {
+    const firsts = chows.map(c => c.first);
+    const n = firsts.length;
+    const big = [null];
+    if (n === 4) {
+      const name = fourChowFan(firsts, pair);
+      if (name) big.push({ name, members: [0, 1, 2, 3] });
+    }
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) for (let k = j + 1; k < n; k++) {
+      const name = tripleChowFan([firsts[i], firsts[j], firsts[k]]);
+      if (name) big.push({ name, members: [i, j, k] });
+    }
+    // All two-chow fans are worth the same, so any order finds the most; this one names them conventionally.
+    const doubles = [];
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const name = doubleChowFan(firsts[i], firsts[j]);
+      if (name) doubles.push({ name, i, j });
+    }
+    doubles.sort((a, b) => FANS[a.name].order - FANS[b.name].order);
+    let best = { points: 0, fans: [] };
+    for (const cand of big) {
+      const group = firsts.map((_, i) => i);
+      const find = i => group[i] === i ? i : (group[i] = find(group[i]));
+      const fans = [];
+      let points = 0;
+      if (cand) {
+        cand.members.forEach(m => { group[find(m)] = find(cand.members[0]); });
+        fans.push(cand.name);
+        points += FANS[cand.name].points;
+      }
+      for (const { name, i, j } of doubles) {
+        if (find(i) !== find(j)) {
+          group[find(i)] = find(j);
+          fans.push(name);
+          points += FANS[name].points;
+        }
+      }
+      if (points > best.points) best = { points, fans };
+    }
+    return best.fans;
+  }
+
+  function pungFans(pungs) {
+    const suited = pungs.map(p => p.first).filter(isSuited).sort((a, b) => a - b);
+    const fans = [];
+    const run = (list, len) => list.some((f, i) => i + len <= list.length &&
+      list.slice(i, i + len).every((g, k) => g === f + k && suitOf(g) === suitOf(f)));
+    if (suited.length === 4 && run(suited, 4)) fans.push('Four Pure Shifted Pungs');
+    else if (run(suited, 3)) fans.push('Pure Shifted Pungs');
+
+    const byRank = {};
+    suited.forEach(f => { (byRank[rankOf(f)] = byRank[rankOf(f)] || []).push(suitOf(f)); });
+    for (const suits of Object.values(byRank)) {
+      if (suits.length === 3) fans.push('Triple Pung');
+      else if (suits.length === 2) fans.push('Double Pung');
+    }
+    const mixedShifted = [1, 2, 3, 4, 5, 6, 7].some(r => {
+      const [a, b, c] = [byRank[r], byRank[r + 1], byRank[r + 2]];
+      if (!a || !b || !c) return false;
+      return a.some(x => b.some(y => c.some(z => new Set([x, y, z]).size === 3)));
+    });
+    if (mixedShifted && !fans.includes('Pure Shifted Pungs') && !fans.includes('Four Pure Shifted Pungs')) fans.push('Mixed Shifted Pungs');
+    return fans;
+  }
+
+  // ---- Scoring one reading -------------------------------------------------
+
+  function tally() {
+    const found = new Map();
+    return {
+      add(name, count = 1) {
+        if (!FANS[name]) throw new Error('Unknown fan: ' + name);
+        if (count > 0) found.set(name, (found.get(name) || 0) + count);
+      },
+      has: name => found.has(name),
+      finish() {
+        for (const name of [...found.keys()]) (EXCLUDES[name] || []).forEach(x => found.delete(x));
+        if (found.size === 0) found.set('Chicken Hand', 1);
+        const fans = [...found].map(([name, count]) => ({ name, count, points: FANS[name].points, total: FANS[name].points * count, desc: FANS[name].desc }));
+        fans.sort((a, b) => b.points - a.points || FANS[a.name].order - FANS[b.name].order);
+        return { fans, points: fans.reduce((a, f) => a + f.total, 0) };
+      },
+    };
+  }
+
+  // Fans decided by which tiles are present, whatever the hand's structure.
+  function tileFans(h, t) {
+    const kinds = h.all.flatMap((c, i) => c ? [i] : []);
+    const suits = new Set(kinds.filter(isSuited).map(suitOf));
+    const honors = kinds.some(isHonor);
+    const ranks = kinds.filter(isSuited).map(rankOf);
+    const within = (lo, hi) => !honors && ranks.every(r => r >= lo && r <= hi);
+
+    if (kinds.every(i => GREEN.has(i))) t.add('All Green');
+    if (kinds.every(i => REVERSIBLE.has(i))) t.add('Reversible Tiles');
+    if (kinds.every(isTerminal)) t.add('All Terminals');
+    else if (kinds.every(isHonor)) t.add('All Honors');
+    else if (kinds.every(i => isHonor(i) || isTerminal(i))) t.add('All Terminals and Honors');
+
+    if (suits.size === 1) t.add(honors ? 'Half Flush' : 'Full Flush');
+    if (suits.size === 2) t.add('One Voided Suit');
+    if (suits.size === 3 && kinds.some(isWind) && kinds.some(isDragon)) t.add('All Types');
+    if (!honors) t.add('No Honors');
+    if (!honors && !kinds.some(isTerminal)) t.add('All Simples');
+
+    if (within(7, 9)) t.add('Upper Tiles');
+    if (within(4, 6)) t.add('Middle Tiles');
+    if (within(1, 3)) t.add('Lower Tiles');
+    if (within(6, 9)) t.add('Upper Four');
+    if (within(1, 4)) t.add('Lower Four');
+
+    const kongs = new Set(h.declared.filter(m => m.kind === 'kong').map(m => m.first));
+    t.add('Tile Hog', kinds.filter(i => h.all[i] === 4 && !kongs.has(i)).length);
+  }
+
+  function circumstanceFans(h, t) {
+    if (h.selfDrawn) t.add('Self-Drawn');
+    if (h.lastOfKind) t.add('Last Tile');
+    if (h.lastTile) t.add(h.selfDrawn ? 'Last Tile Draw' : 'Last Tile Claim');
+    if (h.kongReplacement && h.selfDrawn) t.add('Out with Replacement Tile');
+    if (h.robbingKong && !h.selfDrawn) t.add('Robbing the Kong');
+  }
+
+  function concealmentFans(h, t) {
+    if (h.declared.some(m => m.melded)) return;
+    t.add(h.selfDrawn ? 'Fully Concealed Hand' : 'Concealed Hand');
+  }
+
+  // `place` says which part of the reading the winning tile completed.
+  function scoreStandard(h, r, place) {
+    const t = tally();
+    const concealed = r.sets.map((s, i) => ({
+      ...s,
+      melded: false,
+      // A pung completed by someone else's discard is not a concealed pung.
+      concealedPung: s.kind === 'pung' && !(place.where === 'set' && place.index === i && !h.selfDrawn),
+    }));
+    const sets = [...h.declared, ...concealed];
+    const chows = sets.filter(s => s.kind === 'chow');
+    const pungs = sets.filter(s => s.kind !== 'chow');
+    const knitted = r.type === 'knitted';
+    const hasOutside = s => s.kind === 'chow' ? rankOf(s.first) === 1 || rankOf(s.first) === 7 : isHonor(s.first) || isTerminal(s.first);
+    const hasFive = s => isSuited(s.first) && (s.kind === 'chow' ? rankOf(s.first) >= 3 && rankOf(s.first) <= 5 : rankOf(s.first) === 5);
+
+    tileFans(h, t);
+    circumstanceFans(h, t);
+    concealmentFans(h, t);
+
+    if (knitted) t.add('Knitted Straight');
+    if (pungs.length === 4) t.add('All Pungs');
+    if (chows.length === sets.length && isSuited(r.pair)) t.add('All Chows');
+    if (!knitted) {
+      if (sets.every(hasOutside) && (isHonor(r.pair) || isTerminal(r.pair))) t.add('Outside Hand');
+      if (sets.every(hasFive) && isSuited(r.pair) && rankOf(r.pair) === 5) t.add('All Fives');
+      const even = i => isSuited(i) && rankOf(i) % 2 === 0;
+      if (pungs.length === 4 && pungs.every(p => even(p.first)) && even(r.pair)) t.add('All Even Pungs');
+    }
+    chowFans(chows, r.pair).forEach(name => t.add(name));
+    pungFans(pungs).forEach(name => t.add(name));
+
+    const winds = pungs.filter(p => isWind(p.first));
+    const dragons = pungs.filter(p => isDragon(p.first)).length;
+    const windFan = winds.length === 4 ? 'Big Four Winds' : winds.length === 3 ? (isWind(r.pair) ? 'Little Four Winds' : 'Big Three Winds') : null;
+    if (windFan) t.add(windFan);
+    if (dragons === 3) t.add('Big Three Dragons');
+    else if (dragons === 2) t.add(isDragon(r.pair) ? 'Little Three Dragons' : 'Two Dragon Pungs');
+    else if (dragons === 1) t.add('Dragon Pung');
+    if (winds.some(p => p.first === h.seat)) t.add('Seat Wind');
+    if (winds.some(p => p.first === h.prevalent)) t.add('Prevalent Wind');
+    // Wind pungs already paid as a wind fan do not also score as a pung of honors.
+    const plainWinds = windFan ? 0 : winds.filter(p => p.first !== h.seat && p.first !== h.prevalent).length;
+    t.add('Pung of Terminals or Honors', pungs.filter(p => isTerminal(p.first)).length + plainWinds);
+
+    const kongs = pungs.filter(p => p.kind === 'kong');
+    const hidden = kongs.filter(k => !k.melded).length;
+    const shown = kongs.length - hidden;
+    if (kongs.length === 4) t.add('Four Kongs');
+    else if (kongs.length === 3) t.add('Three Kongs');
+    else if (hidden === 2) t.add('Two Concealed Kongs');
+    else if (hidden === 1 && shown === 1) t.add('Melded and Concealed Kong');
+    else if (shown === 2) t.add('Two Melded Kongs');
+    else if (hidden === 1) t.add('Concealed Kong');
+    else if (shown === 1) t.add('Melded Kong');
+
+    const concealedPungs = pungs.filter(p => p.concealedPung).length;
+    if (concealedPungs === 4) t.add('Four Concealed Pungs');
+    else if (concealedPungs === 3) t.add('Three Concealed Pungs');
+    else if (concealedPungs === 2 && !t.has('Two Concealed Kongs')) t.add('Two Concealed Pungs');
+
+    if (h.declared.length === 4 && h.declared.every(m => m.melded) && !h.selfDrawn) t.add('Melded Hand');
+    if (h.nineGates) t.add('Nine Gates');
+
+    if (h.waits.length === 1) {
+      if (place.where === 'pair') t.add('Single Wait');
+      if (place.where === 'set' && r.sets[place.index].kind === 'chow') {
+        const first = r.sets[place.index].first;
+        const offset = h.win - first;
+        if (offset === 1) t.add('Closed Wait');
+        else if ((rankOf(first) === 1 && offset === 2) || (rankOf(first) === 7 && offset === 0)) t.add('Edge Wait');
+      }
+    }
+
+    const groups = [
+      ...h.declared.map(m => ({ tiles: setTiles(m), label: m.kind === 'kong' ? (m.melded ? 'Melded kong' : 'Concealed kong') : 'Claimed ' + m.kind })),
+      ...(knitted ? [{ tiles: knittedTiles(r.order), label: 'Knitted straight' }] : []),
+      ...r.sets.map(s => ({ tiles: setTiles(s), label: s.kind === 'chow' ? 'Chow' : 'Pung' })),
+      { tiles: [r.pair, r.pair], label: 'Pair' },
+    ];
+    return { ...t.finish(), groups };
+  }
+
+  function scoreSpecial(h, r) {
+    const t = tally();
+    const held = h.concealed.flatMap((c, i) => Array(c).fill(i));
+    let groups = [{ tiles: held, label: 'Singles' }];
+    circumstanceFans(h, t);
+    if (h.selfDrawn) t.add('Fully Concealed Hand');
+    if (r.type === 'orphans') {
+      t.add('Thirteen Orphans');
+    } else if (r.type === 'honorsKnitted') {
+      const honors = held.filter(isHonor).length;
+      t.add(honors === 7 ? 'Greater Honors and Knitted Tiles' : 'Lesser Honors and Knitted Tiles');
+      if (honors === 5) t.add('Knitted Straight');
+    } else {
+      const p = r.pairs;
+      const shifted = p.every((x, i) => suitOf(x) === suitOf(p[0]) && isSuited(x) && x === p[0] + i);
+      t.add(shifted ? 'Seven Shifted Pairs' : 'Seven Pairs');
+      tileFans(h, t);
+      groups = p.map(i => ({ tiles: [i, i], label: 'Pair' }));
+    }
+    return { ...t.finish(), groups };
+  }
+
+  function scoreReading(h, r) {
+    if (r.type !== 'standard' && r.type !== 'knitted') return [scoreSpecial(h, r)];
+    const places = [];
+    if (r.pair === h.win) places.push({ where: 'pair' });
+    const seen = new Set();
+    r.sets.forEach((s, index) => {
+      const key = s.kind + s.first;
+      if (setTiles(s).includes(h.win) && !seen.has(key)) {
+        seen.add(key);
+        places.push({ where: 'set', index });
+      }
+    });
+    if (r.type === 'knitted' && knittedTiles(r.order).includes(h.win)) places.push({ where: 'knitted' });
+    return places.map(place => scoreStandard(h, r, place));
+  }
+
+  // ---- Public API ----------------------------------------------------------
+
+  const fail = (reason, message, extra = {}) => ({ ok: false, reason, message, ...extra });
+
+  // hand = {
+  //   concealed: ['B1', ...]   tiles still in the hand, including the winning tile
+  //   melds: [{ type: 'chow' | 'pung' | 'kong', tile: 'B1', concealed: false }]   chows name their lowest tile
+  //   winTile: 'B1', selfDrawn: false, seatWind: 'E', prevalentWind: 'E', flowers: 0,
+  //   lastOfKind, lastTile, kongReplacement, robbingKong: booleans
+  // }
+  function score(hand) {
+    const melds = hand.melds || [];
+    const tiles = hand.concealed || [];
+    if (melds.length > 4) return fail('invalid', 'A hand has at most four sets.');
+    const concealed = Array(34).fill(0);
+    const all = Array(34).fill(0);
+    for (const tile of tiles) {
+      if (!(tile in INDEX)) return fail('invalid', `Unknown tile: ${tile}.`);
+      concealed[INDEX[tile]]++;
+      all[INDEX[tile]]++;
+    }
+    const declared = [];
+    for (const m of melds) {
+      const first = INDEX[m.tile];
+      if (first === undefined || !['chow', 'pung', 'kong'].includes(m.type)) return fail('invalid', 'Unknown set.');
+      if (m.type === 'chow' && (!isSuited(first) || rankOf(first) > 7)) return fail('invalid', `A chow cannot start at ${m.tile}.`);
+      const set = { kind: m.type, first, melded: !(m.type === 'kong' && m.concealed) };
+      set.concealedPung = !set.melded;
+      setTiles(set).forEach(i => all[i]++);
+      declared.push(set);
+    }
+    const over = all.findIndex(c => c > 4);
+    if (over >= 0) return fail('invalid', `There are only four of each tile: too many ${TILES[over]}.`);
+    const need = 14 - 3 * declared.length;
+    if (tiles.length !== need) {
+      return fail('incomplete', tiles.length < need ? `Add ${need - tiles.length} more tile${need - tiles.length === 1 ? '' : 's'}.` : `Remove ${tiles.length - need} tile${tiles.length - need === 1 ? '' : 's'}.`, { missing: need - tiles.length });
+    }
+    const win = INDEX[hand.winTile];
+    if (win === undefined || !concealed[win]) return fail('no-win-tile', 'Choose which tile completed the hand.');
+
+    const found = readings(concealed, declared.length);
+    if (!found.length) return fail('not-winning', 'These tiles do not make a winning shape yet.');
+
+    const before = concealed.slice();
+    before[win]--;
+    const waits = [];
+    // Waits are counted by shape, even for a tile the hand already holds all four of.
+    for (let i = 0; i < 34; i++) {
+      before[i]++;
+      if (readings(before, declared.length).length) waits.push(i);
+      before[i]--;
+    }
+    const gates = suit => [3, 1, 1, 1, 1, 1, 1, 1, 3].every((c, k) => before[suit * 9 + k] === c);
+    const h = {
+      concealed, all, declared, win, waits,
+      selfDrawn: !!hand.selfDrawn,
+      seat: INDEX[hand.seatWind || 'E'],
+      prevalent: INDEX[hand.prevalentWind || 'E'],
+      // The fourth copy is plainly the last when the other three sit in the player's own exposed sets.
+      lastOfKind: !!hand.lastOfKind || declared.filter(m => m.melded).reduce((n, m) => n + setTiles(m).filter(i => i === win).length, 0) === 3,
+      lastTile: !!hand.lastTile,
+      kongReplacement: !!hand.kongReplacement,
+      robbingKong: !!hand.robbingKong,
+      nineGates: declared.length === 0 && [0, 1, 2].some(gates),
+    };
+
+    let best = null;
+    for (const r of found) {
+      for (const result of scoreReading(h, r)) {
+        if (!best || result.points > best.points) best = result;
+      }
+    }
+    const flowers = Math.max(0, Math.min(8, Math.floor(Number(hand.flowers) || 0)));
+    const qualifies = best.points >= MINIMUM;
+    const total = best.points + flowers;
+    return {
+      ok: true,
+      fans: best.fans,
+      points: best.points,
+      flowers,
+      total,
+      qualifies,
+      minimum: MINIMUM,
+      groups: best.groups.map(g => ({ label: g.label, tiles: g.tiles.map(i => TILES[i]) })),
+      waits: waits.map(i => TILES[i]),
+      // §3.9.1: every loser pays 8; on a discard only the discarder also pays the hand's points.
+      payment: qualifies ? (h.selfDrawn
+        ? { each: total + 8, winner: (total + 8) * 3 }
+        : { discarder: total + 8, others: 8, winner: total + 24 }) : null,
+    };
+  }
+
+  return { score, TILES, FANS: FAN_LIST.map(([name, points, desc]) => ({ name, points, desc })), EXCLUDES, MINIMUM };
+})();
+
+if (typeof module !== 'undefined') module.exports = MahjongScorer;
+</script>
+<script>
+'use strict';
+const patterns=[{"name": "Mixed Straight", "points": 8, "category": "Straights", "desc": "123 + 456 + 789, each in a different suit.", "groups": [["B1", "B2", "B3"], ["D4", "D5", "D6"], ["C7", "C8", "C9"], ["E", "E", "E"], ["R", "R"]], "note": "The fourth set and pair can use other tiles. “Anything” still has to make a legal hand.", "origin": "On your board"}, {"name": "Pure Straight", "points": 16, "category": "Straights", "desc": "123 + 456 + 789 in one suit.", "groups": [["B1", "B2", "B3"], ["B4", "B5", "B6"], ["B7", "B8", "B9"], ["D2", "D2", "D2"], ["R", "R"]], "note": "The fourth set and pair can be anything. Your board calls this “Straight 1–9”.", "origin": "On your board"}, {"name": "Mixed Triple Chow", "points": 8, "category": "Matching sets", "desc": "The same chow, once in each suit.", "groups": [["B3", "B4", "B5"], ["D3", "D4", "D5"], ["C3", "C4", "C5"], ["E", "E", "E"], ["R", "R"]], "note": "", "origin": "On your board"}, {"name": "Triple Pung", "points": 16, "category": "Matching sets", "desc": "Three matching ranks: one pung in each suit.", "groups": [["B2", "B2", "B2"], ["D2", "D2", "D2"], ["C2", "C2", "C2"], ["C6", "C7", "C8"], ["R", "R"]], "note": "Your board calls this “mixed triple pungs”.", "origin": "On your board"}, {"name": "Full Flush", "points": 24, "category": "Suits", "desc": "Every tile belongs to one numbered suit.", "groups": [["C1", "C2", "C3"], ["C4", "C5", "C6"], ["C7", "C8", "C9"], ["C7", "C8", "C9"], ["C9", "C9"]], "note": "No honors. Your board says 6, but the rulebook value is 24. One suit holding 123 456 789 also scores Pure Straight: 24 + 16.", "origin": "On your board"}, {"name": "Half Flush", "points": 6, "category": "Suits", "desc": "One numbered suit together with honors.", "groups": [["B1", "B2", "B3"], ["B4", "B5", "B6"], ["B7", "B8", "B9"], ["R", "R", "R"], ["E", "E"]], "note": "Your board says 2, but the rulebook value is 6. On its own it falls short of 8.", "origin": "On your board"}, {"name": "All Types", "points": 6, "category": "Suits", "desc": "Use bamboo, dots, characters, a wind and a dragon.", "groups": [["B1", "B2", "B3"], ["D4", "D5", "D6"], ["C7", "C8", "C9"], ["R", "R", "R"], ["E", "E"]], "note": "Here it combines with Mixed Straight (8) and Dragon Pung (2).", "origin": "Extra"}, {"name": "All Fives", "points": 16, "category": "Number ranges", "desc": "Every set and the pair contains a 5.", "groups": [["B3", "B4", "B5"], ["D4", "D5", "D6"], ["C5", "C6", "C7"], ["B5", "B5", "B5"], ["D5", "D5"]], "note": "The pair must be 55. It does not mean every tile is a 5.", "origin": "On your board"}, {"name": "Lower Tiles", "points": 24, "category": "Number ranges", "desc": "Only ranks 1, 2 and 3 throughout.", "groups": [["B1", "B2", "B3"], ["D1", "D2", "D3"], ["C1", "C2", "C3"], ["B2", "B2", "B2"], ["D3", "D3"]], "note": "No winds or dragons. The pair is also restricted.", "origin": "On your board"}, {"name": "Middle Tiles", "points": 24, "category": "Number ranges", "desc": "Only ranks 4, 5 and 6 throughout.", "groups": [["B4", "B5", "B6"], ["D4", "D5", "D6"], ["C4", "C5", "C6"], ["B5", "B5", "B5"], ["D6", "D6"]], "note": "No honors. Having some middle tiles is not enough.", "origin": "On your board"}, {"name": "Upper Tiles", "points": 24, "category": "Number ranges", "desc": "Only ranks 7, 8 and 9 throughout.", "groups": [["B7", "B8", "B9"], ["D7", "D8", "D9"], ["C7", "C8", "C9"], ["B8", "B8", "B8"], ["D9", "D9"]], "note": "", "origin": "On your board"}, {"name": "Lower Four", "points": 12, "category": "Number ranges", "desc": "Only ranks 1 through 4 throughout.", "groups": [["B2", "B3", "B4"], ["D1", "D2", "D3"], ["C1", "C2", "C3"], ["B1", "B1", "B1"], ["D4", "D4"]], "note": "The “/4” on your board. A different pattern from Lower Tiles, worth half as much.", "origin": "On your board"}, {"name": "Upper Four", "points": 12, "category": "Number ranges", "desc": "Only ranks 6 through 9 throughout.", "groups": [["B6", "B7", "B8"], ["D7", "D8", "D9"], ["C7", "C8", "C9"], ["B9", "B9", "B9"], ["D6", "D6"]], "note": "The “/6” on your board. No honors.", "origin": "On your board"}, {"name": "All Terminals and Honors", "points": 32, "category": "Special & honors", "desc": "Use only suited 1s/9s and honors.", "groups": [["B1", "B1", "B1"], ["D9", "D9", "D9"], ["E", "E", "E"], ["R", "R", "R"], ["C9", "C9"]], "note": "The example mixes terminals and honors. All Terminals alone and All Honors alone are separate 64-point patterns.", "origin": "On your board"}, {"name": "Three Concealed Pungs", "points": 16, "category": "Matching sets", "desc": "Three pungs formed without claiming discards.", "groups": [["B1", "B1", "B1"], ["D2", "D2", "D2"], ["C3", "C3", "C3"], ["B6", "B7", "B8"], ["R", "R"]], "note": "Keep the first three pungs concealed. A discard that completes a pung makes that pung exposed for this fan, even on a winning claim. Concealed kongs can count.", "origin": "On your board"}, {"name": "Four Concealed Pungs", "points": 64, "category": "Matching sets", "desc": "All four pungs are concealed.", "groups": [["B1", "B1", "B1"], ["D2", "D2", "D2"], ["C3", "C3", "C3"], ["B8", "B8", "B8"], ["R", "R"]], "note": "Self-draw the final tile, or win on a discard that completes only the pair. A winning discard that completes a pung leaves just three concealed pungs.", "origin": "On your board"}, {"name": "Big Four Winds", "points": 88, "category": "Special & honors", "desc": "Pungs of East, South, West and North.", "groups": [["E", "E", "E"], ["S", "S", "S"], ["W", "W", "W"], ["N", "N", "N"], ["R", "R"]], "note": "The pair may be another tile. Kongs can replace pungs.", "origin": "On your board"}, {"name": "Little Four Winds", "points": 64, "category": "Special & honors", "desc": "Three wind pungs and a pair of the fourth wind.", "groups": [["E", "E", "E"], ["S", "S", "S"], ["W", "W", "W"], ["B1", "B2", "B3"], ["N", "N"]], "note": "The fourth set is still required. “Little wind (3 of 4)” alone omits the crucial wind pair.", "origin": "On your board"}, {"name": "Big Three Dragons", "points": 88, "category": "Special & honors", "desc": "Pungs of Red, Green and White dragons.", "groups": [["R", "R", "R"], ["G", "G", "G"], ["Wh", "Wh", "Wh"], ["B1", "B2", "B3"], ["E", "E"]], "note": "", "origin": "On your board"}, {"name": "Little Three Dragons", "points": 64, "category": "Special & honors", "desc": "Two dragon pungs and a pair of the third dragon.", "groups": [["R", "R", "R"], ["G", "G", "G"], ["B1", "B2", "B3"], ["D4", "D5", "D6"], ["Wh", "Wh"]], "note": "", "origin": "On your board"}, {"name": "Thirteen Orphans", "points": 88, "category": "Special & honors", "desc": "All six suited terminals + all seven honors + a duplicate.", "groups": [["B1", "B9", "D1", "D9", "C1", "C9"], ["E", "S", "W", "N", "R", "G", "Wh"], ["E"]], "note": "One of each of 13 specific tile types, then any one of those repeated. This special shape does not use four sets.", "origin": "On your board"}, {"name": "Lesser Honors and Knitted Tiles", "points": 12, "category": "Knitted", "desc": "14 distinct tiles drawn from honors and a knitted suit pool.", "groups": [["B1", "B4", "B7"], ["D2", "D5", "D8"], ["C3", "C6", "C9"], ["E", "S", "W", "N", "R"]], "note": "Assign 147, 258 and 369 to three different suits (any assignment). With 14 distinct tiles, use 5 or 6 honors; all 7 qualifies for Greater. No pair. This example also has Knitted Straight.", "origin": "On your board"}, {"name": "Greater Honors and Knitted Tiles", "points": 24, "category": "Knitted", "desc": "All seven honors + seven distinct knitted suit tiles.", "groups": [["B1", "B4", "B7"], ["D2", "D5", "D8"], ["C3"], ["E", "S", "W", "N", "R", "G", "Wh"]], "note": "No pair. Your board’s “winds + dragons, no pairs” line points at this family.", "origin": "On your board"}, {"name": "Knitted Straight", "points": 12, "category": "Knitted", "desc": "147, 258 and 369 across three different suits.", "groups": [["B1", "B4", "B7"], ["D2", "D5", "D8"], ["C3", "C6", "C9"], ["E", "E", "E"], ["R", "R"]], "note": "These nine tiles are a special structure, not three chows. Complete it with a normal set and pair; it can also occur within Lesser Honors and Knitted Tiles.", "origin": "On your board"}, {"name": "Seven Pairs", "points": 24, "category": "Special & honors", "desc": "Seven pairs; keep the hand unmelded.", "groups": [["B1", "B1"], ["B4", "B4"], ["D2", "D2"], ["D5", "D5"], ["C3", "C3"], ["E", "E"], ["R", "R"]], "note": "The pairs need not all be different: four identical tiles can be two pairs, as long as you never declared the kong.", "origin": "Extra"}, {"name": "All Pungs", "points": 6, "category": "Small points", "desc": "Four pungs or kongs and a pair.", "groups": [["B2", "B2", "B2"], ["D5", "D5", "D5"], ["C7", "C7", "C7"], ["W", "W", "W"], ["D8", "D8"]], "note": "Kongs count as pungs. Keep all four concealed and it becomes Four Concealed Pungs (64) instead.", "origin": "Everyday fan", "play": {"melded": [0, 1]}, "how": "Two pungs claimed"}, {"name": "Mixed Shifted Chows", "points": 6, "category": "Small points", "desc": "Three chows, one in each suit, each starting one rank higher.", "groups": [["B2", "B3", "B4"], ["D3", "D4", "D5"], ["C4", "C5", "C6"], ["N", "N", "N"], ["B9", "B9"]], "note": "A very common route to 8: add All Chows, a concealed hand or a wait point. The three chows must use three different suits.", "origin": "Everyday fan", "core": [0, 1, 2]}, {"name": "Two Dragon Pungs", "points": 6, "category": "Small points", "desc": "Two pungs or kongs of dragons.", "groups": [["R", "R", "R"], ["G", "G", "G"], ["B2", "B3", "B4"], ["D6", "D7", "D8"], ["C5", "C5"]], "note": "Scored instead of two separate Dragon Pungs. With a pair of the third dragon it becomes Little Three Dragons (64).", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Melded Hand", "points": 6, "category": "Small points", "desc": "All four sets claimed from discards, winning on a discard for the pair.", "groups": [["B2", "B3", "B4"], ["D6", "D6", "D6"], ["C3", "C4", "C5"], ["W", "W", "W"], ["D9", "D9"]], "note": "You are left holding one tile and win when someone discards its twin. The Single Wait point is already included.", "origin": "Everyday fan", "play": {"melded": [0, 1, 2, 3]}, "how": "Four sets claimed · won on a discard"}, {"name": "Outside Hand", "points": 4, "category": "Small points", "desc": "Every set and the pair includes a 1, a 9 or an honor.", "groups": [["B1", "B2", "B3"], ["D7", "D8", "D9"], ["C1", "C1", "C1"], ["N", "N", "N"], ["B9", "B9"]], "note": "Chows must be 123 or 789. One set of middle tiles spoils it.", "origin": "Everyday fan"}, {"name": "Fully Concealed Hand", "points": 4, "category": "Small points", "desc": "Nothing claimed, and the winning tile is self-drawn.", "groups": [["B2", "B3", "B4"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["B6", "B7", "B8"], ["D2", "D2"]], "note": "Already includes the Self-Drawn point; do not add it again. Concealed kongs keep the hand concealed.", "origin": "Everyday fan", "core": [], "play": {"selfDrawn": true}, "how": "Nothing claimed · self-drawn"}, {"name": "Two Melded Kongs", "points": 4, "category": "Small points", "desc": "Two kongs made with a claimed tile.", "groups": [["B3", "B3", "B3", "B3"], ["D7", "D7", "D7", "D7"], ["C2", "C3", "C4"], ["B6", "B7", "B8"], ["S", "S"]], "note": "Each kong adds a physical tile, so this hand has 16. One melded plus one concealed kong scores 6; two concealed kongs score 8.", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Last Tile", "points": 4, "category": "Small points", "desc": "Winning on the fourth copy of a tile when the other three are visible.", "groups": [["B2", "B3", "B4"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["N", "N", "N"], ["D2", "D2"]], "note": "The other three copies must be in discards or exposed sets for everyone to see. It is about the tile, not the shape of the hand.", "origin": "Everyday fan", "core": [4], "play": {"lastOfKind": true}, "how": "Winning tile is the last 2 dots"}, {"name": "Dragon Pung", "points": 2, "category": "Small points", "desc": "A pung or kong of red, green or white dragons.", "groups": [["G", "G", "G"], ["B2", "B3", "B4"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["D9", "D9"]], "note": "Any player can score it, whatever the seat or round. A dragon pair scores nothing.", "origin": "Everyday fan", "core": [0]}, {"name": "Prevalent Wind", "points": 2, "category": "Small points", "desc": "A pung or kong of the round wind.", "groups": [["E", "E", "E"], ["B2", "B3", "B4"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["D9", "D9"]], "note": "Scored instead of Pung of Terminals or Honors. A pair of the round wind scores nothing.", "origin": "Everyday fan", "core": [0], "play": {"seat": "S", "round": "E"}, "how": "East round · you sit South"}, {"name": "Seat Wind", "points": 2, "category": "Small points", "desc": "A pung or kong of your own seat wind.", "groups": [["S", "S", "S"], ["B2", "B3", "B4"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["D9", "D9"]], "note": "If your seat wind is also the round wind, one pung scores both: 2 + 2.", "origin": "Everyday fan", "core": [0], "play": {"seat": "S", "round": "E"}, "how": "East round · you sit South"}, {"name": "Concealed Hand", "points": 2, "category": "Small points", "desc": "Nothing claimed, winning on a discard.", "groups": [["B2", "B3", "B4"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["N", "N", "N"], ["D2", "D2"]], "note": "Win by self-draw instead and it becomes Fully Concealed Hand (4). One claimed chow or pung loses it.", "origin": "Everyday fan", "core": [], "how": "Nothing claimed · won on a discard"}, {"name": "All Chows", "points": 2, "category": "Small points", "desc": "Four chows and a suited pair.", "groups": [["B1", "B2", "B3"], ["D3", "D4", "D5"], ["C5", "C6", "C7"], ["B6", "B7", "B8"], ["D8", "D8"]], "note": "An honor pair spoils it. No Honors is already implied, so do not add that point.", "origin": "Everyday fan"}, {"name": "Tile Hog", "points": 2, "category": "Small points", "desc": "All four copies of one tile, used without declaring a kong.", "groups": [["B3", "B3", "B3"], ["B3", "B4", "B5"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["N", "N"]], "note": "Here the fourth bamboo 3 sits in a chow. Scores once for each tile you hold all four of.", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Double Pung", "points": 2, "category": "Small points", "desc": "Two pungs of the same rank in different suits.", "groups": [["B6", "B6", "B6"], ["D6", "D6", "D6"], ["B1", "B2", "B3"], ["C4", "C5", "C6"], ["N", "N"]], "note": "A third pung of that rank in the last suit makes Triple Pung (16) instead.", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Two Concealed Pungs", "points": 2, "category": "Small points", "desc": "Two pungs made without claiming a discard.", "groups": [["B4", "B4", "B4"], ["D8", "D8", "D8"], ["B1", "B2", "B3"], ["C5", "C6", "C7"], ["W", "W"]], "note": "A pung finished by someone else’s discard does not count as concealed, even when that discard wins the hand.", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Concealed Kong", "points": 2, "category": "Small points", "desc": "Four identical tiles you drew yourself, declared as a kong.", "groups": [["C4", "C4", "C4", "C4"], ["B2", "B3", "B4"], ["D5", "D6", "D7"], ["C7", "C8", "C9"], ["N", "N"]], "note": "It also counts as a concealed pung, and the hand stays concealed.", "origin": "Everyday fan", "core": [0], "play": {"concealedKong": [0]}}, {"name": "All Simples", "points": 2, "category": "Small points", "desc": "No 1s, no 9s and no honors.", "groups": [["B2", "B3", "B4"], ["D5", "D6", "D7"], ["C3", "C3", "C3"], ["C6", "C7", "C8"], ["D2", "D2"]], "note": "No Honors is already implied, so do not add that point.", "origin": "Everyday fan"}, {"name": "Pure Double Chow", "points": 1, "category": "Small points", "desc": "The same chow twice in one suit.", "groups": [["B2", "B3", "B4"], ["B2", "B3", "B4"], ["D5", "D6", "D7"], ["C1", "C1", "C1"], ["N", "N"]], "note": "Two-chow points are limited: once chows are joined, each further fan must bring in a chow you have not used yet.", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Mixed Double Chow", "points": 1, "category": "Small points", "desc": "The same chow in two different suits.", "groups": [["B4", "B5", "B6"], ["D4", "D5", "D6"], ["C1", "C2", "C3"], ["C9", "C9", "C9"], ["N", "N"]], "note": "Add the third suit and it becomes Mixed Triple Chow (8).", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Short Straight", "points": 1, "category": "Small points", "desc": "Two chows in one suit that run on: six tiles in a row.", "groups": [["C2", "C3", "C4"], ["C5", "C6", "C7"], ["B1", "B2", "B3"], ["D9", "D9", "D9"], ["N", "N"]], "note": "Add the third chow in the same suit, 123 456 789, and it becomes Pure Straight (16).", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Two Terminal Chows", "points": 1, "category": "Small points", "desc": "123 and 789 in the same suit.", "groups": [["D1", "D2", "D3"], ["D7", "D8", "D9"], ["B4", "B5", "B6"], ["C2", "C2", "C2"], ["N", "N"]], "note": "Fill in 456 of the same suit and it becomes Pure Straight (16).", "origin": "Everyday fan", "core": [0, 1]}, {"name": "Pung of Terminals or Honors", "points": 1, "category": "Small points", "desc": "A pung of 1s, 9s or a wind that is not your seat or round wind.", "groups": [["C1", "C1", "C1"], ["B2", "B3", "B4"], ["D4", "D5", "D6"], ["C6", "C7", "C8"], ["D9", "D9"]], "note": "Dragon pungs and seat or round wind pungs score 2 instead, not both.", "origin": "Everyday fan", "core": [0]}, {"name": "Melded Kong", "points": 1, "category": "Small points", "desc": "A kong made by claiming a discard, or by adding to a claimed pung.", "groups": [["D5", "D5", "D5", "D5"], ["B2", "B3", "B4"], ["D6", "D7", "D8"], ["C7", "C8", "C9"], ["N", "N"]], "note": "Draw a replacement tile after declaring it. This hand has 15 tiles.", "origin": "Everyday fan", "core": [0]}, {"name": "One Voided Suit", "points": 1, "category": "Small points", "desc": "Exactly two of the three suits appear.", "groups": [["B2", "B3", "B4"], ["B6", "B7", "B8"], ["D4", "D5", "D6"], ["D1", "D1", "D1"], ["N", "N"]], "note": "Honors do not matter either way. With one suit plus honors it would be Half Flush (6).", "origin": "Everyday fan"}, {"name": "No Honors", "points": 1, "category": "Small points", "desc": "No winds and no dragons.", "groups": [["B1", "B2", "B3"], ["D4", "D5", "D6"], ["C7", "C7", "C7"], ["C2", "C3", "C4"], ["D9", "D9"]], "note": "Not added when a bigger fan already guarantees it: All Chows, All Simples, Full Flush and the number-range patterns.", "origin": "Everyday fan"}, {"name": "Edge Wait", "points": 1, "category": "Small points", "desc": "Waiting only for the 3 of 1-2-3, or the 7 of 7-8-9.", "groups": [["B1", "B2", "B3"], ["D4", "D5", "D6"], ["C6", "C6", "C6"], ["N", "N", "N"], ["D8", "D8"]], "note": "Only when that is the single tile that can finish the hand. Any second possible winning tile cancels it.", "origin": "Everyday fan", "core": [0], "play": {"win": "B3"}, "how": "Winning tile: 3 bamboo"}, {"name": "Closed Wait", "points": 1, "category": "Small points", "desc": "Waiting only for the middle tile of a chow.", "groups": [["D4", "D5", "D6"], ["B7", "B8", "B9"], ["C2", "C2", "C2"], ["W", "W", "W"], ["B4", "B4"]], "note": "Only when that is the single tile that can finish the hand.", "origin": "Everyday fan", "core": [0], "play": {"win": "D5"}, "how": "Winning tile: 5 dots"}, {"name": "Single Wait", "points": 1, "category": "Small points", "desc": "Waiting only for the tile that completes the pair.", "groups": [["B2", "B3", "B4"], ["D6", "D7", "D8"], ["C1", "C1", "C1"], ["S", "S", "S"], ["C5", "C5"]], "note": "Only when no other tile could finish the hand. Holding 1-2-3-4 and waiting on the 1 or the 4 is two waits, so it scores nothing.", "origin": "Everyday fan", "core": [4], "how": "Winning tile: 5 characters"}, {"name": "Self-Drawn", "points": 1, "category": "Small points", "desc": "Drawing the winning tile yourself.", "groups": [["B2", "B3", "B4"], ["D2", "D2", "D2"], ["D5", "D6", "D7"], ["C7", "C8", "C9"], ["N", "N"]], "note": "All three opponents pay. With nothing claimed it is Fully Concealed Hand (4) instead.", "origin": "Everyday fan", "core": [], "play": {"melded": [0, 1], "selfDrawn": true, "win": "D7"}, "how": "Two sets claimed · self-drawn"}, {"name": "Flower Tiles", "points": 1, "category": "Small points", "desc": "One point for each flower or season you have set aside.", "groups": [["B3", "B4", "B5"], ["D3", "D4", "D5"], ["C3", "C4", "C5"], ["E", "E", "E"], ["R", "R"]], "note": "Flowers are added after the hand has reached 8 points on its own. They never help you reach the minimum.", "origin": "Everyday fan", "core": [], "play": {"flowers": 2}, "how": "Two flowers set aside"}, {"name": "Pure Shifted Chows", "points": 16, "category": "Straights", "desc": "Three chows in one suit, each shifted up by one, or each by two.", "groups": [["B1", "B2", "B3"], ["B3", "B4", "B5"], ["B5", "B6", "B7"], ["D2", "D2", "D2"], ["E", "E"]], "note": "The step must be the same each time. A step of three is Pure Straight.", "origin": "Extra", "core": [0, 1, 2]}, {"name": "Four Pure Shifted Chows", "points": 32, "category": "Straights", "desc": "Four chows in one suit, each shifted up by one, or each by two.", "groups": [["B1", "B2", "B3"], ["B2", "B3", "B4"], ["B3", "B4", "B5"], ["B4", "B5", "B6"], ["D9", "D9"]], "note": "Same step every time, all in one suit.", "origin": "Rare", "core": [0, 1, 2, 3]}, {"name": "Three-Suited Terminal Chows", "points": 16, "category": "Straights", "desc": "123 and 789 in two suits, with a pair of 5s in the third.", "groups": [["B1", "B2", "B3"], ["B7", "B8", "B9"], ["D1", "D2", "D3"], ["D7", "D8", "D9"], ["C5", "C5"]], "note": "The pair must be 5s, and must be in the third suit.", "origin": "Extra"}, {"name": "Pure Terminal Chows", "points": 64, "category": "Straights", "desc": "123 123 789 789 and a pair of 5s, all in one suit.", "groups": [["D1", "D2", "D3"], ["D1", "D2", "D3"], ["D7", "D8", "D9"], ["D7", "D8", "D9"], ["D5", "D5"]], "note": "Full Flush is already included.", "origin": "Rare"}, {"name": "Pure Triple Chow", "points": 24, "category": "Matching sets", "desc": "The same chow three times in one suit.", "groups": [["C4", "C5", "C6"], ["C4", "C5", "C6"], ["C4", "C5", "C6"], ["D1", "D2", "D3"], ["B9", "B9"]], "note": "Kept concealed, the same nine tiles can be read as three pungs instead: Pure Shifted Pungs, also 24.", "origin": "Rare", "core": [0, 1, 2], "play": {"melded": [0, 1]}, "how": "Two chows claimed"}, {"name": "Quadruple Chow", "points": 48, "category": "Matching sets", "desc": "The same chow four times in one suit.", "groups": [["B2", "B3", "B4"], ["B2", "B3", "B4"], ["B2", "B3", "B4"], ["B2", "B3", "B4"], ["D9", "D9"]], "note": "It uses all four copies of three tiles, but Tile Hog is not added.", "origin": "Rare", "core": [0, 1, 2, 3]}, {"name": "Pure Shifted Pungs", "points": 24, "category": "Matching sets", "desc": "Three pungs in one suit, each one rank above the last.", "groups": [["C4", "C4", "C4"], ["C5", "C5", "C5"], ["C6", "C6", "C6"], ["D1", "D2", "D3"], ["B9", "B9"]], "note": "Kongs count too.", "origin": "Rare", "core": [0, 1, 2], "play": {"melded": [0, 1]}, "how": "Two pungs claimed"}, {"name": "Four Pure Shifted Pungs", "points": 48, "category": "Matching sets", "desc": "Four pungs in one suit, each one rank above the last.", "groups": [["B2", "B2", "B2"], ["B3", "B3", "B3"], ["B4", "B4", "B4"], ["B5", "B5", "B5"], ["D9", "D9"]], "note": "All Pungs is already included.", "origin": "Rare", "core": [0, 1, 2, 3], "play": {"melded": [0, 1]}, "how": "Two pungs claimed"}, {"name": "Mixed Shifted Pungs", "points": 8, "category": "Matching sets", "desc": "Three pungs, one per suit, each one rank above the last.", "groups": [["B3", "B3", "B3"], ["D4", "D4", "D4"], ["C5", "C5", "C5"], ["C7", "C8", "C9"], ["E", "E"]], "note": "All three suits are needed.", "origin": "Extra", "core": [0, 1, 2]}, {"name": "All Even Pungs", "points": 24, "category": "Matching sets", "desc": "Pungs and a pair of 2s, 4s, 6s and 8s only.", "groups": [["B2", "B2", "B2"], ["B4", "B4", "B4"], ["D6", "D6", "D6"], ["C8", "C8", "C8"], ["D2", "D2"]], "note": "All Pungs and All Simples are already included.", "origin": "Rare", "play": {"melded": [0, 1]}, "how": "Two pungs claimed"}, {"name": "Two Concealed Kongs", "points": 8, "category": "Matching sets", "desc": "Two kongs made from tiles you drew yourself.", "groups": [["D2", "D2", "D2", "D2"], ["C8", "C8", "C8", "C8"], ["B2", "B3", "B4"], ["D5", "D6", "D7"], ["N", "N"]], "note": "Scored instead of two Concealed Kongs and Two Concealed Pungs.", "origin": "Extra", "core": [0, 1], "play": {"concealedKong": [0, 1]}}, {"name": "Three Kongs", "points": 32, "category": "Matching sets", "desc": "Three kongs, melded or concealed.", "groups": [["B1", "B1", "B1", "B1"], ["D2", "D2", "D2", "D2"], ["C3", "C3", "C3", "C3"], ["B4", "B5", "B6"], ["R", "R"]], "note": "17 tiles. The smaller kong fan are not added.", "origin": "Rare", "core": [0, 1, 2]}, {"name": "Four Kongs", "points": 88, "category": "Matching sets", "desc": "Four kongs, melded or concealed.", "groups": [["B1", "B1", "B1", "B1"], ["D2", "D2", "D2", "D2"], ["C3", "C3", "C3", "C3"], ["E", "E", "E", "E"], ["R", "R"]], "note": "18 tiles, and you win on the pair.", "origin": "Rare", "core": [0, 1, 2, 3]}, {"name": "All Green", "points": 88, "category": "Suits", "desc": "Only bamboo 2, 3, 4, 6, 8 and green dragons.", "groups": [["B2", "B3", "B4"], ["B2", "B3", "B4"], ["B6", "B6", "B6"], ["B8", "B8", "B8"], ["G", "G"]], "note": "On most sets these are the tiles printed with no red.", "origin": "Rare"}, {"name": "Reversible Tiles", "points": 8, "category": "Suits", "desc": "Only tiles that look the same upside down.", "groups": [["D1", "D2", "D3"], ["D8", "D8", "D8"], ["B4", "B5", "B6"], ["Wh", "Wh", "Wh"], ["B9", "B9"]], "note": "Dots 1 2 3 4 5 8 9, bamboo 2 4 5 6 8 9 and the white dragon.", "origin": "Extra"}, {"name": "All Terminals", "points": 64, "category": "Special & honors", "desc": "Only 1s and 9s.", "groups": [["B1", "B1", "B1"], ["B9", "B9", "B9"], ["D1", "D1", "D1"], ["D9", "D9", "D9"], ["C1", "C1"]], "note": "Add honors and it becomes All Terminals and Honors (32).", "origin": "Rare", "play": {"melded": [0, 1]}, "how": "Two pungs claimed"}, {"name": "All Honors", "points": 64, "category": "Special & honors", "desc": "Only winds and dragons.", "groups": [["E", "E", "E"], ["S", "S", "S"], ["W", "W", "W"], ["R", "R", "R"], ["G", "G"]], "note": "No numbered tiles at all.", "origin": "Rare", "play": {"melded": [0, 1]}, "how": "Two pungs claimed"}, {"name": "Big Three Winds", "points": 12, "category": "Special & honors", "desc": "Pungs or kongs of three winds.", "groups": [["E", "E", "E"], ["S", "S", "S"], ["N", "N", "N"], ["B2", "B3", "B4"], ["D5", "D5"]], "note": "A pair of the fourth wind makes it Little Four Winds (64).", "origin": "Extra", "core": [0, 1, 2]}, {"name": "Nine Gates", "points": 88, "category": "Special & honors", "desc": "Concealed 1112345678999 in one suit, waiting on all nine ranks.", "groups": [["B1", "B1", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B9", "B9"], ["B1"]], "note": "You must hold exactly these 13 before the winning tile. Any tile of the suit then wins.", "origin": "Rare", "core": [0]}, {"name": "Seven Shifted Pairs", "points": 88, "category": "Special & honors", "desc": "Seven consecutive pairs in one suit.", "groups": [["C2", "C2"], ["C3", "C3"], ["C4", "C4"], ["C5", "C5"], ["C6", "C6"], ["C7", "C7"], ["C8", "C8"]], "note": "Runs 1 to 7, 2 to 8 or 3 to 9.", "origin": "Rare"}, {"name": "Chicken Hand", "points": 8, "category": "Winning bonuses", "desc": "A winning hand that scores no other fan.", "groups": [["B2", "B3", "B4"], ["D2", "D2", "D2"], ["D5", "D6", "D7"], ["C7", "C8", "C9"], ["N", "N"]], "note": "Rarer than it sounds: almost every hand scores something.", "origin": "Extra", "core": [], "play": {"melded": [0, 1], "win": "D7"}, "how": "Two sets claimed · won on a discard"}, {"name": "Last Tile Draw", "points": 8, "category": "Winning bonuses", "desc": "Self-drawn win on the last tile of the wall.", "groups": [["B2", "B3", "B4"], ["D2", "D2", "D2"], ["D5", "D6", "D7"], ["C7", "C8", "C9"], ["N", "N"]], "note": "Self-Drawn is already included.", "origin": "Extra", "core": [], "play": {"melded": [1], "win": "D7", "selfDrawn": true, "lastTile": true}, "how": "Drew the last tile of the wall"}, {"name": "Last Tile Claim", "points": 8, "category": "Winning bonuses", "desc": "Win on the last discard of the game.", "groups": [["B2", "B3", "B4"], ["D2", "D2", "D2"], ["D5", "D6", "D7"], ["C7", "C8", "C9"], ["N", "N"]], "note": "The discard made after the last tile of the wall is drawn.", "origin": "Extra", "core": [], "play": {"melded": [1], "win": "D7", "lastTile": true}, "how": "Won on the last discard"}, {"name": "Out with Replacement Tile", "points": 8, "category": "Winning bonuses", "desc": "Win on the replacement tile drawn after a kong.", "groups": [["D2", "D2", "D2", "D2"], ["B2", "B3", "B4"], ["D5", "D6", "D7"], ["C7", "C8", "C9"], ["N", "N"]], "note": "Self-Drawn is already included. A flower replacement does not count.", "origin": "Extra", "core": [0], "play": {"win": "D7", "selfDrawn": true, "kongReplacement": true}, "how": "Won on the kong replacement"}, {"name": "Robbing the Kong", "points": 8, "category": "Winning bonuses", "desc": "Win on the tile another player adds to a melded pung.", "groups": [["B2", "B3", "B4"], ["D2", "D2", "D2"], ["D5", "D6", "D7"], ["C7", "C8", "C9"], ["N", "N"]], "note": "Only a kong made by adding to a claimed pung can be robbed.", "origin": "Extra", "core": [], "play": {"melded": [1], "win": "D7", "robbingKong": true}, "how": "Won on a tile added to someone’s pung"}];
+const names={B:'Bamboo',D:'Dots',C:'Characters',E:'East wind',S:'South wind',W:'West wind',N:'North wind',R:'Red dragon',G:'Green dragon',Wh:'White dragon'};
+const han={E:'東',S:'南',W:'西',N:'北',R:'中',G:'發',Wh:'□'};
+const ranks=['','一','二','三','四','五','六','七','八','九'];
+const $=id=>document.getElementById(id);
+const storageKey='mahjong-study-v2';
+let stored={saved:[],labels:true,answered:0,correct:0,rounds:0,missed:{}},storageAvailable=true;
+try{let d=JSON.parse(localStorage.getItem(storageKey)||'null');if(d&&typeof d==='object'){stored.saved=Array.isArray(d.saved)?d.saved.filter(n=>patterns.some(p=>p.name===n)):[];stored.labels=typeof d.labels==='boolean'?d.labels:true;if(d.missed&&typeof d.missed==='object')for(let k in d.missed)if(Number.isSafeInteger(d.missed[k])&&d.missed[k]>0)stored.missed[k]=Math.min(d.missed[k],4);for(let k of ['answered','correct','rounds'])stored[k]=Number.isSafeInteger(d[k])&&d[k]>=0?d[k]:0;stored.correct=Math.min(stored.correct,stored.answered);}}catch{storageAvailable=false;}
+function saveStudy(){try{localStorage.setItem(storageKey,JSON.stringify(stored));storageAvailable=true;}catch{storageAvailable=false;}updateStudy();}
+function updateStudy(){$('studyProgress').textContent=`${stored.saved.length} pattern${stored.saved.length===1?'':'s'} saved · ${stored.answered} questions practiced${stored.answered?' · '+Math.round(stored.correct/stored.answered*100)+'% correct':''}${Object.keys(stored.missed).length?' · '+Object.keys(stored.missed).length+' to review':''}`;$('storageStatus').textContent=storageAvailable?'Saved in this browser':'Storage unavailable · this visit only';}
+function applyLabels(){document.body.classList.toggle('tile-labels',stored.labels);$('toggleTileLabels').setAttribute('aria-pressed',stored.labels);$('toggleTileLabels').textContent='Tile labels: '+(stored.labels?'on':'off');}
+$('toggleTileLabels').onclick=()=>{stored.labels=!stored.labels;applyLabels();saveStudy();};applyLabels();updateStudy();
+
+function tileName(t){return /^[BDC][1-9]$/.test(t)?`${names[t[0]]} ${t[1]}`:names[t]||t;}
+function tile(t){let art='',rank=Number(t.slice(1)),suit=t[0],color=suit==='D'?'#235c92':'#15594a';if(suit==='D'||suit==='B'){let coords=rank===1?[[20,24]]:rank===2?[[20,13],[20,35]]:rank===3?[[10,11],[20,24],[30,37]]:rank===4?[[10,12],[30,12],[10,36],[30,36]]:rank===5?[[10,10],[30,10],[20,24],[10,38],[30,38]]:rank===6?[[10,10],[30,10],[10,24],[30,24],[10,38],[30,38]]:rank===7?[[20,6],[9,18],[31,18],[9,30],[31,30],[9,42],[31,42]]:rank===8?[[10,7],[30,7],[10,19],[30,19],[10,31],[30,31],[10,43],[30,43]]:[[9,9],[20,9],[31,9],[9,24],[20,24],[31,24],[9,39],[20,39],[31,39]];if(suit==='D')art=coords.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${rank===1?11:4}" fill="none" stroke="${color}" stroke-width="2.4"/><circle cx="${x}" cy="${y}" r="1.4" fill="${color}"/>`).join('');else if(rank===1)art='<path d="M10 35 Q8 18 21 13 Q32 11 31 20 L37 20 L29 24 Q22 38 10 35 M13 35 L10 42 M19 33 L19 42 M14 29 Q24 30 25 20" fill="none" stroke="#15594a" stroke-width="3"/><circle cx="27" cy="17" r="1.5" fill="#b83e35"/>';else art=coords.map(([x,y])=>`<path d="M${x} ${y-4}v8 m-3 -6h6 m-6 4h6" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>`).join('');}else if(suit==='C')art=`<text x="20" y="22" text-anchor="middle" fill="#183b35" font-size="21">${ranks[rank]}</text><text x="20" y="45" text-anchor="middle" fill="#b83e35" font-size="22">萬</text>`;else art=t==='Wh'?'<rect x="9" y="9" width="22" height="30" rx="2" fill="none" stroke="#235c92" stroke-width="3"/>':`<text x="20" y="34" text-anchor="middle" fill="${t==='R'?'#b83e35':t==='G'?'#15594a':'#183b35'}" font-size="30">${han[t]}</text>`;return `<span class="tile" role="img" aria-label="${tileName(t)}" title="${tileName(t)}"><svg viewBox="0 0 40 50" aria-hidden="true">${art}</svg><span class="tile-code" aria-hidden="true">${/^[BDC][1-9]$/.test(t)?t[1]+t[0]:t==='Wh'?'Wh':t}</span></span>`;}
+function hand(groups){return groups.map(g=>`<div class="group">${g.map(tile).join('')}</div>`).join('');}
+function go(id,focus=false){if(!$(id)||!$(id).classList.contains('panel'))id='basics';document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!==id);document.querySelectorAll('[role=tab]').forEach(b=>{let on=b.dataset.go===id;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;});if(focus){try{history.replaceState(null,'','#'+id);}catch{}let target=$('tab-'+id);target.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});window.scrollTo(0,0);let heading=$(id).querySelector('h2');heading.tabIndex=-1;heading.focus({preventScroll:true});}}
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go,true)));
+document.querySelector('.tabs').addEventListener('keydown',e=>{let bs=[...document.querySelectorAll('[role=tab]')],i=bs.indexOf(document.activeElement);if(i<0)return;let j=e.key==='ArrowRight'?(i+1)%bs.length:e.key==='ArrowLeft'?(i-1+bs.length)%bs.length:e.key==='Home'?0:e.key==='End'?bs.length-1:null;if(j!==null){e.preventDefault();go(bs[j].dataset.go);bs[j].focus();}});
+window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
+const families=['Bamboo','Dots','Characters','Honors'];let activeFamily='Bamboo';
+function familyTiles(f){return f==='Honors'?['E','S','W','N','R','G','Wh']:Array.from({length:9},(_,i)=>({Bamboo:'B',Dots:'D',Characters:'C'}[f]+(i+1)));}
+function explore(f){activeFamily=f;$('families').innerHTML=families.map(x=>`<button class="chip" aria-pressed="${x===f}" data-family="${x}">${x}</button>`).join('');$('families').querySelectorAll('button').forEach(b=>b.onclick=()=>explore(b.dataset.family));$('tileExplorer').innerHTML=familyTiles(f).map(t=>`<button class="tilepick" data-tile="${t}" aria-label="Learn about ${tileName(t)}" aria-pressed="false">${tile(t)}<span class="label">${/^[BDC]/.test(t)?t[1]:t==='Wh'?'White':t}</span></button>`).join('');$('tileExplorer').querySelectorAll('button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tileExplorer button').forEach(x=>x.setAttribute('aria-pressed',x===b));let t=b.dataset.tile;let extra=/^[BDC][1-9]$/.test(t)?([1,9].includes(+t[1])?' A terminal tile.':' A simple tile.'):' An honor tile: it can form a pair, pung or kong, but never a chow.';$('tileDescription').textContent=tileName(t)+'.'+extra;});$('tileDescription').textContent=f==='Honors'?'Four winds and three dragons. Tap one to see its name.':`${f} tiles run from 1 to 9. Tap a tile.`;}
+explore('Bamboo');
+const sets=[['Chow','B3 B4 B5','Three consecutive ranks in one suit. 8–9–1 is not a chow.'],['Pung','D7 D7 D7','Three identical tiles. Same rank in different suits is not a pung.'],['Kong','E E E E','Four identical tiles. Declare it and draw a replacement.'],['Pair','R R','Two identical tiles. The ordinary hand needs one pair.']];
+$('setCards').innerHTML=sets.map(([n,t,d],i)=>`<div class="card"><div class="num">${String(i+1).padStart(2,'0')}</div><h3>${n}</h3><div class="tiles">${t.split(' ').map(tile).join('')}</div><p class="small" style="margin-top:13px">${d}</p></div>`).join('');$('basicHand').innerHTML=hand([['B1','B2','B3'],['D4','D5','D6'],['C7','C8','C9'],['E','E','E'],['R','R']]);
+let built=[];
+function showBuilder(){let s=$('buildSuit').value,ts=s==='H'?['E','S','W','N','R','G','Wh']:Array.from({length:9},(_,i)=>s+(i+1));$('builderPalette').innerHTML=ts.map(t=>`<button class="tilepick" data-tile="${t}" aria-label="Add ${tileName(t)}">${tile(t)}</button>`).join('');$('builderPalette').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(built.length>=4){$('builderResult').textContent='Four tiles is the limit here. Clear them to try another set.';return;}built.push(b.dataset.tile);renderBuilt();});}
+function renderBuilt(){ $('builderHand').innerHTML=built.map((t,i)=>`<button class="builder-tile" data-remove="${i}" aria-label="Remove ${tileName(t)}">${tile(t)}</button>`).join('');$('builderHand').querySelectorAll('button').forEach(b=>b.onclick=()=>{built.splice(+b.dataset.remove,1);renderBuilt();});$('undoBuilder').disabled=built.length===0;let n=built.length,same=n&&built.every(t=>t===built[0]),r=built.map(t=>+t.slice(1)).sort((a,b)=>a-b);let chow=n===3&&built.every(t=>/^[BDC][1-9]$/.test(t)&&t[0]===built[0][0])&&r[1]===r[0]+1&&r[2]===r[1]+1;$('builderResult').textContent=n===0?'Choose your tiles.':same&&n===2?'A pair! Two identical tiles.':same&&n===3?'A pung! Three identical tiles.':same&&n===4?'A kong! Four identical tiles; declaring it requires a replacement draw.':chow?'A chow! Three consecutive numbers in one suit.':n<2?'Add at least one more tile.':'This is not a complete pair, chow, pung or kong. A chow needs consecutive ranks in the same suit; honors cannot make one.';}
+$('undoBuilder').onclick=()=>{built.pop();renderBuilt();};$('undoBuilder').disabled=true;$('buildSuit').onchange=showBuilder;$('clearBuilder').onclick=()=>{built=[];renderBuilt();};showBuilder();
+let filter='All',libraryView='starter';
+const starterNames=['Mixed Straight','Pure Straight','Mixed Triple Chow','Triple Pung','Full Flush','Half Flush'];
+const cats=['All','Straights','Matching sets','Suits','Number ranges','Special & honors','Knitted','Winning bonuses','Small points'];
+function coreCount(p){return ['Mixed Straight','Pure Straight','Mixed Triple Chow','Triple Pung','Three Concealed Pungs','Big Three Dragons'].includes(p.name)?3:p.name==='Four Concealed Pungs'||p.name==='Big Four Winds'?4:p.name==='Knitted Straight'?3:p.groups.length;}
+function isCore(p,i){if(p.core)return p.core.includes(i);return p.name==='Little Four Winds'?[0,1,2,4].includes(i):p.name==='Little Three Dragons'?[0,1,4].includes(i):i<coreCount(p);}
+function groupCaption(p,g,i){let play=p.play||{},same=g.every(t=>t===g[0]),claimed=(play.melded||[]).includes(i)?'Claimed ':'';if(g.length===2)return 'Pair';if(g.length===4&&same)return (play.concealedKong||[]).includes(i)?'Concealed kong':'Melded kong';if(g.length===3&&same)return claimed?'Claimed pung':'Pung';if(g.length===3&&g.every(t=>/^[BDC][1-9]$/.test(t))&&Math.max(...g.map(t=>+t[1]))-Math.min(...g.map(t=>+t[1]))===2)return claimed?'Claimed chow':'Chow';return 'Special tiles';}
+function illustratedPattern(p){return p.groups.map((g,i)=>`<div class="group-frame ${isCore(p,i)?'core':''}"><div class="group">${g.map(tile).join('')}</div><span class="group-caption">${groupCaption(p,g,i)}</span></div>`).join('');}
+function showPatterns(){let visible=patterns.filter(p=>(libraryView==='all'||(libraryView==='starter'?starterNames.includes(p.name):stored.saved.includes(p.name)))&&(filter==='All'||p.category===filter));$('libraryViews').innerHTML=[['starter','Start here · 6'],['all','All patterns · '+patterns.length],['saved','Saved · '+stored.saved.length]].map(([v,t])=>`<button data-view="${v}" aria-pressed="${v===libraryView}">${t}</button>`).join('');$('libraryViews').querySelectorAll('button').forEach(b=>b.onclick=()=>{libraryView=b.dataset.view;filter='All';showPatterns();});$('patterns').classList.toggle('starter-view',libraryView==='starter');$('patternFilters').innerHTML=cats.map(c=>`<button class="chip" aria-pressed="${c===filter}" data-filter="${c}">${c}</button>`).join('');$('patternFilters').querySelectorAll('button').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;if(libraryView==='starter'&&filter!=='All')libraryView='all';showPatterns();});$('patternCount').textContent=`${visible.length} pattern${visible.length===1?'':'s'} shown`;$('patternCards').innerHTML=visible.length?visible.map(p=>{let i=patterns.indexOf(p),saved=stored.saved.includes(p.name);return `<article class="card pattern"><div class="pattern-top"><div><div class="num">${p.origin}${starterNames.includes(p.name)?' · Start here':''}</div><h3>${p.name}</h3></div><span class="points">${p.points} pts</span></div><p class="small">${p.desc}</p><div class="hand">${illustratedPattern(p)}</div><span class="small sub">${p.groups.flat().length} tiles · ${p.how||'Pattern value only'}</span>${p.note?`<details><summary>What to watch for</summary><p>${p.note}</p></details>`:''}<div class="card-actions"><button class="saved-btn" aria-pressed="${saved}" aria-label="${saved?'Unsave':'Save'} ${p.name}" data-save="${i}">${saved?'✓ Saved':'＋ Save for practice'}</button><button class="saved-btn" aria-label="Score the ${p.name} example" data-score="${i}">Score this hand →</button></div></article>`;}).join(''):`<div class="empty-state"><h3>${libraryView==='saved'?'Nothing saved yet.':'No patterns here.'}</h3><p class="small sub">${libraryView==='saved'?'Tap “Save for practice” on any pattern.':'Try a different category.'}</p><button class="btn alt" id="showAllPatterns">Browse all patterns</button></div>`;$('patternCards').querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{let n=patterns[+b.dataset.save].name;stored.saved=stored.saved.includes(n)?stored.saved.filter(x=>x!==n):[...stored.saved,n];saveStudy();showPatterns();});$('patternCards').querySelectorAll('[data-score]').forEach(b=>b.onclick=()=>scorePattern(patterns[+b.dataset.score]));if($('showAllPatterns'))$('showAllPatterns').onclick=()=>{libraryView='all';filter='All';showPatterns();};}
+showPatterns();
+$('comparePure').innerHTML=hand(patterns[1].groups.slice(0,3));$('compareMixed').innerHTML=hand(patterns[0].groups.slice(0,3));$('compareFull').innerHTML=hand(patterns.find(p=>p.name==='Full Flush').groups);$('compareHalf').innerHTML=hand(patterns.find(p=>p.name==='Half Flush').groups);
+$('scoreShape').innerHTML=hand([['B2','B3','B4'],['D5','D5','D5'],['C6','C7','C8'],['N','N','N'],['D9','D9']]);$('scoreHand').innerHTML=hand([['B1','B2','B3'],['D2','D3','D4'],['C6','C7','C8'],['R','R','R'],['E','E']]);
+function minScore(){let f=Number($('fanInput').value),fl=Number($('flowerInput').value),valid=$('fanInput').value!==''&&$('flowerInput').value!==''&&Number.isInteger(f)&&Number.isInteger(fl)&&f>=0&&f<=1000&&fl>=0&&fl<=8;$('qualifyingValue').textContent=valid?f:'—';$('minimumResult').textContent=!valid?'Enter whole numbers in range':f>=8?'Minimum met':'Below the minimum';$('settledValue').textContent=!valid?'Fan: 0–1000. Flowers: 0–8.':f>=8?`${f} + ${fl} flower${fl===1?'':'s'} = ${f+fl} points.`:'Flowers do not count toward 8.';}
+$('fanInput').oninput=minScore;$('flowerInput').oninput=minScore;minScore();
+const questions=[{"mode": "Basics", "q": "Which family cannot make a chow?", "a": ["Dots", "Winds", "Characters"], "c": 1, "e": "Winds are honors. Only numbered suits make consecutive sequences."}, {"mode": "Basics", "q": "What group is this?", "g": [["D3", "D4", "D5"]], "a": ["A pung", "A chow", "A pair"], "c": 1, "e": "3–4–5 in one suit forms a chow."}, {"mode": "Basics", "q": "What group is this?", "g": [["B7", "B7", "B7"]], "a": ["A pung", "A chow", "A kong"], "c": 0, "e": "A pung uses three copies of the exact same tile."}, {"mode": "Basics", "q": "How many regular physical tiles are in a complete ordinary hand with one kong?", "a": ["14", "15", "16"], "c": 1, "e": "The fourth tile of the kong adds one physical tile. Its replacement draw restores the structural count: 14 + 1 = 15, excluding flowers."}, {"mode": "Basics", "q": "Can these three tiles make a chow?", "g": [["B3", "D4", "C5"]], "a": ["Yes, the ranks are consecutive", "No, the suits differ", "Only if you self-draw"], "c": 1, "e": "A chow must use one suit. Consecutive ranks across suits are not a set."}, {"mode": "Patterns", "q": "Which 8-point pattern do the first three groups show?", "g": [["B1", "B2", "B3"], ["D4", "D5", "D6"], ["C7", "C8", "C9"]], "a": ["Pure Straight", "Mixed Straight", "Mixed Triple Chow"], "c": 1, "e": "123, 456 and 789 in three different suits form Mixed Straight. These nine tiles alone are not a complete hand."}, {"mode": "Patterns", "q": "Name the matching-sequence pattern.", "g": [["B3", "B4", "B5"], ["D3", "D4", "D5"], ["C3", "C4", "C5"]], "a": ["Mixed Triple Chow", "Triple Pung", "Pure Straight"], "c": 0, "e": "The same numerical chow appears in each of the three suits. Mixed Triple Chow is worth 8."}, {"mode": "Patterns", "q": "What is the official MCR value for a Full Flush?", "a": ["6", "16", "24"], "c": 2, "e": "Full Flush is 24: every tile in one numbered suit, with no honors. Your board’s 6 is not the MCR value."}, {"mode": "Patterns", "q": "A hand uses only one numbered suit and some honors. Which fan is it?", "a": ["Half Flush, 6", "Full Flush, 24", "Half Flush, 2"], "c": 0, "e": "Half Flush is 6 in MCR. The handwritten 2 is unconfirmed local scoring or a mistake."}, {"mode": "Patterns", "q": "What does All Fives require?", "a": ["Every tile must be a 5", "Every set and the pair must include a 5", "Only the pair must be 55"], "c": 1, "e": "Each chow/pung/kong includes a 5, and the pair is 55. It is worth 16."}, {"mode": "Patterns", "q": "A complete hand uses only ranks 1, 2, 3 and 4. Which range fan is guaranteed?", "a": ["Lower Tiles, 24", "Lower Four, 12", "Middle Tiles, 24"], "c": 1, "e": "Ranks 1–4 fit Lower Four (12). Lower Tiles (24) is the narrower 1–3 range."}, {"mode": "Patterns", "q": "Little Four Winds needs three wind pungs and…", "a": ["A pair of the fourth wind, plus the remaining set", "Any pair, with no other wind", "A fourth wind pung"], "c": 0, "e": "The fourth wind must be the pair. A fourth wind pung makes Big Four Winds instead."}, {"mode": "Patterns", "q": "What is still missing from this Thirteen Orphans core?", "g": [["B1", "B9", "D1", "D9", "C1", "C9"], ["E", "S", "W", "N", "R", "G", "Wh"]], "a": ["Any chow", "A second copy of one of these 13 tile types", "A flower"], "c": 1, "e": "You need all 13 different terminals/honors and one duplicate: 14 tiles. MCR Thirteen Orphans is 88."}, {"mode": "Scoring", "q": "Your legal fan subtotal is 7, and you have 1 flower. Can you declare an MCR win?", "a": ["Yes, 7 + 1 = 8", "No, flowers do not qualify", "Only if the flower matches your seat"], "c": 1, "e": "The minimum is 8 non-flower fan. The flower cannot lift 7 to 8."}, {"mode": "Scoring", "q": "Can Full Flush also add the 1 point for No Honors?", "a": ["Yes, always", "No, No Honors is already implied", "Only on a discard"], "c": 1, "e": "MCR excludes implied fan. Full Flush already guarantees no honors."}, {"mode": "Scoring", "q": "Which demonstrated subtotal passes the minimum?", "a": ["All Types 6 + Dragon Pung 2", "Half Flush 6 + two flowers", "A 7-point hand + one flower"], "c": 0, "e": "All Types and Dragon Pung can combine for 8. These are compatible non-flower fan; the shape and claim must still be legal."}, {"mode": "Scoring", "q": "A discarded winning tile completes the fourth pung. Are all four pungs concealed for Four Concealed Pungs?", "a": ["Yes, since it is a winning claim", "No, that pung is exposed for this fan", "Only if you have no flowers"], "c": 1, "e": "For concealed-pung fan, a pung completed by a discard is exposed. A discard completing just the pair preserves your four already complete concealed pungs."}, {"mode": "Scoring", "q": "The only eligible fan on a complete hand total 3. Does Chicken Hand top it up to 8?", "a": ["Yes, it adds 5", "No, it requires otherwise zero fan", "Yes, if there are no honors"], "c": 1, "e": "Chicken Hand is its own 8-point fan for an otherwise zero-fan hand, excluding flowers. It is not a top-up for a low-scoring hand."}, {"mode": "Basics", "q": "What are these tiles called?", "g": [["B1", "B9", "D1", "D9", "C1", "C9"]], "a": ["Terminals", "Simples", "Honors"], "c": 0, "e": "The 1s and 9s of the three suits are terminals."}, {"mode": "Basics", "q": "What are the 2 through 8 tiles of any suit called?", "g": [["B2", "D5", "C8"]], "a": ["Terminals", "Simples", "Honors"], "c": 1, "e": "Simples are ranks 2 to 8. Terminals are 1 and 9."}, {"mode": "Basics", "q": "What are these four tiles?", "g": [["E", "S", "W", "N"]], "a": ["Dragons", "Flowers", "Winds"], "c": 2, "e": "East, South, West and North are the winds. They are honors."}, {"mode": "Basics", "q": "What are these three tiles?", "g": [["R", "G", "Wh"]], "a": ["Dragons", "Winds", "Flowers"], "c": 0, "e": "Red, green and white are the dragons. They are honors, like the winds."}, {"mode": "Basics", "q": "What group is this?", "g": [["C4", "C4", "C4", "C4"]], "a": ["A pung", "A kong", "Two pairs"], "c": 1, "e": "Four identical tiles make a kong. It counts as one set."}, {"mode": "Basics", "q": "What is this?", "g": [["D8", "D8"]], "a": ["A pung", "A chow", "A pair"], "c": 2, "e": "Two identical tiles are a pair. A normal winning hand needs exactly one."}, {"mode": "Basics", "q": "Can 9-1-2 in one suit make a chow?", "g": [["D9", "D1", "D2"]], "a": ["No, chows never wrap around", "Yes, 9 sits next to 1", "Only on a self-draw"], "c": 0, "e": "A chow is three consecutive ranks within 1 to 9. It cannot wrap."}, {"mode": "Basics", "q": "Who can you take a discard from to make a chow?", "a": ["Any player", "Only the player on your left", "Only the player across"], "c": 1, "e": "Chow only from the player just before you in turn. Pung and kong can come from anyone."}, {"mode": "Basics", "q": "Two players claim one discard: one for a pung, one for a chow. Who gets it?", "a": ["The chow caller", "Whoever spoke first", "The pung caller"], "c": 2, "e": "Pung and kong beat chow. A winning claim beats all of them."}, {"mode": "Basics", "q": "You draw a flower tile. What do you do?", "a": ["Show it and draw a replacement", "Keep it hidden in your hand", "Discard it"], "c": 0, "e": "Flowers are shown, then you draw a replacement from the back of the wall."}, {"mode": "Basics", "q": "How many tiles are in a full MCR set?", "a": ["136", "144", "108"], "c": 1, "e": "108 suit tiles, 28 honors and 8 flowers make 144."}, {"mode": "Basics", "q": "What does a normal winning hand contain?", "a": ["Three sets and two pairs", "Five sets and no pair", "Four sets and one pair"], "c": 2, "e": "Each set is a chow, pung or kong. Seven Pairs and similar hands are special exceptions."}, {"mode": "Basics", "q": "You call kong on a discard. What happens next?", "a": ["You draw a replacement tile", "You discard straight away", "Nothing; you wait your turn"], "c": 0, "e": "Every kong earns a replacement from the back of the wall, then you discard."}, {"mode": "Patterns", "q": "Which 16-point pattern do these three chows show?", "g": [["C1", "C2", "C3"], ["C4", "C5", "C6"], ["C7", "C8", "C9"]], "a": ["Mixed Straight", "Pure Straight", "Pure Shifted Chows"], "c": 1, "e": "123, 456 and 789 in one suit. In three different suits it is Mixed Straight, 8."}, {"mode": "Patterns", "q": "Name this pattern.", "g": [["D1", "D2", "D3"], ["D2", "D3", "D4"], ["D3", "D4", "D5"]], "a": ["Pure Triple Chow", "Pure Straight", "Pure Shifted Chows"], "c": 2, "e": "Three chows in one suit, each shifted up by one. It is worth 16."}, {"mode": "Patterns", "q": "Name this 6-point pattern.", "g": [["B3", "B4", "B5"], ["D4", "D5", "D6"], ["C5", "C6", "C7"]], "a": ["Mixed Shifted Chows", "Mixed Triple Chow", "Pure Shifted Chows"], "c": 0, "e": "One chow per suit, each shifted up by one. Mixed Triple Chow uses the same chow in all three."}, {"mode": "Patterns", "q": "Name this pattern.", "g": [["D6", "D7", "D8"], ["D6", "D7", "D8"], ["D6", "D7", "D8"]], "a": ["Mixed Triple Chow", "Pure Triple Chow", "Pure Double Chow"], "c": 1, "e": "The same chow three times in one suit is worth 24. Three suits would be Mixed Triple Chow, 8."}, {"mode": "Patterns", "q": "Name this pattern.", "g": [["B4", "B4", "B4"], ["D4", "D4", "D4"], ["C4", "C4", "C4"]], "a": ["Double Pung", "Mixed Shifted Pungs", "Triple Pung"], "c": 2, "e": "The same rank as a pung in all three suits is worth 16."}, {"mode": "Patterns", "q": "Name this 8-point pattern.", "g": [["B3", "B3", "B3"], ["D4", "D4", "D4"], ["C5", "C5", "C5"]], "a": ["Mixed Shifted Pungs", "Triple Pung", "Pure Shifted Pungs"], "c": 0, "e": "One pung per suit, each one rank higher. Pure Shifted Pungs is the same idea in one suit, 24."}, {"mode": "Patterns", "q": "Name this 24-point pattern.", "g": [["D2", "D2", "D2"], ["D3", "D3", "D3"], ["D4", "D4", "D4"]], "a": ["Mixed Shifted Pungs", "Pure Shifted Pungs", "Triple Pung"], "c": 1, "e": "Three pungs in one suit, each one rank higher."}, {"mode": "Patterns", "q": "Name this pattern, worth 2.", "g": [["B6", "B6", "B6"], ["C6", "C6", "C6"]], "a": ["Triple Pung", "Mixed Shifted Pungs", "Double Pung"], "c": 2, "e": "Pungs of the same rank in two suits. A third suit makes Triple Pung, 16."}, {"mode": "Patterns", "q": "Name this 1-point pattern.", "g": [["B4", "B5", "B6"], ["B4", "B5", "B6"]], "a": ["Pure Double Chow", "Mixed Double Chow", "Short Straight"], "c": 0, "e": "The same chow twice in one suit."}, {"mode": "Patterns", "q": "Name this 1-point pattern.", "g": [["B4", "B5", "B6"], ["D4", "D5", "D6"]], "a": ["Pure Double Chow", "Mixed Double Chow", "Short Straight"], "c": 1, "e": "The same chow in two different suits."}, {"mode": "Patterns", "q": "Name this 1-point pattern.", "g": [["C2", "C3", "C4"], ["C5", "C6", "C7"]], "a": ["Pure Double Chow", "Pure Shifted Chows", "Short Straight"], "c": 2, "e": "Two chows in one suit that run six in a row."}, {"mode": "Patterns", "q": "Name this 1-point pattern.", "g": [["D1", "D2", "D3"], ["D7", "D8", "D9"]], "a": ["Two Terminal Chows", "Short Straight", "Mixed Double Chow"], "c": 0, "e": "123 and 789 in the same suit."}, {"mode": "Patterns", "q": "What does All Chows (2 points) need?", "a": ["Four chows and any pair", "Four chows and a suited pair", "Four chows with no 1s or 9s"], "c": 1, "e": "The pair must be a numbered suit pair, not winds or dragons."}, {"mode": "Patterns", "q": "Which 2-point fan uses only these tiles?", "g": [["B2", "B3", "B4"], ["D6", "D7", "D8"], ["C3", "C4", "C5"], ["D5", "D5"]], "a": ["Middle Tiles", "No Honors", "All Simples"], "c": 2, "e": "No 1s, 9s or honors. Middle Tiles needs only 4s, 5s and 6s, and is worth 24."}, {"mode": "Patterns", "q": "You hold all four of these without declaring a kong. Which fan?", "g": [["C5", "C5", "C5", "C5"]], "a": ["Tile Hog", "Melded Kong", "Quadruple Chow"], "c": 0, "e": "Tile Hog is worth 2. Four copies held outside a kong count."}, {"mode": "Patterns", "q": "How many points is this pung worth as a fan?", "g": [["R", "R", "R"]], "a": ["1", "2", "6"], "c": 1, "e": "A pung or kong of any dragon is Dragon Pung, 2."}, {"mode": "Patterns", "q": "Name this 64-point pattern.", "g": [["R", "R", "R"], ["G", "G", "G"], ["Wh", "Wh"]], "a": ["Big Three Dragons", "Two Dragon Pungs", "Little Three Dragons"], "c": 2, "e": "Two dragon pungs and a pair of the third. A third pung would be Big Three Dragons, 88."}, {"mode": "Patterns", "q": "Name this pattern.", "g": [["R", "R", "R"], ["G", "G", "G"], ["Wh", "Wh", "Wh"]], "a": ["Big Three Dragons", "Little Three Dragons", "Three Concealed Pungs"], "c": 0, "e": "Pungs of all three dragons are worth 88."}, {"mode": "Patterns", "q": "You are South seat. A pung of which wind earns Seat Wind, with the round wind East?", "a": ["East", "South", "West"], "c": 1, "e": "Seat Wind is your own wind, 2 points. East would be Prevalent Wind."}, {"mode": "Patterns", "q": "Name this 88-point pattern.", "g": [["E", "E", "E"], ["S", "S", "S"], ["W", "W", "W"], ["N", "N", "N"]], "a": ["Little Four Winds", "Big Three Winds", "Big Four Winds"], "c": 2, "e": "Pungs of all four winds. Little Four Winds has a pair for the last wind."}, {"mode": "Patterns", "q": "Three wind pungs, no wind pair. Which fan?", "g": [["E", "E", "E"], ["S", "S", "S"], ["W", "W", "W"]], "a": ["Big Three Winds", "Little Four Winds", "Big Four Winds"], "c": 0, "e": "Three wind pungs are worth 12. A pair of the fourth wind would make Little Four Winds."}, {"mode": "Patterns", "q": "Every group has a 1, 9 or honor, and two are chows. Which fan?", "g": [["B1", "B2", "B3"], ["D7", "D8", "D9"], ["C1", "C1", "C1"], ["E", "E", "E"], ["C9", "C9"]], "a": ["All Terminals and Honors", "Outside Hand", "All Terminals"], "c": 1, "e": "Outside Hand is 4. All Terminals and Honors needs only 1s, 9s and honors, so no chows."}, {"mode": "Patterns", "q": "Only 1s, 9s, winds and dragons. Which fan?", "g": [["B1", "B1", "B1"], ["D9", "D9", "D9"], ["E", "E", "E"], ["R", "R", "R"]], "a": ["Outside Hand", "All Honors", "All Terminals and Honors"], "c": 2, "e": "Worth 32. All Honors would need winds and dragons only."}, {"mode": "Patterns", "q": "Only 1s and 9s, no honors. Which fan?", "g": [["B1", "B1", "B1"], ["B9", "B9", "B9"], ["D1", "D1", "D1"], ["D9", "D9", "D9"]], "a": ["All Terminals", "All Terminals and Honors", "Outside Hand"], "c": 0, "e": "All Terminals is worth 64. Add an honor and it drops to 32."}, {"mode": "Patterns", "q": "Only winds and dragons. Which fan?", "g": [["E", "E", "E"], ["W", "W", "W"], ["R", "R", "R"], ["N", "N"]], "a": ["All Terminals and Honors", "All Honors", "All Pungs"], "c": 1, "e": "All Honors is worth 64. No numbered tiles at all."}, {"mode": "Patterns", "q": "A hand of only 4s, 5s and 6s. Which fan?", "g": [["B4", "B5", "B6"], ["D4", "D5", "D6"], ["C5", "C5", "C5"], ["D4", "D4"]], "a": ["All Simples", "All Fives", "Middle Tiles"], "c": 2, "e": "Middle Tiles is worth 24. It replaces All Simples."}, {"mode": "Patterns", "q": "One suit plus some honors. Which 6-point fan?", "g": [["B2", "B3", "B4"], ["B5", "B6", "B7"], ["B8", "B8", "B8"], ["W", "W", "W"]], "a": ["Half Flush", "Full Flush", "Mixed Straight"], "c": 0, "e": "Half Flush is 6. With no honors it becomes Full Flush, 24."}, {"mode": "Patterns", "q": "Name this 24-point hand shape.", "g": [["B2", "B2"], ["B7", "B7"], ["D3", "D3"], ["D9", "D9"], ["C4", "C4"], ["C6", "C6"], ["R", "R"]], "a": ["Seven Shifted Pairs", "Seven Pairs", "All Pungs"], "c": 1, "e": "Seven pairs, all concealed. Seven Shifted Pairs needs consecutive pairs in one suit."}, {"mode": "Patterns", "q": "Name this 88-point hand.", "g": [["D1", "D1"], ["D2", "D2"], ["D3", "D3"], ["D4", "D4"], ["D5", "D5"], ["D6", "D6"], ["D7", "D7"]], "a": ["Seven Pairs", "Pure Straight", "Seven Shifted Pairs"], "c": 2, "e": "Seven consecutive pairs in one suit."}, {"mode": "Patterns", "q": "Name this 32-point pattern.", "g": [["B1", "B1", "B1", "B1"], ["D5", "D5", "D5", "D5"], ["C9", "C9", "C9", "C9"]], "a": ["Three Kongs", "Four Kongs", "Three Concealed Pungs"], "c": 0, "e": "Three kongs are 32. A fourth would make Four Kongs, 88."}, {"mode": "Patterns", "q": "You hold 1-2 and need a 3. Which wait fan?", "g": [["B1", "B2"]], "a": ["Closed Wait", "Edge Wait", "Single Wait"], "c": 1, "e": "Waiting only for the 3 of 1-2-3 is an Edge Wait. Same for the 7 of 7-8-9."}, {"mode": "Patterns", "q": "You hold 4 and 6, and need the 5. Which wait fan?", "g": [["D4", "D6"]], "a": ["Edge Wait", "Single Wait", "Closed Wait"], "c": 2, "e": "Waiting only for the middle tile of a chow."}, {"mode": "Patterns", "q": "You hold one tile and need its twin for the pair. Which wait fan?", "g": [["C7"]], "a": ["Single Wait", "Closed Wait", "Edge Wait"], "c": 0, "e": "Waiting only for the tile that completes the pair is Single Wait, 1."}, {"mode": "Patterns", "q": "You hold 4-5 and can win on a 3 or a 6. Which wait fan?", "g": [["B4", "B5"]], "a": ["Edge Wait", "None", "Closed Wait"], "c": 1, "e": "Wait fans need exactly one winning tile. Two ways to win means no wait fan."}, {"mode": "Patterns", "q": "Nothing claimed, and you win by self-draw. Which 4-point fan?", "a": ["Concealed Hand", "Self-Drawn", "Fully Concealed Hand"], "c": 2, "e": "Concealed Hand (2) is the same but won on a discard."}, {"mode": "Patterns", "q": "All four sets claimed, and you win on a discard for the pair. Which fan?", "a": ["Melded Hand", "Concealed Hand", "All Pungs"], "c": 0, "e": "Melded Hand is worth 6."}, {"mode": "Patterns", "q": "Name this 48-point pattern.", "g": [["B2", "B3", "B4"], ["B2", "B3", "B4"], ["B2", "B3", "B4"], ["B2", "B3", "B4"]], "a": ["Pure Triple Chow", "Quadruple Chow", "Four Pure Shifted Chows"], "c": 1, "e": "The same chow four times in one suit."}, {"mode": "Patterns", "q": "Name this 12-point pattern.", "g": [["B1", "B4", "B7"], ["D2", "D5", "D8"], ["C3", "C6", "C9"]], "a": ["Mixed Straight", "Pure Straight", "Knitted Straight"], "c": 2, "e": "147, 258 and 369, each in a different suit."}, {"mode": "Patterns", "q": "Concealed 1112345678999 in one suit, waiting on any rank. Which fan?", "g": [["C1", "C1", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C9", "C9"]], "a": ["Nine Gates", "Pure Straight", "Full Flush"], "c": 0, "e": "Nine Gates is worth 88. Any of the nine ranks wins."}, {"mode": "Patterns", "q": "You make a kong from four tiles you drew yourself. Which fan?", "a": ["Melded Kong", "Concealed Kong", "Two Concealed Kongs"], "c": 1, "e": "Concealed Kong is 2. Melded Kong (1) is claimed from a discard."}, {"mode": "Patterns", "q": "You win on the replacement tile drawn after a kong. Which 8-point fan?", "a": ["Robbing the Kong", "Last Tile Draw", "Out with Replacement Tile"], "c": 2, "e": "Robbing the Kong is winning on a tile another player adds to a melded pung."}, {"mode": "Patterns", "q": "You win on the last discard of the whole game. Which 8-point fan?", "a": ["Last Tile Claim", "Last Tile Draw", "Last Tile"], "c": 0, "e": "Last Tile Draw is a self-draw of the last wall tile. Last Tile is a different, 4-point fan."}, {"mode": "Scoring", "q": "Your hand scores 6 fan plus 3 flowers. Can you declare a win?", "a": ["Yes, 6 + 3 is over 8", "No, flowers do not count toward 8", "Only on a self-draw"], "c": 1, "e": "Flowers count only after you already have 8 fan."}, {"mode": "Scoring", "q": "Which pair of fans reaches 8 together?", "a": ["All Chows + Seat Wind", "Pure Double Chow + Self-Drawn", "Half Flush + Dragon Pung"], "c": 2, "e": "Half Flush 6 + Dragon Pung 2 = 8. The others come to 4 and 2."}, {"mode": "Scoring", "q": "Does Self-Drawn (1) count toward the 8-point minimum?", "a": ["Yes, it is an ordinary fan", "No, only flowers are extra", "Only when you win by kong"], "c": 0, "e": "Only flower tiles are excluded from the minimum."}, {"mode": "Scoring", "q": "Can Full Flush and Pure Straight both score on one hand?", "a": ["No, only the higher one", "Yes, neither implies the other", "Only with a self-draw"], "c": 1, "e": "Full Flush only cancels No Honors. A one-suit hand can also hold a straight."}, {"mode": "Scoring", "q": "You win by self-draw with nothing claimed. Do you add Self-Drawn to Fully Concealed Hand?", "a": ["Yes, 4 + 1 = 5", "Only on the last tile", "No, it is already included"], "c": 2, "e": "Fully Concealed Hand already implies a self-draw, so only its 4 counts."}, {"mode": "Scoring", "q": "You self-draw your win on the last tile of the wall. Does Self-Drawn also score?", "a": ["No, Last Tile Draw implies it", "Yes, add 1 point", "Yes, but only with flowers"], "c": 0, "e": "Last Tile Draw is already a self-draw, so Self-Drawn does not stack."}, {"mode": "Scoring", "q": "Can All Chows also add No Honors?", "a": ["Yes, add 1 point", "No, All Chows implies it", "Only on a discard"], "c": 1, "e": "All Chows needs a suited pair, so no honors is already guaranteed."}, {"mode": "Scoring", "q": "You have Big Three Dragons. Do its three pungs also score Dragon Pung each?", "g": [["R", "R", "R"], ["G", "G", "G"], ["Wh", "Wh", "Wh"]], "a": ["Yes, 2 points each", "Yes, but only once", "No, Big Three Dragons includes them"], "c": 2, "e": "Big Three Dragons covers all its dragon pungs. Do not add them again."}, {"mode": "Scoring", "q": "When does a wait fan like Closed Wait count?", "a": ["Only if exactly one tile wins", "Whenever you win on a discard", "Whenever you complete a chow"], "c": 0, "e": "If two different tiles could win, no wait fan scores."}, {"mode": "Scoring", "q": "A hand scores 12 points. You win on a discard, no flowers. What does the discarder pay?", "a": ["12", "20", "8"], "c": 1, "e": "The discarder pays 8 + 12. The other two pay 8 each."}, {"mode": "Scoring", "q": "Someone wins on another player’s discard. What do the two non-discarders each pay?", "a": ["Nothing", "The hand points", "8"], "c": 2, "e": "Only the discarder pays the hand points. The other two pay a flat 8."}, {"mode": "Scoring", "q": "You self-draw a 10-point hand, no flowers. What does each opponent pay?", "a": ["18", "10", "8"], "c": 0, "e": "On a self-draw each opponent pays 8 + the hand points."}, {"mode": "Scoring", "q": "Your hand has 8 fan and 2 flowers. What does it score?", "a": ["8", "10", "16"], "c": 1, "e": "The 8 fan clears the minimum, then each flower adds 1."}, {"mode": "Scoring", "q": "You made four pungs yourself and win on a discard that completes your pair. Four Concealed Pungs?", "a": ["No, a discard exposes them all", "Only if you self-draw", "Yes, the pungs stay concealed"], "c": 2, "e": "Only a pung completed by the discard counts as exposed. A discard completing the pair does not."}, {"mode": "Scoring", "q": "You claim a discard to make a melded kong. Does the hand stay concealed?", "a": ["No, a melded kong exposes it", "Yes, a kong is always concealed", "Yes, if no chow is claimed"], "c": 0, "e": "A melded kong ends Concealed Hand. A concealed kong does not."}, {"mode": "Scoring", "q": "You have one concealed kong and nothing else claimed. Can you still score Concealed Hand?", "a": ["No, any kong ends it", "Yes, a concealed kong keeps it", "Only with a self-draw"], "c": 1, "e": "A concealed kong stays hidden, so Concealed Hand still applies."}, {"mode": "Scoring", "q": "You are East seat in the East round and win with an East pung. How many wind points?", "g": [["E", "E", "E"]], "a": ["2", "1", "4"], "c": 2, "e": "You get Prevalent Wind 2 and Seat Wind 2. They both score."}, {"mode": "Scoring", "q": "A pung of a wind that is neither your seat nor the round wind earns what?", "a": ["1 point", "2 points", "Nothing"], "c": 0, "e": "It is Pung of Terminals or Honors, 1. Dragons are 2 and your own winds are 2."}, {"mode": "Scoring", "q": "All four sets are claimed and you win on a discard for the pair. Does Single Wait also score?", "a": ["Yes, add 1 point", "No, Melded Hand rules it out", "Only on a self-draw"], "c": 1, "e": "Melded Hand already means the pair was the last piece, so Single Wait is not added."}, {"mode": "Scoring", "q": "Your tiles show 12 points of patterns, but one set is unfinished. Can you win?", "a": ["Yes, the fan is enough", "Yes, with a self-draw", "No, the hand must be complete"], "c": 2, "e": "Points only count on a complete hand: four sets and a pair."}];
+questions.push(...generatedQuestions());
+// A missed question is owed a few correct answers before it stops coming back early.
+function qKey(q){return q.id||q.q+'|'+(q.g?q.g.flat().join(' '):'');}
+let mode='All',queue=[],pos=0,right=0,wrong=[],answered=false,answerOrder=[];
+function shuffle(arr){let a=[...arr];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startQuiz(m,custom){mode=m;let candidates=custom||questions.map((_,i)=>i).filter(i=>m==='All'||questions[i].mode===m);queue=shuffle(candidates);if(!custom&&$('roundLength').value!=='all'){let n=+$('roundLength').value,due=queue.filter(i=>stored.missed[qKey(questions[i])]).slice(0,Math.ceil(n/2));queue=shuffle([...due,...queue.filter(i=>!due.includes(i)).slice(0,n-due.length)]);}pos=0;right=0;wrong=[];answered=false;$('quizModes').innerHTML=['All','Basics','Patterns','Scoring'].map(x=>`<button class="chip" data-mode="${x}" aria-pressed="${x===m}">${x}</button>`).join('');$('quizModes').querySelectorAll('button').forEach(b=>b.onclick=()=>startQuiz(b.dataset.mode));renderQuiz();}
+function renderQuiz(){if(pos>=queue.length){let missed=wrong.map(i=>`<p class="small"><strong>${questions[i].q}</strong><br>${questions[i].e}</p>`).join('');$('quizArea').innerHTML=`<div class="card"><div class="eyebrow">Round complete</div><h2 style="margin-top:12px">${right} / ${queue.length} correct</h2><p>${wrong.length?'A few useful things to revisit. Try those questions again while the explanation is fresh.':'All correct. Keep the shapes in mind when you look at your next hand.'}</p><div class="actions"><button class="btn" id="restartQuiz">Another shuffled round</button>${wrong.length?'<button class="btn alt" id="retryQuiz">Retry missed questions</button>':''}</div>${wrong.length?'<div class="divider"></div>'+missed:''}</div>`;$('restartQuiz').onclick=()=>startQuiz(mode);if($('retryQuiz')){let missedIds=[...wrong];$('retryQuiz').onclick=()=>startQuiz(mode,missedIds);}return;}answered=false;let q=questions[queue[pos]];answerOrder=shuffle(q.a.map((_,i)=>i));$('quizArea').innerHTML=`<div class="quiz-bar"><span>Question ${pos+1} of ${queue.length} · ${q.mode}</span><span>${right} correct</span></div><div class="progress" role="progressbar" aria-label="Round progress" aria-valuemin="0" aria-valuemax="${queue.length}" aria-valuenow="${pos}"><i style="width:${pos/queue.length*100}%"></i></div><div class="card"><h3 class="qtitle" tabindex="-1">${q.q}</h3>${q.g?`<div class="hand">${hand(q.g)}</div>`:''}<div id="answers">${answerOrder.map((i,j)=>`<button class="answer" data-answer="${i}"><span class="answer-letter" aria-hidden="true">${String.fromCharCode(65+j)}</span>${q.a[i]}</button>`).join('')}</div><div id="quizFeedback" aria-live="polite"></div></div>`;$('answers').querySelectorAll('button').forEach(b=>b.onclick=()=>answer(Number(b.dataset.answer)));}
+function answer(i){if(answered)return;answered=true;let q=questions[queue[pos]],ok=i===q.c;if(ok)right++;else wrong.push(queue[pos]);let key=qKey(q);if(!ok)stored.missed[key]=Math.min((stored.missed[key]||0)+2,4);else if(stored.missed[key]&&--stored.missed[key]<=0)delete stored.missed[key];stored.answered++;if(ok)stored.correct++;if(pos===queue.length-1)stored.rounds++;saveStudy();$('answers').querySelectorAll('button').forEach(b=>{let a=+b.dataset.answer;b.disabled=true;if(a===q.c)b.classList.add('correct');else if(a===i)b.classList.add('wrong');});$('quizFeedback').innerHTML=`<div class="feedback ${ok?'':'error'}"><strong>${ok?'Correct.':'Let’s unpack that.'}</strong><p class="small" style="margin-top:8px">${q.e}</p><button class="btn" id="nextQuestion">${pos===queue.length-1?'See results':'Next question →'}</button></div>`;$('nextQuestion').onclick=()=>{pos++;renderQuiz();let h=$('quizArea').querySelector('h2,h3');h.tabIndex=-1;h.focus({preventScroll:true});};$('nextQuestion').focus({preventScroll:true});}
+$('roundLength').onchange=()=>startQuiz(mode);$('newRound').onclick=()=>startQuiz(mode);
+const waits=[
+{groups:[['B1','B2','B3'],['D4','D5','D6'],['C7','C8','C9'],['E','E','E'],['R']],incomplete:4,options:[['R'],['G'],['E'],['B3']],correct:0,explain:'Red dragon completes the pair. All four sets are already finished.',draw:'R'},
+{groups:[['B1','B2'],['D3','D4','D5'],['C6','C7','C8'],['R','R','R'],['E','E']],incomplete:0,options:[['B3'],['B9'],['D3'],['E']],correct:0,explain:'Bamboo 3 completes 1–2–3. A sequence cannot wrap from 9 back to 1.',draw:'B3'},
+{groups:[['B4','B5'],['D3','D4','D5'],['C6','C7','C8'],['R','R','R'],['E','E']],incomplete:0,options:[['B3','B6'],['B2','B7'],['D3','D6'],['B4','B5']],correct:0,explain:'Either bamboo 3 or bamboo 6 completes a chow: 3–4–5 or 4–5–6. That is a two-sided shape.',draw:'B3'}
+];
+let waitIndex=0,waitOrder=[];
+function showWait(){let w=waits[waitIndex];waitOrder=shuffle(w.options.map((_,i)=>i));$('waitArea').innerHTML=`<div class="wait-count">Exercise ${waitIndex+1} of ${waits.length}</div><div class="hand">${w.groups.map((g,i)=>`<div class="group ${i===w.incomplete?'unfinished':''}">${g.map(tile).join('')}${i===w.incomplete?'<span class="tile-gap" role="img" aria-label="Missing tile">?</span>':''}</div>`).join('')}</div><p class="small"><strong>What completes the highlighted group?</strong></p><div class="wait-options">${waitOrder.map(i=>`<button class="wait-option" data-wait="${i}" aria-label="${w.options[i].map(tileName).join(' or ')}">${w.options[i].map(tile).join('<span class="small">or</span>')}</button>`).join('')}</div><div id="waitFeedback" aria-live="polite"></div>`;$('waitArea').querySelectorAll('[data-wait]').forEach(b=>b.onclick=()=>{let selected=+b.dataset.wait,ok=selected===w.correct;$('waitArea').querySelectorAll('[data-wait]').forEach(x=>{x.disabled=true;if(+x.dataset.wait===w.correct)x.classList.add('correct');else if(x===b)x.classList.add('wrong');});let complete=w.groups.map(g=>[...g]);complete[w.incomplete].push(w.draw);complete[w.incomplete].sort((a,b)=>a.localeCompare(b));$('waitFeedback').innerHTML=`<div class="feedback ${ok?'':'error'}"><strong>${ok?'That completes the shape.':'Here is the missing piece.'}</strong><p class="small" style="margin-top:8px">${w.explain}</p><div class="hand">${hand(complete)}</div><p class="small sub">14 structural tiles. Check qualifying fan and win circumstances separately.</p><button class="btn" id="nextWait">${waitIndex===waits.length-1?'Try these again':'Next hand →'}</button></div>`;$('nextWait').onclick=()=>{waitIndex=(waitIndex+1)%waits.length;showWait();};});}
+$('resetProgress').onclick=()=>{stored.saved=[];stored.answered=0;stored.correct=0;stored.rounds=0;stored.missed={};saveStudy();showPatterns();};
+startQuiz('All');showWait();go(location.hash.slice(1)||'basics');
+
+// ---- 04 · Hand scorer. The rules live in scorer.js; this is only the form around them. ----
+// `adding` is null while single tiles go into the hand; a set button arms it for exactly one tap.
+const scorerState={concealed:[],melds:[],winTile:null,adding:null,selfDrawn:false,example:0};
+const scorerSets=[
+  ['chow','+ Claimed chow','Tap the lowest tile of the chow.'],
+  ['pung','+ Claimed pung','Tap the tile you have three of.'],
+  ['kong','+ Kong','Tap the tile you have four of.'],
+  ['ckong','+ Concealed kong','Tap the tile you drew all four of.']
+];
+const scorerExamples=['Mixed Shifted Chows','Mixed Triple Chow','Full Flush','Self-Drawn','Two Melded Kongs','Seven Pairs'];
+const scorerFlags=['flagLastOfKind','flagLastTile','flagReplacement','flagRobKong'];
+const tileOrder=t=>MahjongScorer.TILES.indexOf(t);
+function meldTiles(m){if(m.type!=='chow')return Array(m.type==='kong'?4:3).fill(m.tile);let r=+m.tile[1];return [0,1,2].map(k=>m.tile[0]+(r+k));}
+function meldLabel(m){return m.type==='kong'?(m.concealed?'Concealed kong':'Kong'):'Claimed '+m.type;}
+function scorerUsed(t){return scorerState.concealed.filter(x=>x===t).length+scorerState.melds.reduce((n,m)=>n+meldTiles(m).filter(x=>x===t).length,0);}
+function scorerNeed(){return 14-3*scorerState.melds.length;}
+function scorerMeldFor(t){let kind=scorerState.adding;return {type:kind==='ckong'?'kong':kind,tile:t,concealed:kind==='ckong'};}
+function scorerHasRoomForSet(){let s=scorerState;return s.melds.length<4&&s.concealed.length<=scorerNeed()-3;}
+function scorerCanAdd(t){
+  let s=scorerState;
+  if(!s.adding)return scorerUsed(t)<4&&s.concealed.length<scorerNeed();
+  if(!scorerHasRoomForSet()||(s.adding==='chow'&&!/^[BDC][1-7]$/.test(t)))return false;
+  let wanted={};meldTiles(scorerMeldFor(t)).forEach(x=>wanted[x]=(wanted[x]||0)+1);
+  return Object.keys(wanted).every(x=>scorerUsed(x)+wanted[x]<=4);
+}
+function scorerAdd(t){
+  let s=scorerState;if(!scorerCanAdd(t))return;
+  if(s.adding){s.melds.push(scorerMeldFor(t));s.adding=null;}
+  else{s.concealed.push(t);s.winTile=t;}
+  renderScorer();
+}
+function scorerInput(){
+  let s=scorerState;
+  return {concealed:s.concealed,melds:s.melds,winTile:s.winTile,selfDrawn:s.selfDrawn,seatWind:$('seatWind').value,prevalentWind:$('roundWind').value,flowers:Number($('scorerFlowers').value)||0,
+    lastOfKind:$('flagLastOfKind').checked,lastTile:$('flagLastTile').checked,kongReplacement:$('flagReplacement').checked,robbingKong:$('flagRobKong').checked};
+}
+// Pattern cards describe a hand as drawn groups; `play` adds what the drawing cannot show.
+function patternHand(p){
+  let play=p.play||{},concealed=[],melds=[];
+  p.groups.forEach((g,i)=>{
+    if(g.length===4&&g.every(t=>t===g[0]))melds.push({type:'kong',tile:g[0],concealed:(play.concealedKong||[]).includes(i)});
+    else if((play.melded||[]).includes(i))melds.push({type:g[0]===g[1]?'pung':'chow',tile:g[0],concealed:false});
+    else concealed.push(...g);
+  });
+  return {concealed,melds,winTile:play.win||concealed[concealed.length-1],selfDrawn:!!play.selfDrawn,seatWind:play.seat||'E',prevalentWind:play.round||'E',flowers:play.flowers||0,lastOfKind:!!play.lastOfKind,lastTile:!!play.lastTile,kongReplacement:!!play.kongReplacement,robbingKong:!!play.robbingKong};
+}
+function scorerLoad(h){
+  let s=scorerState;
+  s.concealed=[...h.concealed];s.melds=h.melds.map(m=>({...m}));s.winTile=h.winTile;s.selfDrawn=h.selfDrawn;s.adding=null;
+  $('seatWind').value=h.seatWind;$('roundWind').value=h.prevalentWind;$('scorerFlowers').value=h.flowers;
+  $('flagLastOfKind').checked=!!h.lastOfKind;$('flagLastTile').checked=!!h.lastTile;$('flagReplacement').checked=!!h.kongReplacement;$('flagRobKong').checked=!!h.robbingKong;
+  renderScorer();
+}
+function scorePattern(p){scorerLoad(patternHand(p));go('scorer',true);}
+function renderScorerResult(){
+  let s=scorerState,r=MahjongScorer.score(scorerInput()),box=$('scorerResult');
+  box.classList.toggle('good',r.ok&&r.qualifies);box.classList.toggle('short',r.ok&&!r.qualifies);
+  if(!r.ok){box.hidden=r.reason!=='not-winning';box.innerHTML='<h3>Not a winning hand yet</h3><p class="sub">It needs four sets and a pair. Tap a tile above to swap it out.</p>';return;}
+  box.hidden=false;
+  let rows=r.fans.map(f=>`<tr><td><strong>${f.name}</strong>${f.count>1?' × '+f.count:''}</td><td>${f.total}</td></tr>`).join('');
+  if(r.flowers)rows+=`<tr><td><strong>Flower Tiles</strong> × ${r.flowers}</td><td>${r.qualifies?'+'+r.flowers:'—'}</td></tr>`;
+  let pay=r.payment,short=r.minimum-r.points;
+  let verdict=r.qualifies?'You can win.':`Not enough: ${short} more point${short===1?'':'s'} needed.`;
+  let detail=!r.qualifies?'A hand needs 8 before flowers.':s.selfDrawn?`Each player pays you ${pay.each}.`:`The discarder pays ${pay.discarder}, the other two pay ${pay.others} each.`;
+  let reading=r.groups.map(g=>`<div class="group-frame"><div class="group">${g.tiles.map(tile).join('')}</div><span class="group-caption">${g.label}</span></div>`).join('');
+  box.innerHTML=`<div class="score-block"><div><div class="big-stat" id="scorerPoints">${r.qualifies?r.total:r.points}</div><span class="small sub">points</span></div><div><strong id="scorerVerdict">${verdict}</strong><p class="small sub" id="scorerPay">${detail}</p></div></div><table class="fan-table"><tbody>${rows}</tbody></table><details><summary>How it was read</summary><div class="hand">${reading}</div></details>`;
+}
+function renderScorer(){
+  let s=scorerState,need=scorerNeed(),left=need-s.concealed.length;
+  if(!s.concealed.includes(s.winTile))s.winTile=s.concealed[s.concealed.length-1]||null;
+  let shown=[...s.concealed].sort((a,b)=>tileOrder(a)-tileOrder(b)),winAt=shown.lastIndexOf(s.winTile);
+  let melds=s.melds.map((m,i)=>`<button class="scorer-meld" data-meld="${i}" aria-label="Remove ${meldLabel(m)}: ${meldTiles(m).map(tileName).join(', ')}"><span class="group">${meldTiles(m).map(tile).join('')}</span><span class="group-caption">${meldLabel(m)}</span></button>`).join('');
+  let tiles=shown.map((t,i)=>`<button class="scorer-tile${left===0&&i===winAt?' win':''}" data-remove="${t}" aria-label="Remove ${tileName(t)}">${tile(t)}</button>`).join('');
+  $('scorerHand').innerHTML=melds+`<div class="scorer-tiles">${tiles}${'<span class="slot"></span>'.repeat(Math.max(left,0))}</div>`;
+  $('scorerHand').querySelectorAll('[data-meld]').forEach(b=>b.onclick=()=>{s.melds.splice(+b.dataset.meld,1);renderScorer();});
+  $('scorerHand').querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{s.concealed.splice(s.concealed.lastIndexOf(b.dataset.remove),1);renderScorer();});
+  $('scorerCount').textContent=left>0?`${left} more tile${left===1?'':'s'} to add`:left<0?`Remove ${-left} tile${left===-1?'':'s'}`:'Tap a tile to remove it.';
+  let armed=scorerSets.find(x=>x[0]===s.adding);
+  $('scorerHint').hidden=!armed;$('scorerHint').textContent=armed?armed[2]:'';
+  $('scorerPalette').classList.toggle('armed',!!armed);
+  $('scorerPalette').innerHTML=MahjongScorer.TILES.map(t=>`<button data-tile="${t}" aria-label="Add ${tileName(t)}" ${scorerCanAdd(t)?'':'disabled'}>${tile(t)}</button>`).join('');
+  $('scorerPalette').querySelectorAll('button').forEach(b=>b.onclick=()=>scorerAdd(b.dataset.tile));
+  let room=scorerHasRoomForSet();if(!room)s.adding=null;
+  $('scorerArm').innerHTML=scorerSets.map(([id,label])=>`<button class="chip" data-add="${id}" aria-pressed="${id===s.adding}" ${room?'':'disabled'}>${label}</button>`).join('');
+  $('scorerArm').querySelectorAll('button').forEach(b=>b.onclick=()=>{s.adding=s.adding===b.dataset.add?null:b.dataset.add;renderScorer();});
+  $('scorerClear').disabled=!s.concealed.length&&!s.melds.length;
+
+  $('scorerWinCard').hidden=left!==0;
+  $('scorerWinTile').innerHTML=[...new Set(shown)].map(t=>`<button class="chip tile-chip" data-win="${t}" aria-pressed="${t===s.winTile}" aria-label="${tileName(t)}">${tile(t)}</button>`).join('');
+  $('scorerWinTile').querySelectorAll('button').forEach(b=>b.onclick=()=>{s.winTile=b.dataset.win;renderScorer();});
+  $('scorerWin').innerHTML=[[false,'From a discard'],[true,'Drew it myself']].map(([v,label])=>`<button class="chip" data-self="${v}" aria-pressed="${v===s.selfDrawn}">${label}</button>`).join('');
+  $('scorerWin').querySelectorAll('button').forEach(b=>b.onclick=()=>{s.selfDrawn=b.dataset.self==='true';renderScorer();});
+  // Seat and round only matter when the hand holds a set of winds.
+  let winds=['E','S','W','N'];
+  $('scorerWinds').hidden=!winds.some(w=>s.concealed.filter(t=>t===w).length>=3||s.melds.some(m=>m.tile===w));
+  $('flagLastTileLabel').textContent=s.selfDrawn?'Last tile of the wall':'Last discard of the game';
+  // A bonus that cannot apply to this hand is switched off rather than silently ignored.
+  let allow={flagReplacement:s.selfDrawn&&s.melds.some(m=>m.type==='kong'),flagRobKong:!s.selfDrawn};
+  for(let id in allow){$(id).disabled=!allow[id];if(!allow[id])$(id).checked=false;$(id).parentElement.classList.toggle('off',!allow[id]);}
+  renderScorerResult();
+}
+// Clearing starts a new hand: the seat and round winds carry over, everything about the win does not.
+$('scorerClear').onclick=()=>{Object.assign(scorerState,{concealed:[],melds:[],winTile:null,adding:null,selfDrawn:false});$('scorerFlowers').value=0;scorerFlags.forEach(id=>$(id).checked=false);renderScorer();};
+$('scorerExample').onclick=()=>{let name=scorerExamples[scorerState.example++%scorerExamples.length];scorerLoad(patternHand(patterns.find(p=>p.name===name)));};
+['seatWind','roundWind','scorerFlowers',...scorerFlags].forEach(id=>$(id).addEventListener('input',renderScorerResult));
+renderScorer();
+
+// ---- Practice questions built from the pattern cards. Their answers come from the scorer, not from typing. ----
+// Patterns you can recognise from tiles alone. The rest depend on how the hand was played.
+function quizVisible(p){return !(p.core&&!p.core.length)&&!/Concealed|Melded|Wait|Kong|Wind$|Last Tile|Self-Drawn|Flower|Replacement/.test(p.name);}
+// This runs while app.js is still starting up, so it keeps its own data inside the function.
+function generatedQuestions(){
+  // Fans that sit inside a bigger one without being listed in the scorer's exclusions. A wrong answer
+  // must be clearly wrong, so these are never offered next to the fan that contains them.
+  const contains={
+    'Mixed Triple Chow':['Mixed Double Chow'],'Pure Triple Chow':['Pure Double Chow'],'Quadruple Chow':['Pure Triple Chow','Pure Double Chow'],
+    'Pure Straight':['Short Straight','Two Terminal Chows'],'Mixed Straight':[],'Pure Shifted Chows':['Short Straight'],
+    'Four Pure Shifted Chows':['Pure Shifted Chows','Short Straight','Two Terminal Chows'],'Four Pure Shifted Pungs':['Pure Shifted Pungs'],
+    'Pure Terminal Chows':['Two Terminal Chows','Pure Double Chow'],'Three-Suited Terminal Chows':['Two Terminal Chows','Mixed Double Chow'],
+    'Triple Pung':['Double Pung'],'Big Four Winds':['Little Four Winds'],'Little Four Winds':['Big Three Winds'],'Seven Shifted Pairs':['Seven Pairs'],
+    'Three Kongs':['Two Melded Kongs','Melded Kong'],'Four Kongs':['Three Kongs']
+  };
+  let out=[],ladder=[...new Set(MahjongScorer.FANS.map(f=>f.points))].sort((a,b)=>a-b);
+  let place=(right,wrongs)=>{let a=shuffle([right,...wrongs]);return {a:a.map(String),c:a.indexOf(right)};};
+  let visible=patterns.filter(quizVisible);
+  for(let p of patterns){
+    let r=MahjongScorer.score(patternHand(p));
+    if(!r.ok)continue;
+    let scored=r.fans.map(f=>f.name);
+    if(quizVisible(p)){
+      let part=p.core&&p.core.length<p.groups.length;
+      let barred=new Set([...scored,...scored.flatMap(n=>[...(MahjongScorer.EXCLUDES[n]||[]),...(contains[n]||[])])]);
+      // When only the core groups are shown, whole-hand patterns would be unanswerable, so they are not offered.
+      let pool=visible.filter(x=>!barred.has(x.name)&&(!part||x.core));
+      let near=shuffle(pool.filter(x=>x.category===p.category)),far=shuffle(pool.filter(x=>x.category!==p.category));
+      let wrongs=[...near,...far].slice(0,2).map(x=>x.name);
+      if(wrongs.length===2)out.push({id:'which:'+p.name,mode:'Patterns',q:part?'Which pattern do these groups make?':'Which pattern is this hand?',g:part?p.core.map(i=>p.groups[i]):p.groups,...place(p.name,wrongs),e:`${p.name}: ${p.desc} Worth ${p.points}.`});
+    }
+    if(p.points>=6){
+      let i=ladder.indexOf(p.points),wrongs=shuffle([ladder[i-2],ladder[i-1],ladder[i+1],ladder[i+2]].filter(x=>x)).slice(0,2);
+      out.push({id:'points:'+p.name,mode:'Patterns',q:`How many points is ${p.name}?`,...place(p.points,wrongs),e:`${p.name} is worth ${p.points}. ${p.desc}`});
+    }
+    if(!p.play&&p.groups.length===5){
+      let wrongs=[...new Set([p.points,r.points-2,r.points+2,r.points+4,r.points-4])].filter(x=>x>0&&x!==r.points).slice(0,2);
+      out.push({id:'total:'+p.name,mode:'Scoring',q:'Nothing claimed. You win on a discard of the last tile shown, as East in the East round. What does it score?',g:p.groups,...place(r.points,wrongs),e:r.fans.map(f=>`${f.name}${f.count>1?' × '+f.count:''} ${f.total}`).join(' + ')+` = ${r.points}.`});
+    }
+  }
+  return out;
+}
+</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');</script></body></html>
