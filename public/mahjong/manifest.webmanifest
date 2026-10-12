@@ -2,11 +2,26 @@
   "name": "One hand at a time",
   "short_name": "Mahjong",
   "description": "Learn and score Chinese Official Mahjong (MCR). Works offline.",
+  "id": "mahjong",
   "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f7f4eb",
-  "theme_color": "#15594a",
+  "theme_color": "#fffdf7",
+  "categories": [
+    "games",
+    "education"
+  ],
+  "shortcuts": [
+    {
+      "name": "Score a hand",
+      "url": "index.html#scorer"
+    },
+    {
+      "name": "Practice",
+      "url": "index.html#practice"
+    }
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",
