@@ -14,6 +14,16 @@ export type WorkbenchItem = {
 
 export const items: WorkbenchItem[] = [
   {
+    title: "Mahjong, one hand at a time",
+    href: "/mahjong",
+    kind: "tools",
+    date: "2026-10-12",
+    description:
+      "Installable guide to Chinese Official Mahjong: learn the tiles and patterns, score a hand, and practice offline.",
+    tags: ["Tool", "Mahjong", "PWA"],
+    previewImage: "/workbench/mahjong-preview.png",
+  },
+  {
     title: "Wagnerkade 21",
     href: "/wagnerkade",
     kind: "tools",
