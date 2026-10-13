@@ -1,6 +1,6 @@
 // Service worker for the installed app: everything is cached at install, then served from the cache.
 // A new version waits for the page to ask (src/pwa.js), or for every window of the old one to close.
-const CACHE = 'mahjong-b17b915929d1';
+const CACHE = 'mahjong-80f0849a6aaf';
 const FILES = ["index.html", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png"];
 
 self.addEventListener('install', event => {
