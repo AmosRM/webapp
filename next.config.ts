@@ -45,6 +45,11 @@ const nextConfig: NextConfig = {
         destination: "/CINET/index.html",
         permanent: false,
       },
+      {
+        source: "/energynestOct",
+        destination: "/energynestOct/index.html",
+        permanent: false,
+      },
     ];
   },
 };
