@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Power-to-Heat Configurator · ENERGYNEST</title>
+<meta name="description" content="Size an indicative power-to-heat system (e-boiler, thermal storage, battery) for your industrial site in two minutes, based on ENERGYNEST rules of thumb." />
+<meta name="theme-color" content="#1C3C3C" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ENERGYNEST" />
+<meta property="og:title" content="Power-to-Heat Configurator · ENERGYNEST" />
+<meta property="og:description" content="Size an indicative e-boiler, thermal storage and battery system for your industrial site in two minutes, and see it in 3D." />
+<meta property="og:image" content="og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" href="logo.png" />
+<style>
+  @font-face{font-family:"Space Grotesk";font-style:normal;font-display:swap;font-weight:300 700;
+    src:url(vendor/fonts/space-grotesk-latin-wght-normal.woff2) format("woff2");
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+  @font-face{font-family:"Space Grotesk";font-style:normal;font-display:swap;font-weight:300 700;
+    src:url(vendor/fonts/space-grotesk-latin-ext-wght-normal.woff2) format("woff2");
+    unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+</style>
+<style>
+  /* ─── Tokens: ENERGYNEST brand (energy-nest.com Elementor kit) ─── */
+  :root{
+    --ink:#1C3C3C; --ink-deep:#151F22; --ink-2:#3d5654;
+    --muted:#5d6c6a; --muted-2:#8a9795;
+    --line:#E1E2DC; --line-soft:#EDEDE9; --bg:#F4F4F0; --card:#fff; --field:#F4F4F0;
+    --mint:#62D6A1; --mint-soft:#E6F7EF; --mint-ink:#17704C;
+    --accent:#E04723; --accent-hover:#C53A19;
+    --warn-bg:#FFF6E5; --warn-line:#F3D9A4; --warn-ink:#7A5200;
+    --info-bg:#EEF3FA; --info-line:#D3E0F1; --info-ink:#2C4F7C;
+    --err-bg:#FDEEEB; --err-line:#F4C7BD; --err-ink:#A3301A;
+    --c-eb:#6E9FDB; --c-tes:#F0B429; --c-bess:#3CC4AE; --c-gas:#AEB4B3;
+    --r:16px; --r-sm:10px;
+    --ease:cubic-bezier(.2,.7,.2,1);
+    --bar:56px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.45;color:var(--ink);
+    background:var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:"tnum" 1}
+  a{color:var(--accent);text-underline-offset:2px}
+  button{font-family:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:6px}
+  svg.i{width:16px;height:16px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .print-only{display:none}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* ─── App shell: sidebar | stage | result, one screen on desktop ─── */
+  .app{height:100vh;height:100dvh;display:grid;grid-template-rows:var(--bar) minmax(0,1fr)}
+  /* v3 layout: three columns; the inputs column collapses first, then the result column, each to a slim rail that opens the
+     column again as a panel over the stage (layout code in "Layout" below). Stacked page only on phones / very low windows. */
+  .main{position:relative;overflow:hidden;display:grid;grid-template-columns:var(--lcol) minmax(0,1fr) var(--rcol);min-height:0;
+    --lw:320px;--rw:380px;--rail:64px;--lcol:var(--lw);--rcol:var(--rw);transition:grid-template-columns .4s var(--ease)}
+  @media(max-width:1399px){.main{--lw:288px;--rw:356px}}
+  .main.lc{--lcol:var(--rail)} .main.rc{--rcol:var(--rail)}
+  .pane{min-height:0;display:flex;flex-direction:column;overflow:hidden;background:var(--card)}
+  .inputs,.result{position:absolute;top:0;bottom:0;z-index:30;overflow:visible;transition:transform .4s var(--ease),box-shadow .3s var(--ease),visibility 0s}
+  .inputs{grid-column:1;grid-row:1;left:0;width:var(--lw);border-right:1px solid var(--line)}
+  .result{grid-column:3;grid-row:1;right:0;width:var(--rw)}
+  .viewer{grid-column:2;grid-row:1}
+  .lc .inputs{transform:translateX(-100%);visibility:hidden;transition:transform .4s var(--ease),box-shadow .3s,visibility 0s .4s}
+  .rc .result{transform:translateX(100%);visibility:hidden;transition:transform .4s var(--ease),box-shadow .3s,visibility 0s .4s}
+  .lc.l-open .inputs{transform:none;visibility:visible;box-shadow:0 0 0 1px var(--line),8px 0 40px rgba(21,31,34,.22);transition:transform .4s var(--ease),box-shadow .3s,visibility 0s}
+  .rc.r-open .result{transform:none;visibility:visible;box-shadow:0 0 0 1px var(--line),-8px 0 40px rgba(21,31,34,.28);transition:transform .4s var(--ease),box-shadow .3s,visibility 0s}
+  .scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .pane-ft{padding:14px 22px;display:flex;align-items:center;gap:8px;flex:0 0 auto;border-top:1px solid var(--line-soft)}
+  /* rails, edge tabs, scrim */
+  .rail{position:absolute;top:0;bottom:0;width:var(--rail);z-index:25;border:0;margin:0;padding:14px 0;display:flex;flex-direction:column;align-items:center;gap:16px;cursor:pointer;
+    opacity:0;visibility:hidden;transition:opacity .3s var(--ease),visibility 0s .3s,background .15s}
+  .rail-l{left:0;background:var(--card);border-right:1px solid var(--line);color:var(--ink)}
+  .rail-l:hover{background:#FBFBF9}
+  .rail-r{right:0;background:linear-gradient(180deg,#1d4140,#173434);color:#fff;border-left:1px solid rgba(255,255,255,.08)}
+  .rail-r:hover{background:linear-gradient(180deg,#22494a,#1b3c3c)}
+  .lc .rail-l,.rc .rail-r{opacity:1;visibility:visible;transition:opacity .3s var(--ease) .15s,visibility 0s,background .15s}
+  .rail-ic{width:30px;height:30px;border-radius:50%;border:1px solid currentColor;opacity:.55;display:grid;place-items:center;flex:0 0 auto}
+  .rail-ic svg{width:14px;height:14px}
+  .rl{display:flex;flex-direction:column;align-items:center;line-height:1.1;text-align:center;min-width:0;max-width:100%;gap:2px}
+  .rl svg{width:14px;height:14px;color:var(--muted-2);margin-bottom:1px}
+  .rl + .rl{padding-top:12px;border-top:1px solid var(--line-soft);width:40px}
+  .rl b{font-size:15px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .rl small{font-size:9.5px;font-weight:500;color:var(--muted);margin-top:2px;white-space:nowrap}
+  .rr-fig{font-size:13px;font-weight:600;letter-spacing:-.02em;color:var(--mint);font-variant-numeric:tabular-nums;text-align:center;line-height:1.15;max-width:56px}
+  .rr-title{flex:1;min-height:0;writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;line-height:1.2;font-weight:500;letter-spacing:-.005em;color:rgba(255,255,255,.82);white-space:normal;overflow:hidden;max-height:100%;max-width:40px;text-align:center}
+  .edge,.pin{position:absolute;z-index:31;width:20px;height:34px;border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--muted-2);display:grid;place-items:center;cursor:pointer;padding:0;transition:background .15s,color .15s}
+  .edge:hover,.pin:hover{background:#fff;color:var(--ink)}
+  .edge svg,.pin svg{width:12px;height:12px}
+  .edge-l,.pin-l{right:-20px;border-left:0;border-radius:0 8px 8px 0}
+  .edge-r,.pin-r{left:-20px;border-right:0;border-radius:8px 0 0 8px}
+  .edge{bottom:22px} .pin{bottom:62px;display:none}
+  .l-open .pin-l,.r-open .pin-r{display:grid}
+  .scrim{position:absolute;inset:0;z-index:28;background:rgba(28,60,60,.16);opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+  .l-open .scrim,.r-open .scrim{opacity:1;pointer-events:auto}
+
+  /* stacked, scrolling page: only on phones and very low windows (everything else keeps the stage in view) */
+  @media(max-width:519px),(max-height:439px){
+    .app{height:auto;grid-template-rows:var(--bar) auto;grid-template-columns:minmax(0,1fr)}
+    .main{display:flex;flex-direction:column;transition:none;overflow:visible}
+    .main > *{min-width:0;max-width:100%;width:100%}
+    .inputs,.result{position:static;width:auto;transform:none!important;visibility:visible!important;box-shadow:none!important;overflow:hidden}
+    /* phone order: the plant first, the result under it, the inputs last and compact */
+    .viewer{order:1;height:340px;min-height:0}
+    .result{order:2}
+    .inputs{order:3;border-right:0;border-top:1px solid var(--line)}
+    .scroll{overflow:visible}
+    .rail,.edge,.pin,.scrim,.btn.to-viewer{display:none!important}
+    .main .sec{padding:14px 18px 12px} .main .sec-h{margin-bottom:8px} .main .bignum{margin-top:6px} .main .bignum input{font-size:30px}
+    .main .chips{display:flex;overflow-x:auto;gap:6px;padding-bottom:4px;scrollbar-width:none}
+    .main .chips .chip-t{flex:0 0 auto;min-width:88px}
+    .main .result .res-tools{padding-top:14px} .main .res-t{font-size:22px;margin-top:4px}
+    .main .kit li{padding:8px 0} .main .kit .s{display:none}
+    .main .mkt{margin-top:12px;padding-top:12px} .main .hero{margin-top:8px} .main .hero-v{font-size:34px} .main .kpis{margin-top:10px}
+    .main .result .pane-ft{padding:12px 18px 16px} .main .pane-ft{padding:10px 18px}
+  }
+  @media(max-width:519px){ .iso-layer{inset:54px 6px 60px} }
+  @media(max-width:519px) and (min-height:560px){ .viewer{position:sticky;top:0;z-index:20} }
+
+  /* ─── Top bar ─── */
+  .bar{display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--card);border-bottom:1px solid var(--line);position:relative;z-index:6}
+  .brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);min-width:0}
+  .brand img{height:20px;width:auto;display:block}
+  .brand-div{width:1px;height:18px;background:var(--line)}
+  .brand-sub{font-size:14px;font-weight:500;color:var(--ink);letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .ghost{height:32px;padding:0 12px 0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);display:inline-flex;align-items:center;gap:7px;
+    font-size:12.5px;font-weight:500;color:var(--ink-2);cursor:pointer;transition:background .15s,border-color .15s}
+  .ghost:hover{background:var(--bg);border-color:#cfd1c9}
+  .ghost svg{width:14px;height:14px}
+  .icon-btn{width:34px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);flex:0 0 auto;transition:background .15s}
+  .icon-btn:hover{background:var(--bg)}
+  .seg{display:inline-flex;padding:3px;background:var(--field);border-radius:999px;gap:2px}
+  .seg button{border:0;background:transparent;font-size:12.5px;font-weight:500;height:28px;padding:0 12px;border-radius:999px;cursor:pointer;color:var(--muted);white-space:nowrap;transition:color .15s,background .15s}
+  .seg button:hover{color:var(--ink)}
+  .seg button[aria-pressed="true"],.seg button[aria-checked="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(21,31,34,.08),0 0 0 1px rgba(21,31,34,.04)}
+  .lang button{font-weight:600;letter-spacing:.04em;font-size:11.5px;height:26px;min-width:36px;padding:0 9px}
+  @media(max-width:560px){.brand-div,.brand-sub,.ghost span{display:none}.ghost{padding:0 9px}.bar{padding:0 16px}}
+
+  /* ─── Inputs: three numbered steps ─── */
+  .sec{padding:22px 22px 20px}
+  .sec + .sec{border-top:1px solid var(--line-soft)}
+  .sec-h{display:flex;align-items:center;gap:10px;margin-bottom:14px;min-height:22px}
+  .num{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600;flex:0 0 auto}
+  .sec-h .ttl{font-size:14px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+  .sec.off .num{background:var(--line);color:var(--muted)}
+  .bignum{display:flex;align-items:baseline;gap:6px;margin-top:14px}
+  .bignum input{border:0;outline:0;background:transparent;font:inherit;font-size:36px;font-weight:500;letter-spacing:-.035em;line-height:1.1;color:var(--ink);
+    width:3ch;min-width:1.6ch;max-width:100%;padding:0 6px;margin-left:-6px;border-radius:8px;transition:background .15s,box-shadow .15s;-moz-appearance:textfield}
+  .bignum input:hover{background:var(--field)}
+  .bignum input:focus{background:var(--field);box-shadow:inset 0 -2px 0 var(--ink)}
+  .bignum input::placeholder{color:#c5c8c0}
+  .bignum .unit{font-size:13px;font-weight:500;color:var(--muted)}
+  .ctl{position:relative;display:flex;align-items:center}
+  .ctl input{width:100%;height:38px;padding:0 60px 0 12px;border:1px solid transparent;border-radius:var(--r-sm);background:var(--field);
+    font:inherit;font-size:14px;font-weight:500;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s,background .15s;-moz-appearance:textfield}
+  .ctl input::-webkit-outer-spin-button,.ctl input::-webkit-inner-spin-button,.bignum input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .ctl input::placeholder{color:var(--muted-2);font-weight:400}
+  .ctl input:hover{border-color:var(--line)}
+  .ctl input:focus{background:#fff;border-color:var(--ink);box-shadow:0 0 0 3px rgba(28,60,60,.08)}
+  .ctl .unit{position:absolute;right:12px;font-size:12px;color:var(--muted);pointer-events:none}
+  .field{margin-bottom:12px}
+  .f-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .field label{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+  .field.invalid .ctl input{border-color:var(--accent);box-shadow:0 0 0 3px rgba(224,71,35,.1)}
+  .derived{font-size:11.5px;color:var(--mint-ink);margin-top:4px}
+  .derived:empty{display:none}
+  .derived.warn{color:var(--accent)}
+  .seg-full{display:flex;width:100%}
+  .seg-full button{flex:1}
+  .range{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;margin:8px 0 0;cursor:pointer;display:block}
+  .range::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(to right,var(--ink) var(--p,0%),var(--line) var(--p,0%))}
+  .range::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ink);border:3px solid #fff;margin-top:-7.5px;
+    box-shadow:0 0 0 1px rgba(28,60,60,.25),0 2px 6px rgba(21,31,34,.25);transition:transform .15s var(--ease)}
+  .range:active::-webkit-slider-thumb{transform:scale(1.15)}
+  .range::-moz-range-track{height:3px;border-radius:2px;background:var(--line)}
+  .range::-moz-range-progress{height:3px;border-radius:2px;background:var(--ink)}
+  .range::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--ink);border:3px solid #fff;box-shadow:0 0 0 1px rgba(28,60,60,.25),0 2px 6px rgba(21,31,34,.25)}
+  .range:focus-visible{outline:none}
+  .range:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 5px rgba(28,60,60,.16)}
+  .hint{font-size:12px;color:var(--muted);min-height:17px;margin-top:4px}
+  .hint b{font-weight:600;color:var(--mint-ink)}
+  .hint.muted{color:var(--muted)}
+  .hint.warn{color:var(--warn-ink)}
+  .chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .chip-t{border:1px solid var(--line);background:var(--card);border-radius:var(--r-sm);padding:8px 10px;text-align:left;cursor:pointer;line-height:1.2;min-width:0;
+    transition:border-color .15s,background .15s,color .15s,transform .15s var(--ease)}
+  .chip-t:hover{border-color:#c4c7bf;background:#FBFBF9}
+  .chip-t:active{transform:scale(.98)}
+  .chip-t b{display:block;font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .chip-t span{display:block;font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chip-t[aria-checked="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .chip-t[aria-checked="true"] span{color:rgba(255,255,255,.66)}
+  .custom-temp{display:flex;gap:8px;margin-top:8px;align-items:center}
+  .custom-temp[hidden]{display:none}
+  .custom-temp .ctl{flex:1}
+  .switch{margin-left:auto;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted)}
+  .switch input{position:absolute;opacity:0;width:1px;height:1px}
+  .switch span{width:34px;height:20px;border-radius:999px;background:#D3D5CE;position:relative;transition:background .2s}
+  .switch span::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s var(--ease);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .switch input:checked + span{background:var(--ink)}
+  .switch input:checked + span::after{transform:translateX(14px)}
+  .switch input:focus-visible + span{outline:2px solid var(--ink);outline-offset:2px}
+  .switch b{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  #elecBox[hidden]{display:none}
+  .adv .derived:not(.warn){display:none}
+  details.adv{border-top:1px solid var(--line-soft)}
+  details.adv > summary{list-style:none;cursor:pointer;padding:16px 22px;display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;transition:background .15s}
+  details.adv > summary:hover{background:#FBFBF9}
+  details.adv > summary::-webkit-details-marker{display:none}
+  details.adv > summary small{font-weight:400;color:var(--muted-2);font-size:12px}
+  .plus{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);flex:0 0 auto}
+  .plus svg{width:12px;height:12px;transition:transform .2s var(--ease)}
+  details[open] .plus svg{transform:rotate(45deg)}
+  .adv-body{padding:0 22px 8px}
+  .link-btn{border:0;background:none;font-size:12.5px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 0}
+  .link-btn:hover{color:var(--ink)}
+  .link-btn svg{width:14px;height:14px}
+  .btn.to-viewer{display:none;margin-left:auto}
+  @media(max-width:519px),(max-height:439px){.btn.to-viewer{display:inline-flex}}
+
+  /* ─── Stage (3D) ─── */
+  .viewer{position:relative;background:
+    radial-gradient(70% 55% at 50% 58%, #FFFFFF 0%, rgba(255,255,255,0) 70%),
+    linear-gradient(180deg,#EEEFEA 0%,#E6E8E2 100%)}
+  .viewer.sky{background:#cfd6da}
+  /* v3: the isometric plant (iso-stage.js) replaces the 3D iframe */
+  .iso-host{position:absolute;inset:0;opacity:0;transition:opacity .6s var(--ease)}
+  .viewer.ready .iso-host{opacity:1}
+  .iso-layer{position:absolute;inset:66px 40px 96px;opacity:0;transition:opacity .45s var(--ease);pointer-events:none}
+  .iso-layer.on{opacity:1}
+  /* a plant without storage is cropped to its heat plant: the plate it stands on fades out instead of ending at the box */
+  .iso-layer.fade{-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);-webkit-mask-composite:source-in;mask-composite:intersect}
+  .iso-labels{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}
+  .co{--halo:#ECEDE8}
+  .co text{font-family:inherit;paint-order:stroke;stroke:var(--halo);stroke-width:3.5px;stroke-linejoin:round;transition:opacity .6s var(--ease) .35s}
+  .co-name{font-size:11px;font-weight:500;fill:var(--muted);letter-spacing:.01em}
+  .co-val{fill:var(--ink)} .co-num{font-size:20px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+  .co-unit{font-size:11.5px;font-weight:500;fill:var(--muted)}
+  .co-sec{font-size:11px;font-weight:400;fill:var(--muted);font-variant-numeric:tabular-nums}
+  .co-note{font-size:10.5px;fill:var(--muted-2)}
+  .co-lead{fill:none;stroke:var(--ink);stroke-width:1;stroke-linejoin:miter;stroke-dasharray:1;stroke-dashoffset:0;transition:stroke-dashoffset .7s var(--ease)}
+  .co-ring{fill:var(--c);stroke:var(--ink);stroke-width:1.1;transition:opacity .3s}
+  .co-tes{--c:var(--c-tes)} .co-eb{--c:var(--c-eb)} .co-bess{--c:var(--c-bess)} .co-gas{--c:var(--c-gas)}
+  .co.pre .co-lead{stroke-dashoffset:1;transition:none} .co.pre text{opacity:0;transition:none} .co.pre .co-ring{opacity:0;transition:none}
+  #btnBg,#stateSeg[hidden],#btnCasing[hidden],.vbot.no-states .sep{display:none}
+  @media(max-width:640px){.vbot.no-states{display:none}}
+  .diagram{position:absolute;inset:0;background:#fff;display:none;align-items:center;justify-content:center;padding:64px 28px 28px;overflow:auto}
+  .diagram.show{display:flex}
+  .diagram svg{max-height:100%}
+  .vtop{position:absolute;left:16px;top:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none;z-index:4}
+  .vbot{position:absolute;left:16px;right:16px;bottom:16px;display:flex;justify-content:center;pointer-events:none;z-index:4}
+  .vtop > *,.vbot > *{pointer-events:auto}
+  .glass{display:inline-flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.78);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);
+    box-shadow:0 1px 1px rgba(21,31,34,.04),0 10px 30px rgba(21,31,34,.10);border:1px solid rgba(255,255,255,.9)}
+  .glass button{border:0;background:transparent;height:30px;padding:0 13px;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--ink-2);white-space:nowrap;
+    display:inline-flex;align-items:center;gap:7px;transition:background .15s,color .15s}
+  .glass button:hover{background:rgba(28,60,60,.06)}
+  .glass button[aria-pressed="true"],.glass button[aria-selected="true"]{background:var(--ink);color:#fff}
+  .glass .sep{width:1px;height:18px;background:rgba(28,60,60,.14);margin:0 4px;flex:0 0 auto}
+  .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.5}
+  .glass button[data-state="idle"] .dot{background:#9aa5a3;opacity:1}
+  .glass button[data-state="charging"] .dot{background:#E8673F;opacity:1}
+  .glass button[data-state="discharging"] .dot{background:#5B92DA;opacity:1}
+  .glass button[data-state="charging"][aria-pressed="true"]{background:#D9532F}
+  .glass button[data-state="discharging"][aria-pressed="true"]{background:#3F78C9}
+  .glass button[data-state][aria-pressed="true"] .dot{background:#fff}
+  .vnote{font-size:11px;color:var(--muted);padding:6px 4px;letter-spacing:.01em}
+  .contents{display:contents}
+  .vempty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(238,239,234,.92);z-index:5;color:var(--muted)}
+  .vempty[hidden]{display:none}
+  @media(max-width:640px){.vnote,.tb-opt{display:none}.glass button{padding:0 10px}}
+
+  /* ─── Result panel (dark) ─── */
+  .result{--fg:#fff;--fg-2:rgba(255,255,255,.74);--fg-3:rgba(255,255,255,.5);--hair:rgba(255,255,255,.1);--tile:rgba(255,255,255,.06);--hero:var(--mint);
+    background:radial-gradient(130% 55% at 100% 0%,#285752 0%,rgba(40,87,82,0) 62%),linear-gradient(180deg,#1C3C3C 0%,#152B2C 100%);color:var(--fg)}
+  .result .scroll{scrollbar-color:rgba(255,255,255,.18) transparent}
+  .res-tools{display:flex;align-items:center;gap:6px;padding:20px 20px 0 26px}
+  .res-tools .res-k{margin-right:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .chip-btn{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px 0 8px;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
+  .chip-btn svg{width:13px;height:13px}
+  .chip-btn:hover,.chip-btn[aria-expanded="true"]{background:rgba(255,255,255,.12);color:var(--fg)}
+  .tool{width:30px;height:30px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--fg-2);display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s}
+  .tool:hover,.tool[aria-expanded="true"]{background:var(--tile);border-color:var(--hair);color:var(--fg)}
+  .tool svg{width:15px;height:15px}
+  .about{position:static}
+  .res{padding:4px 26px 4px}
+  .res-k{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3)}
+  .chip{font-size:11px;font-weight:500;letter-spacing:.01em;text-transform:none;padding:2px 9px;border-radius:999px;background:var(--tile);color:var(--fg-2);border:1px solid var(--hair)}
+  .res-t{font-size:26px;font-weight:500;letter-spacing:-.03em;line-height:1.12;margin-top:10px;color:var(--fg);text-wrap:balance}
+  .res-x{font-size:13px;color:var(--fg-2);margin-top:8px;display:flex;align-items:center;gap:7px}
+  .res-x svg{width:14px;height:14px;color:var(--hero)}
+  .kit{list-style:none;margin-top:18px;border-top:1px solid var(--hair)}
+  .kit li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--hair);animation:rowIn .45s var(--ease) both}
+  .kit li:nth-child(2){animation-delay:.04s}.kit li:nth-child(3){animation-delay:.08s}.kit li:nth-child(4){animation-delay:.12s}
+  @keyframes rowIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .kit .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 26%,transparent)}
+  .kit .ic svg{width:16px;height:16px}
+  .kit .n{font-size:14px;font-weight:600;color:var(--fg)}
+  .kit .s{font-size:11.5px;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .kit .v{text-align:right;font-size:20px;font-weight:500;letter-spacing:-.02em;white-space:nowrap;color:var(--fg);line-height:1.15}
+  .kit .v small{font-size:11.5px;color:var(--fg-3);margin-left:3px;font-weight:500;letter-spacing:0}
+  .kit .e{text-align:right;font-size:11.5px;color:var(--fg-3);white-space:nowrap}
+  .notes{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+  .note{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-radius:var(--r-sm);font-size:12px;line-height:1.4;border:1px solid;cursor:pointer;text-align:left;background:none;width:100%}
+  .note svg{width:14px;height:14px;margin-top:1px}
+  .note span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .note[aria-expanded="true"] span{-webkit-line-clamp:unset;display:block}
+  .note.warn{background:rgba(240,180,41,.1);border-color:rgba(240,180,41,.28);color:#F5D57E}
+  .note.info{background:rgba(110,159,219,.1);border-color:rgba(110,159,219,.28);color:#B7D0F0}
+  .state{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:10px 0 12px}
+  .state-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--tile);color:var(--fg-2);border:1px solid var(--hair)}
+  .state-ic.err{color:#FF9C84}
+  .state h3{font-size:19px;font-weight:500;letter-spacing:-.02em}
+  .state p{color:var(--fg-2);font-size:13px}
+  .state ul{margin-left:16px;color:#FFB7A6;font-size:12.5px}
+
+  .mkt{margin:22px 26px 0;padding-top:20px;border-top:1px solid var(--hair)}
+  .mkt-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .mkt-h .res-k{gap:8px;justify-content:flex-start}
+  .ill{font-size:10.5px;font-weight:500;letter-spacing:.01em;text-transform:none;padding:1px 8px;border-radius:999px;background:rgba(240,180,41,.12);color:#F5D57E;border:1px solid rgba(240,180,41,.3)}
+  .result .seg{background:var(--tile);box-shadow:inset 0 0 0 1px var(--hair)}
+  .result .seg button{color:var(--fg-2)}
+  .result .seg button:hover{color:var(--fg)}
+  .result .seg button[aria-checked="true"]{background:rgba(255,255,255,.14);color:var(--fg);box-shadow:none}
+  .hero{margin-top:18px}
+  .hero-v{font-size:44px;font-weight:500;letter-spacing:-.045em;line-height:1;color:var(--hero)}
+  .hero-s{font-size:12.5px;color:var(--fg-2);margin-top:6px}
+  .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:18px;border-top:1px solid var(--hair)}
+  .kpi{padding:12px 10px 0 0;min-width:0}
+  .kpi + .kpi{padding-left:12px;border-left:1px solid var(--hair)}
+  .kpi-v{font-size:19px;font-weight:500;letter-spacing:-.02em;line-height:1.15;color:var(--fg);white-space:nowrap}
+  .kpi-s{font-size:11px;line-height:1.35;color:var(--fg-3);margin-top:3px}
+  .mkt-none{font-size:12.5px;color:var(--fg-2)}
+
+  /* shorter screens: tighten the vertical rhythm so it still fits one screen */
+  @media(max-height:860px) and (min-width:520px){
+    .sec{padding:16px 22px 14px}
+    .sec-h{margin-bottom:10px}
+    .bignum{margin-top:10px}
+    .bignum input{font-size:30px}
+    .range{margin-top:4px}
+    .chip-t{padding:6px 9px}
+    details.adv > summary{padding:13px 22px}
+    .pane-ft{padding:11px 22px}
+    .res-tools{padding-top:16px}
+    .res-t{font-size:22px;margin-top:6px}
+    .res-x{margin-top:5px}
+    .kit{margin-top:12px}
+    .kit li{padding:8px 0}
+    .kit .ic{width:28px;height:28px}
+    .kit li{grid-template-columns:28px minmax(0,1fr) auto}
+    .kit .v{font-size:18px}
+    .notes{margin-top:10px}
+    .mkt{margin-top:14px;padding-top:14px}
+    .mkt-h{margin-bottom:10px}
+    .hero{margin-top:12px}
+    .hero-v{font-size:34px}
+    .hero-s{margin-top:4px}
+    .kpis{margin-top:12px}
+    .kpi{padding-top:9px}
+    .kpi-v{font-size:17px}
+    .result .pane-ft{padding:12px 26px 14px}
+    .btn-primary{height:44px}
+  }
+  /* tall screens: give the result panel more presence */
+  @media(min-height:980px) and (min-width:520px){
+    .res-t{font-size:30px}
+    .kit li{padding:16px 0}
+    .kit .ic{width:36px;height:36px}
+    .kit li{grid-template-columns:36px minmax(0,1fr) auto}
+    .kit .v{font-size:22px}
+    .mkt{margin-top:30px;padding-top:26px}
+    .hero{margin-top:24px}
+    .hero-v{font-size:56px}
+    .kpis{margin-top:24px}
+    .kpi{padding-top:16px}
+    .kpi-v{font-size:22px}
+    .sec{padding:26px 22px 24px}
+  }
+  @media(max-height:760px) and (min-width:520px){
+    .kit .s{display:none}
+    .kit li{padding:7px 0}
+    .hero-v{font-size:30px}
+    .sec{padding:14px 22px 12px}
+  }
+
+  /* footer: CTA + tools */
+  .result .pane-ft{border-top:1px solid var(--hair);padding:16px 26px 20px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border:0;border-radius:999px;font-size:14px;font-weight:600;
+    cursor:pointer;text-decoration:none;transition:background .15s,box-shadow .2s,transform .15s var(--ease);white-space:nowrap}
+  .btn-primary{background:var(--accent);color:#fff;flex:1;min-width:0;padding:0 18px;height:48px;font-size:14.5px;letter-spacing:-.005em}
+  .btn-primary span{overflow:hidden;text-overflow:ellipsis}
+  .btn-primary svg{transition:transform .2s var(--ease)}
+  .btn-primary:hover{background:var(--accent-hover);box-shadow:0 10px 26px rgba(224,71,35,.35)}
+  .btn-primary:hover svg{transform:translateX(3px)}
+  .btn-primary:active{transform:scale(.99)}
+  .btn-primary[disabled]{background:rgba(255,255,255,.12);color:var(--fg-3);box-shadow:none;cursor:not-allowed}
+  .modal .btn-primary[disabled]{background:#e9b3a6;color:#fff}
+  .btn-dark{background:var(--ink);color:#fff}
+  .btn-sm{height:34px;padding:0 14px;font-size:13px}
+  .pop{position:absolute;left:14px;right:14px;top:58px;max-height:min(60vh,460px);overflow:auto;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--r);box-shadow:0 24px 60px rgba(0,0,0,.35);padding:16px 18px;font-size:12.5px;color:var(--muted);z-index:30;display:none}
+  .pop.open{display:block;animation:modalIn .2s var(--ease)}
+  .pop h4{font-size:12.5px;color:var(--ink);margin:0 0 6px}
+  .pop h4:not(:first-child){margin-top:12px}
+  .pop ul{padding-left:16px}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,16px);opacity:0;background:var(--ink-deep);color:#fff;padding:10px 16px;border-radius:999px;
+    font-size:13px;z-index:120;transition:all .25s var(--ease);pointer-events:none;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+  .toast svg{color:var(--mint)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ─── Lead modal ─── */
+  .overlay{position:fixed;inset:0;background:rgba(21,31,34,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;
+    display:none;align-items:center;justify-content:center;padding:16px}
+  .overlay.open{display:flex}
+  .modal{background:var(--card);border-radius:20px;width:100%;max-width:560px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 30px 80px rgba(21,31,34,.35);
+    animation:modalIn .28s var(--ease)}
+  @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+  .m-hd{padding:26px 28px 0;display:flex;justify-content:space-between;gap:12px}
+  .m-hd h2{font-size:22px;font-weight:500;letter-spacing:-.02em}
+  .m-hd p{color:var(--muted);font-size:13.5px;margin-top:4px}
+  .x{width:34px;height:34px;border-radius:50%;border:0;background:var(--bg);cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+  .x:hover{background:var(--line)}
+  .m-sum{margin:16px 28px 0;display:flex;flex-wrap:wrap;gap:6px}
+  .pill{font-size:12px;font-weight:500;padding:4px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
+  .pill i{width:8px;height:8px;border-radius:2px;background:var(--c,var(--ink))}
+  .pill.t{background:var(--ink);color:#fff;border-color:var(--ink)}
+  form.lead{padding:18px 28px 26px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 12px}
+  .fg{display:flex;flex-direction:column;gap:6px}
+  .fg.full{grid-column:1/-1}
+  .fg label{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+  .fg label em{color:var(--accent);font-style:normal}
+  .fg input,.fg textarea{height:42px;padding:0 12px;border:1px solid transparent;border-radius:var(--r-sm);font:inherit;font-size:14px;color:var(--ink);outline:none;background:var(--field);
+    transition:border-color .15s,box-shadow .15s,background .15s}
+  .fg input:hover,.fg textarea:hover{border-color:var(--line)}
+  .fg textarea{height:auto;min-height:72px;padding:10px 12px;resize:vertical}
+  .fg input:focus,.fg textarea:focus{background:#fff;border-color:var(--ink);box-shadow:0 0 0 3px rgba(28,60,60,.08)}
+  .fg input:user-invalid{border-color:var(--accent)}
+  .hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
+  .consent{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--muted);margin-top:14px;cursor:pointer}
+  .consent input{width:17px;height:17px;margin-top:1px;accent-color:var(--ink);flex:0 0 auto}
+  .f-err{display:none;gap:8px;align-items:flex-start;margin-top:10px;padding:8px 11px;border-radius:var(--r-sm);font-size:12.5px;background:var(--err-bg);border:1px solid var(--err-line);color:var(--err-ink)}
+  .f-err.show{display:flex}
+  .f-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}
+  .f-actions .btn-primary{flex:0 0 auto;height:46px}
+  .f-note{font-size:11.5px;color:var(--muted-2);display:inline-flex;align-items:center;gap:5px}
+  .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+  .sending .spin{display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .done{display:none;padding:38px 28px 32px;text-align:center}
+  .done.show{display:block}
+  .done-ic{width:56px;height:56px;border-radius:50%;background:var(--mint-soft);color:var(--mint-ink);display:grid;place-items:center;margin:0 auto 14px}
+  .done-ic svg{width:26px;height:26px}
+  .done h3{font-size:22px;font-weight:500;letter-spacing:-.02em}
+  .done p{color:var(--muted);margin-top:6px}
+  .done .proto{font-size:12px;margin-top:12px;color:var(--muted-2)}
+  @media(max-width:560px){.fgrid{grid-template-columns:1fr}.m-hd{padding:22px 20px 0}.m-sum{margin:14px 20px 0}form.lead{padding:16px 20px 22px}}
+
+  /* embed: the host site provides header + language */
+  body.embed .bar{display:none}
+  body.embed .app{grid-template-rows:minmax(0,1fr)}   /* header hidden: main takes the only row */
+  @media(max-width:519px),(max-height:439px){body.embed .app{grid-template-rows:auto}}
+  body.embed.tall{position:relative}
+  body.embed.tall .overlay{position:absolute;align-items:flex-start}
+
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+  /* ─── Print: one-page summary (light) ─── */
+  @media print{
+    @page{margin:14mm}
+    body{background:#fff}
+    .app{display:block;height:auto}
+    .bar,.inputs,.vtop,.vbot,.iso-host,.vempty,.pane-ft,.overlay,.toast,.mkt .seg,.tool,.pop{display:none!important}
+    .print-only{display:block!important}
+    .main{display:flex;flex-direction:column-reverse;padding:0;gap:10px}
+    .pane{border:0;box-shadow:none;overflow:visible}
+    .result{--fg:var(--ink);--fg-2:var(--muted);--fg-3:var(--muted-2);--hair:var(--line);--tile:var(--bg);--hero:var(--mint-ink);background:#fff!important}
+    .note.warn{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-ink)}
+    .note.info{background:var(--info-bg);border-color:var(--info-line);color:var(--info-ink)}
+    .ill{background:#FEF9C3;color:#6B5C00;border-color:#F0E58C}
+    .kit li{animation:none}
+    .viewer{height:auto;min-height:0;background:#fff}
+    .diagram{position:static;display:flex!important;padding:0}
+    .note span{-webkit-line-clamp:unset;display:block}
+    .diagram svg{width:88%;height:auto;max-height:66mm}
+    .kit li{padding:5px 0;grid-template-columns:minmax(0,1fr) auto}
+    .kit .ic,.res-x svg{display:none}
+    .kit .v{font-size:16px}
+    .res-tools{padding:6px 16px 0}
+    .chip-btn svg{display:none}
+    .hero{margin-top:8px}.kpis{margin-top:8px}.kpi{padding-top:6px}.kpi-v{font-size:15px}
+    .res{padding:4px 16px 0}.res-t{font-size:19px}.hero-v{font-size:24px}.mkt{margin:12px 16px 0;padding-top:10px}
+  }
+  .print-head img{height:20px}
+  .print-head h1{font-size:18px;font-weight:500;margin-top:8px}
+  .print-head .meta{color:var(--muted);font-size:11px}
+  .print-inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 16px;margin:8px 0 6px;font-size:11px}
+  .print-inputs div{display:flex;justify-content:space-between;border-bottom:1px solid var(--line-soft);padding:2px 0}
+  .print-inputs span{color:var(--muted)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.6 2.2-4.8.3 1.6 1 2.6 2 3.1C11 9.3 11.2 6 12 3z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"/><path d="m12 18 4-6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 24 24"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 11v2M7 10v4M11 10v4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="bar">
+    <a class="brand" href="https://energy-nest.com/" target="_blank" rel="noopener">
+      <img src="logo.png" alt="ENERGYNEST" width="105" height="21">
+      <span class="brand-div" aria-hidden="true"></span>
+      <span class="brand-sub" data-i18n="tag">Power-to-Heat Configurator</span>
+    </a>
+    <div class="bar-r">
+      <button class="ghost" id="copyLink" type="button"><svg class="i"><use href="#i-link"/></svg><span data-i18n="copy_link">Copy link</span></button>
+      <div class="seg lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="de" aria-pressed="false">DE</button>
+        <button type="button" data-lang="es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- ═══════════ INPUTS ═══════════ -->
+    <aside class="pane inputs" id="inputsPane" aria-label="Site inputs" tabindex="-1">
+      <button class="edge edge-l" id="edgeL" type="button" aria-controls="inputsPane"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button class="pin pin-l" id="pinL" type="button"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M10 5v14"/></svg></button>
+      <div class="scroll">
+        <div class="sec" id="f_annualHeat">
+          <div class="sec-h"><span class="num" aria-hidden="true">1</span><label class="ttl" for="in_heat" data-i18n="q_heat">Yearly energy for heat</label></div>
+          <div class="seg seg-full" role="radiogroup" id="basisSeg" aria-label="Basis">
+            <button type="button" role="radio" data-b="heat" aria-checked="true" data-i18n="b_heat">Heat</button>
+            <button type="button" role="radio" data-b="gas" aria-checked="false" data-i18n="b_gas">Gas</button>
+            <button type="button" role="radio" data-b="steam" aria-checked="false" data-i18n="b_steam">Steam</button>
+          </div>
+          <div class="bignum"><input type="text" inputmode="decimal" autocomplete="off" id="in_heat" placeholder="0"><span class="unit" id="u_heat">GWh/yr</span></div>
+          <input type="range" class="range" id="r_heat" min="0" max="1000" step="1" aria-labelledby="in_heat">
+          <div class="hint" id="h_heat"></div>
+        </div>
+        <div class="sec" id="f_temp">
+          <div class="sec-h"><span class="num" aria-hidden="true">2</span><span class="ttl" id="l_temp" data-i18n="q_temp">Process temperature</span></div>
+          <div class="chips" role="radiogroup" aria-labelledby="l_temp" id="tempChips"></div>
+          <div class="custom-temp" id="customTemp" hidden>
+            <div class="ctl"><input type="text" inputmode="decimal" autocomplete="off" id="in_temp" aria-labelledby="l_temp"><span class="unit" id="u_temp">°C</span></div>
+            <div class="seg" role="group" id="tempUnitSeg">
+              <button type="button" data-v="C" aria-pressed="true">°C</button>
+              <button type="button" data-v="barg" aria-pressed="false">barg</button>
+            </div>
+          </div>
+          <div class="hint" id="h_temp"></div>
+        </div>
+        <div class="sec" id="secElec">
+          <div class="sec-h"><span class="num" aria-hidden="true">3</span><label class="ttl" for="in_elec" data-i18n="q_elec">Yearly electricity use</label>
+            <label class="switch"><input type="checkbox" id="elecOn" checked><span aria-hidden="true"></span><b data-i18n="elec_inc">Include</b></label></div>
+          <p class="hint muted" id="elecOffHint" data-i18n="elec_off" hidden></p>
+          <div id="elecBox">
+            <div class="bignum"><input type="text" inputmode="decimal" autocomplete="off" id="in_elec" placeholder="0"><span class="unit" data-i18n="opt_gwh">GWh/yr</span></div>
+            <input type="range" class="range" id="r_elec" min="0" max="1000" step="1" aria-labelledby="in_elec">
+            <div class="hint" id="h_elec"></div>
+          </div>
+        </div>
+        <details class="adv" id="adv">
+          <summary><span class="plus" aria-hidden="true"><svg class="i"><use href="#i-plus"/></svg></span><span data-i18n="adv_t">Site details</span> <small data-i18n="adv_opt">optional</small></summary>
+          <div class="adv-body">
+            <p class="hint muted" style="margin:-2px 0 10px" data-i18n="adv_hint">Leave blank to use the automatic value.</p>
+            <div class="field" id="f_peakHeat">
+              <div class="f-top"><label for="in_peakHeat" data-i18n="lbl_peakHeat"></label></div>
+              <div class="ctl"><input type="text" inputmode="decimal" autocomplete="off" id="in_peakHeat" data-adv="peakHeat"><span class="unit">MW</span></div>
+              <div class="derived" id="d_peak"></div>
+            </div>
+            <div class="field">
+              <div class="f-top"><label for="in_baseload" data-i18n="lbl_baseload"></label></div>
+              <div class="ctl"><input type="text" inputmode="decimal" autocomplete="off" id="in_baseload" data-adv="baseload"><span class="unit">MW</span></div>
+            </div>
+            <div class="field" id="f_existing">
+              <div class="f-top"><label for="in_existing" data-i18n="lbl_existing"></label></div>
+              <div class="ctl"><input type="text" inputmode="decimal" autocomplete="off" id="in_existing" data-adv="existing"><span class="unit">MW</span></div>
+            </div>
+            <div class="field" id="f_peakElec">
+              <div class="f-top"><label for="in_peakElec" data-i18n="lbl_peakElec"></label></div>
+              <div class="ctl"><input type="text" inputmode="decimal" autocomplete="off" id="in_peakElec" data-adv="peakElec"><span class="unit">MW</span></div>
+              <div class="derived" id="d_peakE"></div>
+            </div>
+            <div class="field">
+              <div class="f-top"><label for="in_renewables" data-i18n="lbl_renewables"></label></div>
+              <div class="ctl"><input type="text" inputmode="decimal" autocomplete="off" id="in_renewables" data-adv="renewables"><span class="unit">MW</span></div>
+            </div>
+            <div class="field">
+              <div class="f-top"><label for="in_grid" data-i18n="lbl_grid"></label></div>
+              <div class="ctl"><input type="text" inputmode="decimal" autocomplete="off" id="in_grid" data-adv="grid"><span class="unit">MW</span></div>
+            </div>
+          </div>
+        </details>
+        <!-- the fields Alex's engine reads (filled from the friendly inputs above) -->
+        <div hidden>
+          <input type="hidden" id="annualHeat"><input type="hidden" id="heatUnit" value="GWh">
+          <input type="hidden" id="tempVal"><input type="hidden" id="tempUnit" value="C">
+          <input type="hidden" id="annualElec">
+          <input type="hidden" id="peakHeat"><input type="hidden" id="baseload"><input type="hidden" id="existing">
+          <input type="hidden" id="peakElec"><input type="hidden" id="renewables"><input type="hidden" id="grid">
+          <div id="d_heat"></div><div id="d_temp"></div><div id="d_elec"></div><div id="d_base"></div><div id="d_grid"></div><div id="d_existing"></div>
+        </div>
+      </div>
+      <div class="pane-ft">
+        <button class="link-btn" id="resetBtn" type="button"><svg class="i"><use href="#i-reset"/></svg><span data-i18n="reset">Reset to example</span></button>
+        <button class="btn btn-dark btn-sm to-viewer" id="toViewer" type="button"><span data-i18n="mob_view">View result</span><svg class="i"><use href="#i-arrow"/></svg></button>
+      </div>
+    </aside>
+
+    <!-- ═══════════ 3D ═══════════ -->
+    <section class="pane viewer" id="viewerPane" aria-label="Plant view">
+      <div class="iso-host" id="isoHost" role="img" aria-label="Plant view"></div>
+      <div class="diagram" id="diagram"></div>
+      <div class="vtop">
+        <div class="glass" role="tablist">
+          <button role="tab" aria-selected="true" data-view="3d" data-i18n="tab_3d">Plant</button>
+          <button role="tab" aria-selected="false" data-view="diagram" data-i18n="tab_diagram">Diagram</button>
+        </div>
+        <span class="vnote" data-i18n="vp_note">Schematic layout, not to scale.</span>
+      </div>
+      <div class="vbot" id="vbot">
+        <div class="glass" role="toolbar">
+          <span class="contents" role="group" id="stateSeg">
+            <button type="button" data-state="idle" aria-pressed="true"><span class="dot"></span><span data-i18n="st_idle">Idle</span></button>
+            <button type="button" data-state="charging" aria-pressed="false"><span class="dot"></span><span data-i18n="st_charging">Charging</span></button>
+            <button type="button" data-state="discharging" aria-pressed="false"><span class="dot"></span><span data-i18n="st_discharging">Discharging</span></button>
+          </span>
+          <span class="sep tb-opt" aria-hidden="true"></span>
+          <span class="contents tb-opt" role="group">
+            <button type="button" id="btnCasing" aria-pressed="false" data-i18n="btn_casing">Casing</button>
+            <button type="button" id="btnLabels" aria-pressed="true" data-i18n="btn_labels">Labels</button>
+            <button type="button" id="btnBg" aria-pressed="false" data-i18n="btn_bg">Sky</button>
+          </span>
+        </div>
+      </div>
+      <div class="vempty" id="vEmpty" hidden></div>
+    </section>
+
+    <!-- ═══════════ RESULT ═══════════ -->
+    <section class="pane result" id="resultPane" aria-live="polite" tabindex="-1">
+      <button class="edge edge-r" id="edgeR" type="button" aria-controls="resultPane"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button><button class="pin pin-r" id="pinR" type="button"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M10 5v14"/></svg></button>
+      <div class="scroll">
+        <div class="print-only print-head" style="padding:0 16px">
+          <img src="logo.png" alt="ENERGYNEST">
+          <h1 data-i18n="print_title">Power-to-heat configuration (indicative)</h1>
+          <div class="meta" id="printMeta"></div>
+          <div class="print-inputs" id="printInputs"></div>
+        </div>
+        <div class="res-tools">
+          <span class="res-k" data-i18n="res_eyebrow">Recommended solution</span>
+          <div class="about">
+            <button class="chip chip-btn" id="aboutBtn" type="button" aria-expanded="false" aria-controls="aboutPop" data-i18n-title="about_t" title="About these figures"><svg class="i"><use href="#i-info"/></svg><span data-i18n="chip_ind">Indicative</span></button>
+            <div class="pop" id="aboutPop" role="dialog" aria-label="About these figures"></div>
+          </div>
+          <button class="tool" id="pdfBtn" type="button" data-i18n-title="btn_pdf" title="Download summary"><svg class="i"><use href="#i-download"/></svg></button>
+        </div>
+        <div class="res" id="res"></div>
+        <div class="mkt" id="mkt" hidden>
+          <div class="mkt-h">
+            <div class="res-k"><span data-i18n="mv_title">Market view</span><span class="ill" data-i18n="mv_badge">Illustrative</span></div>
+          </div>
+          <div id="mktBody"></div>
+        </div>
+        <p class="print-only" id="printFoot" style="padding:10px 16px 0;font-size:10.5px;color:var(--muted)"></p>
+        <div style="height:10px"></div>
+      </div>
+      <div class="pane-ft">
+        <button class="btn btn-primary" id="ctaBtn" type="button"><span data-i18n="cta_short">Request a feasibility study</span><svg class="i"><use href="#i-arrow"/></svg></button>
+      </div>
+    </section>
+    <!-- collapsed columns: slim rails that open the column again over the stage -->
+    <div class="scrim" id="scrim"></div>
+    <button class="rail rail-l" id="railL" type="button" aria-controls="inputsPane" aria-expanded="false">
+      <span class="rail-ic"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+      <span class="rl" id="rlHeat"><svg class="i"><use href="#i-flame"/></svg><b>–</b><small></small></span><span class="rl" id="rlTemp"><svg class="i" viewBox="0 0 24 24"><path d="M10 14.5V5a2 2 0 014 0v9.5a4 4 0 11-4 0z"/></svg><b>–</b><small></small></span><span class="rl" id="rlElec"><svg class="i"><use href="#i-bolt"/></svg><b>–</b><small></small></span>
+    </button>
+    <button class="rail rail-r" id="railR" type="button" aria-controls="resultPane" aria-expanded="false">
+      <span class="rail-ic"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+      <span class="rr-fig" id="rrFig"></span><span class="rr-title" id="rrTitle"></span>
+    </button>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status"><svg class="i"><use href="#i-check"/></svg><span id="toastT"></span></div>
+
+<!-- ─── Lead modal ─── -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="leadTitle">
+    <div id="leadPane">
+      <div class="m-hd">
+        <div>
+          <h2 id="leadTitle" data-i18n="lead_title">Request your feasibility study</h2>
+          <p data-i18n="lead_sub"></p>
+        </div>
+        <button class="x" type="button" data-close aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="m-sum" id="mSum"></div>
+      <form class="lead" id="leadForm" novalidate>
+        <div class="fgrid">
+          <div class="fg"><label for="lf_first"><span data-i18n="f_first">First name</span> <em>*</em></label><input id="lf_first" name="firstName" autocomplete="given-name" required></div>
+          <div class="fg"><label for="lf_last"><span data-i18n="f_last">Last name</span> <em>*</em></label><input id="lf_last" name="lastName" autocomplete="family-name" required></div>
+          <div class="fg"><label for="lf_email"><span data-i18n="f_email">Work email</span> <em>*</em></label><input id="lf_email" name="email" type="email" autocomplete="email" required></div>
+          <div class="fg"><label for="lf_company"><span data-i18n="f_company">Company</span> <em>*</em></label><input id="lf_company" name="company" autocomplete="organization" required></div>
+          <div class="fg"><label for="lf_phone" data-i18n="f_phone">Phone</label><input id="lf_phone" name="phone" type="tel" autocomplete="tel"></div>
+          <div class="fg"><label for="lf_role" data-i18n="f_role">Role</label><input id="lf_role" name="role" autocomplete="organization-title"></div>
+          <div class="fg full"><label for="lf_msg" data-i18n="f_msg">Anything we should know?</label><textarea id="lf_msg" name="message" data-i18n-ph="f_msg_ph"></textarea></div>
+          <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        </div>
+        <label class="consent"><input type="checkbox" name="consent" id="lf_consent" required><span id="consentText"></span></label>
+        <div class="f-err" id="fErr" role="alert"><svg class="i"><use href="#i-alert"/></svg><span id="fErrT"></span></div>
+        <div class="f-actions">
+          <span class="f-note"><svg class="i" style="width:13px;height:13px"><use href="#i-lock"/></svg><span data-i18n="f_note">Company data only used to prepare your study.</span></span>
+          <button class="btn btn-primary" type="submit" id="submitBtn"><span class="spin"></span><span data-i18n="f_submit">Send my configuration</span></button>
+        </div>
+      </form>
+    </div>
+    <div class="done" id="donePane">
+      <div class="done-ic"><svg class="i"><use href="#i-check"/></svg></div>
+      <h3 data-i18n="ok_title">Request sent</h3>
+      <p data-i18n="ok_text"></p>
+      <p class="proto" id="protoNote" data-i18n="ok_proto"></p>
+      <button class="btn btn-dark btn-sm" type="button" data-close style="margin-top:18px" data-i18n="ok_close">Back to configurator</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DEPLOYMENT SETTINGS
+   ============================================================ */
+const CONFIG = {
+  // POST target for leads (JSON). null = nothing leaves the page (prototype mode).
+  leadEndpoint: window.ENERGYNEST_LEAD_ENDPOINT || null,
+  privacyUrl: { en:'https://energy-nest.com/privacy-policy/', de:'https://energy-nest.com/de/datenschutzbestimmungen/', es:'https://energy-nest.com/privacy-policy/' },
+  // energy-nest.com has no Spanish privacy/contact page (the /es/ site links the German ones), so ES uses EN
+  contactUrl: { en:'https://energy-nest.com/contact/', de:'https://energy-nest.com/de/kontakt/', es:'https://energy-nest.com/contact/' },
+  // Link to the full market analysis app; null hides the link.
+  analysisUrl: window.ENERGYNEST_ANALYSIS_URL || null,
+  example: { h:'60', t:'180', e:'20' },   // the example site shown on first load
+};
+
+/* ============================================================
+   ALEX'S SIZING ENGINE: copied verbatim from p2h-configurator.html
+   (constants, i18n, inputs, configure(), buildDiagram(), updateDerived())
+   ============================================================ */
+const HOURS_PER_YEAR = 8760;
+const MWH_PER_TON_STEAM = 0.7;
+
+const gwhToAvgMW = gwh => gwh * 1000 / HOURS_PER_YEAR;          // GWh/yr -> avg MW
+const tonsToGWh  = t   => t * MWH_PER_TON_STEAM / 1000;         // t steam/yr -> GWh/yr
+const bargToTempC = barg => 100 * Math.pow(barg + 1.013, 0.25); // sat. steam approx
+const r1 = x => Math.round(x*10)/10;
+
+// e-boiler steps: 0.5 MW below 5 MW, whole MW at/above 5 MW
+const qEB = x => x<=0 ? 0 : (x<5 ? Math.ceil(x/0.5)*0.5 : Math.ceil(x));
+// smallest TES that covers P, built from 6 MW modules (top module de-ratable to 4 or 5 MW)
+function tesRoundUp(P){
+  if (P <= 0) return 0;
+  const n6 = Math.floor(P/6), rem = P - 6*n6;
+  if (rem <= 1e-9) return 6*n6;
+  if (rem <= 4) return 6*n6 + 4;
+  if (rem <= 5) return 6*n6 + 5;
+  return 6*(n6+1);
+}
+// largest valid TES size <= P (full 6 MW modules + one de-ratable 4/5/6 MW top module)
+function tesSnapDown(P){
+  let best = 0;
+  for (let m=1; 6*(m-1)+4 <= P+1e-9; m++){
+    for (const top of [4,5,6]){
+      const s = 6*(m-1)+top;
+      if (s <= P+1e-9 && s > best) best = s;
+    }
+  }
+  return best;
+}
+
+const LANG = {
+  en:{
+    tag:"Power-to-Heat Sizing Configurator · rules-of-thumb prototype",
+    h1:"Design your power-to-heat system",
+    sub:"Enter your site's energy profile and the tool will propose an indicative configuration of electric boiler, thermal energy storage (TES) and battery storage (BESS), based on ENERGYNEST rules of thumb. Figures are indicative only and are the starting point for a detailed feasibility study.",
+    card_inputs:"Site inputs", grp_heat:"Heat", grp_elec:"Electricity",
+    lbl_annualHeat:"Annual thermal demand",
+    opt_gwh:"GWh/yr", opt_tons:"t steam/yr", opt_c:"°C", opt_barg:"barg (sat. steam)",
+    lbl_temp:"Temperature of thermal demand",
+    lbl_peakHeat:"Peak thermal demand", hint_mw:"(MW)",
+    lbl_baseload:"Baseload thermal demand", hint_baseload:"(MW · min. 24/7 load)",
+    lbl_existing:"Existing heat source / gas boiler", hint_existing:"(MW · kept as backup)",
+    lbl_annualElec:"Annual electrical demand", hint_gwh:"(GWh/yr)",
+    lbl_peakElec:"Peak electrical demand",
+    lbl_renewables:"Onsite renewables", hint_renewables:"(MW, nameplate · PV + wind)",
+    lbl_grid:"Available grid connection",
+    btn_run:"Generate configuration", btn_update:"Update configuration",
+    cta:"Request a full site-specific feasibility study from ENERGYNEST",
+    caveats_title:"This quick tool does not account for:",
+    caveats:["Customer-specific thermal and electrical demand data","Cross-market electricity cost-saving assessment","Site-specific technical considerations such as space and layout","Site-specific wind and PV production"],
+    card_config:"Recommended configuration", card_diagram:"System diagram",
+    ph_results:"Enter your site data and press <b>Generate configuration</b>.",
+    foot:"Prototype for internal use. All outputs are indicative, derived from simplified rules of thumb assuming constant demand. They do not constitute a technical guarantee or a commercial offer. Steam conversion assumes ~0.7 MWh per tonne; saturation temperature approximated as 100·(bar<sub>abs</sub>)<sup>0.25</sup>.",
+    ph_annualHeat:"e.g. 60", ph_temp:"e.g. 180", ph_peakHeat:"e.g. 12",
+    ph_baseload:"auto = 50% of avg", ph_existing:"auto = peak thermal",
+    ph_annualElec:"e.g. 20", ph_peakElec:"e.g. 5", ph_renewables:"e.g. 2", ph_grid:"auto",
+    d_avg:x=>`≈ ${x} MW average`,
+    d_heatGwh:x=>`≈ ${x} GWh/yr · `,
+    d_sat:x=>`≈ ${x} °C saturated`,
+    d_baseDefault:x=>`default ≈ ${x} MW (50% of avg)`,
+    d_gridSuggest:x=>`suggested = ${x} MW (2× combined avg, rounded up)`,
+    d_peakDefault:x=>`default = ${x} MW (2× avg)`,
+    d_peakWarn:x=>`⚠ below average (${x} MW) — peak cannot be lower than average`,
+    d_existingDefault:x=>`default = ${x} MW (= peak thermal)`,
+    v_hybrid:"Hybrid TES + BESS solution", v_tes:"TES-based solution", v_bess:"BESS-based solution",
+    v_stopTitle:"Below minimum project size", v_stopText:"Thermal demand below our minimum threshold.",
+    v_fixTitle:"Please fix the inputs",
+    v_text:(kit,gas,avail,grid,ren)=>`Recommended electric kit: ${kit}${gas?", with the existing gas boiler retained as backup":""}. Available power for electrification: ${avail} MW (grid ${grid} + renewables ${ren}).`,
+    cn_eboiler:"E-boiler", cn_eoil:"E-oil-heater", cn_tes:"TES", cn_bess:"BESS", cn_gas:"Gas boiler",
+    cs_balance:"balance of thermal load", cs_peak:"sized to peak heat", cs_gasExisting:"existing · backup / peaking",
+    scope_elec:"electrical", scope_combined:"combined electrical + thermal",
+    cs_addresses:s=>`addresses ${s}`,
+    tesSub:(sixes,der)=>{const p=[];if(sixes>0)p.push(sixes+" × 6 MW");if(der>0)p.push("1 × "+der+" MW");const c=sixes+(der>0?1:0);return "thermal storage · "+p.join(" + ")+" "+(c>1?"modules":"module");},
+    note_peakBump:x=>`Peak thermal demand (${x} MW) exceeds 2× average, so the system is sized to the peak — investigate whether this peak can be reduced, as it drives up cost.`,
+    note_smallTES:x=>`The TES swing is below 6 MW, so the baseload e-boiler is dropped — the TES is sized to cover the full thermal load (${x} MW).`,
+    note_tesOnly:x=>`Residual electrical demand after TES (${x} GWh/yr) is below 4 GWh — no BESS proposed. This is a TES-only solution; the electrical demand is left unaddressed.`,
+    note_grid:(avail,head,which,onlyEb)=>`Grid + renewables (${avail} MW available, ${head} MW after baseload) cannot support the ideal storage size. ${which.join(" and ")} rating${which.length>1?"s have":" has"} been reduced to fit. Consider expanding the grid connection or adding renewables to unlock more storage${onlyEb?" — at this grid capacity, only an e-boiler is viable":""}.`,
+    err_peakHeat:(p,a)=>`Peak thermal demand (${p} MW) cannot be lower than the average thermal demand (${a} MW).`,
+    err_peakElec:(p,a)=>`Peak electrical demand (${p} MW) cannot be lower than the average electrical demand (${a} MW).`,
+    err_existing:(e,p)=>`Existing heat source (${e} MW) does not cover the peak thermal demand (${p} MW). The backup boiler must be able to meet the full peak.`,
+    dg_sources:"SOURCES", dg_conv:"CONVERSION & STORAGE", dg_demand:"DEMAND",
+    dg_elecmkt1:"Electricity", dg_elecmkt2:"markets", dg_renew:"Onsite renewables", dg_gastariff:"Gas tariff",
+    dg_backup:"backup", dg_heatdemand:"Heat demand", dg_elecdemand:"Electricity demand",
+    leg_elec:"Electricity", leg_heat:"Heat", leg_gas:"Gas", leg_tstore:"Thermal store",
+  },
+  de:{
+    tag:"Power-to-Heat Auslegungstool · Faustformel-Prototyp",
+    h1:"Konzipieren Sie Ihr Power-to-Heat-System",
+    sub:"Geben Sie das Energieprofil Ihres Standorts ein, und das Tool schlägt auf Basis der ENERGYNEST-Faustformeln eine indikative Konfiguration aus Elektrokessel, thermischem Energiespeicher (TES) und Batteriespeicher (BESS) vor. Die Werte sind reine Richtwerte und dienen als Ausgangspunkt für eine detaillierte Machbarkeitsstudie.",
+    card_inputs:"Standortdaten", grp_heat:"Wärme", grp_elec:"Strom",
+    lbl_annualHeat:"Jährlicher Wärmebedarf",
+    opt_gwh:"GWh/Jahr", opt_tons:"t Dampf/Jahr", opt_c:"°C", opt_barg:"barg (Sattdampf)",
+    lbl_temp:"Temperatur des Wärmebedarfs",
+    lbl_peakHeat:"Spitzen-Wärmebedarf", hint_mw:"(MW)",
+    lbl_baseload:"Grundlast-Wärmebedarf", hint_baseload:"(MW · min. 24/7-Last)",
+    lbl_existing:"Bestehende Wärmequelle / Gaskessel", hint_existing:"(MW · als Backup)",
+    lbl_annualElec:"Jährlicher Strombedarf", hint_gwh:"(GWh/Jahr)",
+    lbl_peakElec:"Spitzen-Strombedarf",
+    lbl_renewables:"Erneuerbare vor Ort", hint_renewables:"(MW, nominal · PV + Wind)",
+    lbl_grid:"Verfügbarer Netzanschluss",
+    btn_run:"Konfiguration erstellen", btn_update:"Konfiguration aktualisieren",
+    cta:"Vollständige, standortspezifische Machbarkeitsstudie bei ENERGYNEST anfragen",
+    caveats_title:"Dieses einfache Tool berücksichtigt nicht:",
+    caveats:["Kundenspezifische Wärme- und Strombedarfsdaten","Marktübergreifende Bewertung der Stromkostenersparnis","Standortspezifische technische Aspekte wie Platz und Layout","Standortspezifische Wind- und PV-Erzeugung"],
+    card_config:"Empfohlene Konfiguration", card_diagram:"Systemdiagramm",
+    ph_results:"Geben Sie Ihre Standortdaten ein und klicken Sie auf <b>Konfiguration erstellen</b>.",
+    foot:"Prototyp für den internen Gebrauch. Alle Ergebnisse sind Richtwerte, abgeleitet aus vereinfachten Faustformeln bei konstantem Bedarf. Sie stellen keine technische Garantie und kein kommerzielles Angebot dar. Dampfumrechnung mit ~0,7 MWh pro Tonne; Sättigungstemperatur genähert als 100·(bar<sub>abs</sub>)<sup>0,25</sup>.",
+    ph_annualHeat:"z. B. 60", ph_temp:"z. B. 180", ph_peakHeat:"z. B. 12",
+    ph_baseload:"auto = 50% des Mittels", ph_existing:"auto = Spitzenlast",
+    ph_annualElec:"z. B. 20", ph_peakElec:"z. B. 5", ph_renewables:"z. B. 2", ph_grid:"auto",
+    d_avg:x=>`≈ ${x} MW im Mittel`,
+    d_heatGwh:x=>`≈ ${x} GWh/Jahr · `,
+    d_sat:x=>`≈ ${x} °C Sattdampf`,
+    d_baseDefault:x=>`Standard ≈ ${x} MW (50% des Mittels)`,
+    d_gridSuggest:x=>`empfohlen = ${x} MW (2× kombinierter Mittelwert, aufgerundet)`,
+    d_peakDefault:x=>`Standard = ${x} MW (2× Mittel)`,
+    d_peakWarn:x=>`⚠ unter dem Mittel (${x} MW) — Spitze darf nicht unter dem Mittel liegen`,
+    d_existingDefault:x=>`Standard = ${x} MW (= Spitzenlast)`,
+    v_hybrid:"Hybridlösung TES + BESS", v_tes:"TES-basierte Lösung", v_bess:"BESS-basierte Lösung",
+    v_stopTitle:"Unter der Mindestprojektgröße", v_stopText:"Wärmebedarf unter unserem Mindestschwellenwert.",
+    v_fixTitle:"Bitte Eingaben korrigieren",
+    v_text:(kit,gas,avail,grid,ren)=>`Empfohlene Elektroausrüstung: ${kit}${gas?", bestehender Gaskessel bleibt als Backup":""}. Verfügbare Leistung für die Elektrifizierung: ${avail} MW (Netz ${grid} + Erneuerbare ${ren}).`,
+    cn_eboiler:"Elektrokessel", cn_eoil:"Thermoöl-Erhitzer", cn_tes:"TES", cn_bess:"BESS", cn_gas:"Gaskessel",
+    cs_balance:"Deckung der Restwärmelast", cs_peak:"auf Spitzenlast ausgelegt", cs_gasExisting:"bestehend · Backup / Spitzenlast",
+    scope_elec:"den Strombedarf", scope_combined:"den Strom- + Wärmebedarf",
+    cs_addresses:s=>`deckt ${s}`,
+    tesSub:(sixes,der)=>{const p=[];if(sixes>0)p.push(sixes+" × 6 MW");if(der>0)p.push("1 × "+der+" MW");const c=sixes+(der>0?1:0);return "Wärmespeicher · "+p.join(" + ")+" "+(c>1?"Module":"Modul");},
+    note_peakBump:x=>`Der Spitzen-Wärmebedarf (${x} MW) übersteigt das 2-fache des Mittels, daher wird das System auf die Spitze ausgelegt — prüfen Sie, ob diese Spitze reduziert werden kann, da sie die Kosten erhöht.`,
+    note_smallTES:x=>`Der TES-Hub liegt unter 6 MW, daher entfällt der Grundlast-Elektrokessel — der TES wird so ausgelegt, dass er die gesamte Wärmelast deckt (${x} MW).`,
+    note_tesOnly:x=>`Der verbleibende Strombedarf nach dem TES (${x} GWh/Jahr) liegt unter 4 GWh — kein BESS vorgeschlagen. Dies ist eine reine TES-Lösung; der Strombedarf bleibt unberücksichtigt.`,
+    note_grid:(avail,head,which,onlyEb)=>`Netz + Erneuerbare (${avail} MW verfügbar, ${head} MW nach Grundlast) reichen für die ideale Speichergröße nicht aus. Die Leistung von ${which.join(" und ")} wurde entsprechend reduziert. Erwägen Sie einen Ausbau des Netzanschlusses oder zusätzliche Erneuerbare, um mehr Speicher zu ermöglichen${onlyEb?" — bei dieser Netzkapazität ist nur ein Elektrokessel sinnvoll":""}.`,
+    err_peakHeat:(p,a)=>`Der Spitzen-Wärmebedarf (${p} MW) darf nicht unter dem mittleren Wärmebedarf (${a} MW) liegen.`,
+    err_peakElec:(p,a)=>`Der Spitzen-Strombedarf (${p} MW) darf nicht unter dem mittleren Strombedarf (${a} MW) liegen.`,
+    err_existing:(e,p)=>`Die bestehende Wärmequelle (${e} MW) deckt den Spitzen-Wärmebedarf (${p} MW) nicht. Der Backup-Kessel muss die volle Spitze abdecken können.`,
+    dg_sources:"QUELLEN", dg_conv:"UMWANDLUNG & SPEICHER", dg_demand:"BEDARF",
+    dg_elecmkt1:"Strom", dg_elecmkt2:"markt", dg_renew:"Erneuerbare", dg_gastariff:"Gastarif",
+    dg_backup:"Backup", dg_heatdemand:"Wärmebedarf", dg_elecdemand:"Strombedarf",
+    leg_elec:"Strom", leg_heat:"Wärme", leg_gas:"Gas", leg_tstore:"Wärmespeicher",
+  },
+  es:{
+    tag:"Configurador de dimensionamiento Power-to-Heat · prototipo orientativo",
+    h1:"Diseñe su sistema power-to-heat",
+    sub:"Introduzca el perfil energético de su planta y la herramienta propondrá una configuración orientativa de caldera eléctrica, almacenamiento de energía térmica (TES) y almacenamiento en baterías (BESS), según las reglas empíricas de ENERGYNEST. Las cifras son solo orientativas y constituyen el punto de partida para un estudio de viabilidad detallado.",
+    card_inputs:"Datos de la planta", grp_heat:"Calor", grp_elec:"Electricidad",
+    lbl_annualHeat:"Demanda térmica anual",
+    opt_gwh:"GWh/año", opt_tons:"t vapor/año", opt_c:"°C", opt_barg:"barg (vapor sat.)",
+    lbl_temp:"Temperatura de la demanda térmica",
+    lbl_peakHeat:"Demanda térmica pico", hint_mw:"(MW)",
+    lbl_baseload:"Demanda térmica de base", hint_baseload:"(MW · carga mín. 24/7)",
+    lbl_existing:"Fuente de calor existente / caldera de gas", hint_existing:"(MW · como respaldo)",
+    lbl_annualElec:"Demanda eléctrica anual", hint_gwh:"(GWh/año)",
+    lbl_peakElec:"Demanda eléctrica pico",
+    lbl_renewables:"Renovables in situ", hint_renewables:"(MW, nominal · PV + eólica)",
+    lbl_grid:"Conexión a red disponible",
+    btn_run:"Generar configuración", btn_update:"Actualizar configuración",
+    cta:"Solicitar un estudio de viabilidad específico para su planta a ENERGYNEST",
+    caveats_title:"Esta herramienta simplificada no tiene en cuenta:",
+    caveats:["Datos de demanda térmica y eléctrica específicos del cliente","Evaluación del ahorro eléctrico entre mercados","Aspectos técnicos específicos del emplazamiento, como espacio y distribución","Producción eólica y fotovoltaica específica del emplazamiento"],
+    card_config:"Configuración recomendada", card_diagram:"Diagrama del sistema",
+    ph_results:"Introduzca los datos de su planta y pulse <b>Generar configuración</b>.",
+    foot:"Prototipo de uso interno. Todos los resultados son orientativos, derivados de reglas empíricas simplificadas asumiendo demanda constante. No constituyen una garantía técnica ni una oferta comercial. Conversión de vapor ~0,7 MWh por tonelada; temperatura de saturación aproximada como 100·(bar<sub>abs</sub>)<sup>0,25</sup>.",
+    ph_annualHeat:"p. ej. 60", ph_temp:"p. ej. 180", ph_peakHeat:"p. ej. 12",
+    ph_baseload:"auto = 50% de la media", ph_existing:"auto = demanda pico",
+    ph_annualElec:"p. ej. 20", ph_peakElec:"p. ej. 5", ph_renewables:"p. ej. 2", ph_grid:"auto",
+    d_avg:x=>`≈ ${x} MW de media`,
+    d_heatGwh:x=>`≈ ${x} GWh/año · `,
+    d_sat:x=>`≈ ${x} °C saturado`,
+    d_baseDefault:x=>`por defecto ≈ ${x} MW (50% de la media)`,
+    d_gridSuggest:x=>`sugerido = ${x} MW (2× media combinada, redondeado)`,
+    d_peakDefault:x=>`por defecto = ${x} MW (2× media)`,
+    d_peakWarn:x=>`⚠ por debajo de la media (${x} MW) — el pico no puede ser inferior a la media`,
+    d_existingDefault:x=>`por defecto = ${x} MW (= demanda pico)`,
+    v_hybrid:"Solución híbrida TES + BESS", v_tes:"Solución basada en TES", v_bess:"Solución basada en BESS",
+    v_stopTitle:"Por debajo del tamaño mínimo de proyecto", v_stopText:"Demanda térmica por debajo de nuestro umbral mínimo.",
+    v_fixTitle:"Corrija los datos, por favor",
+    v_text:(kit,gas,avail,grid,ren)=>`Equipo eléctrico recomendado: ${kit}${gas?", con la caldera de gas existente como respaldo":""}. Potencia disponible para electrificación: ${avail} MW (red ${grid} + renovables ${ren}).`,
+    cn_eboiler:"Caldera eléctrica", cn_eoil:"Calentador de aceite térmico", cn_tes:"TES", cn_bess:"BESS", cn_gas:"Caldera de gas",
+    cs_balance:"resto de la carga térmica", cs_peak:"dimensionada al pico", cs_gasExisting:"existente · respaldo / picos",
+    scope_elec:"la demanda eléctrica", scope_combined:"la demanda eléctrica + térmica",
+    cs_addresses:s=>`cubre ${s}`,
+    tesSub:(sixes,der)=>{const p=[];if(sixes>0)p.push(sixes+" × 6 MW");if(der>0)p.push("1 × "+der+" MW");const c=sixes+(der>0?1:0);return "almacenamiento térmico · "+p.join(" + ")+" "+(c>1?"módulos":"módulo");},
+    note_peakBump:x=>`La demanda térmica pico (${x} MW) supera 2× la media, por lo que el sistema se dimensiona al pico — evalúe si este pico puede reducirse, ya que encarece la solución.`,
+    note_smallTES:x=>`La variación cubierta por el TES es inferior a 6 MW, por lo que se elimina la caldera eléctrica de base — el TES se dimensiona para cubrir toda la carga térmica (${x} MW).`,
+    note_tesOnly:x=>`La demanda eléctrica residual tras el TES (${x} GWh/año) es inferior a 4 GWh — no se propone BESS. Es una solución solo TES; la demanda eléctrica queda sin cubrir.`,
+    note_grid:(avail,head,which,onlyEb)=>`La red + renovables (${avail} MW disponibles, ${head} MW tras la carga base) no admiten el tamaño ideal de almacenamiento. La potencia de ${which.join(" y ")} se ha reducido para ajustarse. Considere ampliar la conexión a red o añadir renovables para habilitar más almacenamiento${onlyEb?" — con esta capacidad de red, solo es viable una caldera eléctrica":""}.`,
+    err_peakHeat:(p,a)=>`La demanda térmica pico (${p} MW) no puede ser inferior a la demanda térmica media (${a} MW).`,
+    err_peakElec:(p,a)=>`La demanda eléctrica pico (${p} MW) no puede ser inferior a la demanda eléctrica media (${a} MW).`,
+    err_existing:(e,p)=>`La fuente de calor existente (${e} MW) no cubre la demanda térmica pico (${p} MW). La caldera de respaldo debe poder cubrir todo el pico.`,
+    dg_sources:"FUENTES", dg_conv:"CONVERSIÓN Y ALMACENAMIENTO", dg_demand:"DEMANDA",
+    dg_elecmkt1:"Mercado", dg_elecmkt2:"eléctrico", dg_renew:"Renovables", dg_gastariff:"Tarifa de gas",
+    dg_backup:"respaldo", dg_heatdemand:"Demanda de calor", dg_elecdemand:"Demanda eléctrica",
+    leg_elec:"Electricidad", leg_heat:"Calor", leg_gas:"Gas", leg_tstore:"Almac. térmico",
+  }
+};
+
+const $ = id => document.getElementById(id);
+const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? null : v; };
+
+function readInputs(){
+  const annualElec = num('annualElec') ?? 0;
+  const heatRaw = num('annualHeat') ?? 0;
+  const annualHeat = $('heatUnit').value === 'tons' ? tonsToGWh(heatRaw) : heatRaw;
+
+  const tempRaw = num('tempVal') ?? 0;
+  const tempC = $('tempUnit').value === 'barg' ? bargToTempC(tempRaw) : tempRaw;
+
+  const avgElec = gwhToAvgMW(annualElec);
+  const avgHeat = gwhToAvgMW(annualHeat);
+
+  const baseload = num('baseload') ?? 0.5 * avgHeat;      // advanced default
+  const gridDefault = Math.ceil(2 * (avgElec + avgHeat)); // rounded up to whole MW
+  const grid = Math.ceil(num('grid') ?? gridDefault);     // grid connection always whole MW
+  const peakHeat = num('peakHeat') ?? 2*avgHeat;          // default = 2x average
+
+  return {
+    annualElec, annualHeat, totalEnergy: annualElec + annualHeat,
+    avgElec, avgHeat, tempC,
+    peakHeat,                               // default = 2x average
+    peakHeatRaw: num('peakHeat'),           // null if user left it blank
+    peakElec: num('peakElec') ?? 2*avgElec, // default = 2x average
+    peakElecRaw: num('peakElec'),           // null if user left it blank
+    renewables: num('renewables') ?? 0,     // combined PV + wind, nameplate
+    grid, gridDefault, gridUserSet: num('grid') !== null,
+    baseload, existing: Math.ceil(num('existing') ?? peakHeat)  // gas boiler: whole MW, rounded up; default = peak thermal
+  };
+}
+
+function validate(i){
+  const errs = [];
+  if (i.peakHeatRaw !== null && i.peakHeatRaw < i.avgHeat - 1e-6){
+    errs.push(L.err_peakHeat(r1(i.peakHeatRaw), r1(i.avgHeat)));
+  }
+  if (i.peakElecRaw !== null && i.peakElecRaw < i.avgElec - 1e-6){
+    errs.push(L.err_peakElec(r1(i.peakElecRaw), r1(i.avgElec)));
+  }
+  if (i.existing > 0 && i.existing < i.peakHeat - 1e-6){
+    errs.push(L.err_existing(r1(i.existing), r1(i.peakHeat)));
+  }
+  return errs;
+}
+
+function configure(i){
+  const notes = [];
+  const out = { components:[], notes, verdict:null };
+
+  // --- Gate ---
+  if (i.totalEnergy < 4){
+    out.verdict = {type:'stop', title:L.v_stopTitle, text:L.v_stopText};
+    return out;
+  }
+
+  // --- TES trigger ---
+  const wantTES = (i.annualHeat >= 15) && (i.tempC < 330);
+
+  // --- BESS trigger (on the demand it would actually address) ---
+  // TES present -> BESS addresses residual electrical only
+  // No TES      -> BESS addresses combined electrical + thermal
+  let bessDemandGWh, bessAvgMW, wantBESS, bessScope;
+  if (wantTES){
+    bessDemandGWh = i.annualElec;
+    bessAvgMW = i.avgElec;
+    bessScope = L.scope_elec;
+  } else {
+    bessDemandGWh = i.totalEnergy;
+    bessAvgMW = i.avgElec + i.avgHeat;
+    bessScope = L.scope_combined;
+  }
+  wantBESS = bessDemandGWh >= 4;
+
+  const avail = i.grid + i.renewables;    // available power = grid + onsite renewables (grid already whole MW)
+
+  // --- Sizing: fill with 6 MW TES modules; the e-boiler covers the sub-module remainder ---
+  // (so a 7 MW target = 6 MW TES + 1 MW e-boiler; baseload 0 -> TES rounds up to cover all, no e-boiler).
+  // The grid check uses the required thermal power, not the rounded-up module nameplate
+  // (a TES rating may exceed the grid, since it is simply charged more slowly).
+  let eBoiler = 0, tesDropped = false, target = 0, contLoad = i.baseload, tesChargeIdeal = 0;
+  if (wantTES){
+    target = Math.max(2*i.avgHeat, i.peakHeat);
+    if (i.peakHeat > 2*i.avgHeat){
+      notes.push({t:'warn', m:L.note_peakBump(r1(i.peakHeat))});
+    }
+    const swing = target - i.baseload;             // ideal TES power (e-boiler carries the baseload)
+    if (tesRoundUp(swing) < 6){                     // swing too small -> no e-boiler, TES covers the full load
+      tesDropped = true; contLoad = 0; tesChargeIdeal = target;
+    } else {
+      contLoad = i.baseload; tesChargeIdeal = swing;
+    }
+  } else {
+    eBoiler = qEB(i.peakHeat);                      // BESS-only: e-boiler covers peak heat
+  }
+
+  let bessIdeal = 0;
+  if (wantBESS){
+    const baseSub = wantTES ? 0 : i.baseload;     // TES already covers the thermal baseload
+    bessIdeal = Math.max(2 * bessAvgMW - baseSub, 0);
+  } else if (wantTES && i.annualElec > 0.01) {
+    notes.push({t:'info', m:L.note_tesOnly(r1(i.annualElec))});
+  }
+
+  // ---------- Grid constraint (on required power, not nameplate) ----------
+  // Grid + renewables must cover the continuous load plus storage charging.
+  let headroom = Math.max(avail - contLoad, 0);
+  const gridNotes = [];
+  let constrained = false;
+  let tesP = tesChargeIdeal, bessP = bessIdeal;
+  if (tesP + bessP > headroom + 0.05){    // 0.05 MW tolerance to avoid float noise
+    constrained = true;
+    let budget = headroom;
+    const keepT = Math.min(tesP, budget);          // thermal storage keeps priority
+    if (keepT < tesP - 1e-9) gridNotes.push('TES');
+    tesP = keepT; budget -= keepT;
+    const keepB = Math.min(bessP, Math.max(budget,0));
+    if (keepB < bessP - 1e-9) gridNotes.push('BESS');
+    bessP = keepB;
+  }
+
+  // ---------- Quantize to hardware ----------
+  // Round UP to the next module/unit when sizing freely; round DOWN when grid-constrained (must fit).
+  let tes = null;
+  if (wantTES){
+    const mw = constrained ? tesSnapDown(tesP) : tesRoundUp(tesP);
+    if (mw >= 4) tes = {mw, mwh: Math.round(Math.max(8*i.avgHeat, 4*mw))};
+    eBoiler = qEB(Math.max(0, target - (tes ? tes.mw : 0)));  // e-boiler covers thermal above the TES modules
+  }
+  let bess = null;
+  if (wantBESS){
+    const U = 1.25;                                // 1.25 MW units, each 5 MWh (a 4 h battery)
+    const mw = constrained ? Math.floor(bessP/U)*U : Math.ceil(bessP/U)*U;
+    if (mw >= U) bess = {mw, mwh:(mw/U)*5, scope:bessScope};
+  }
+
+  // notes that depend on the final sizing
+  if (tesDropped && tes) notes.push({t:'info', m:L.note_smallTES(tes.mw)});
+  if (constrained) notes.push({t:'warn', m:L.note_grid(r1(avail), r1(headroom), gridNotes, (!tes&&!bess))});
+
+  // ---------- Assemble components ----------
+  const heaterName = i.tempC >= 300 ? L.cn_eoil : L.cn_eboiler;
+  if (eBoiler > 0)
+    out.components.push({cls:'eboiler', name:heaterName, mw:eBoiler,
+      sub: wantTES?L.cs_balance:L.cs_peak});
+  if (tes){
+    const der = tes.mw % 6, sixes = Math.floor(tes.mw/6);
+    out.components.push({cls:'tes', name:L.cn_tes, mw:tes.mw, mwh:tes.mwh, sub:L.tesSub(sixes,der)});
+  }
+  if (bess) out.components.push({cls:'bess', name:L.cn_bess, mw:bess.mw, mwh:bess.mwh, sub:L.cs_addresses(bess.scope)});
+  if (i.existing>0) out.components.push({cls:'gas', name:L.cn_gas, mw:i.existing, sub:L.cs_gasExisting});
+
+  // verdict text
+  const kit = [ eBoiler>0?heaterName:null, tes?L.cn_tes:null, bess?L.cn_bess:null ].filter(Boolean);
+  const gridStr = r1(i.grid) + (i.gridUserSet?'':' auto');
+  out.verdict = {type:'ok',
+    title: wantTES ? (bess?L.v_hybrid:L.v_tes) : L.v_bess,
+    text: L.v_text(kit.join(', '), i.existing>0, r1(avail), gridStr, r1(i.renewables))};
+
+  out._diag = {i, tes, bess, eBoiler, wantTES};
+  return out;
+}
+
+function buildDiagram(out){
+  const {tes,bess,eBoiler,i,wantTES} = out._diag;
+  const hasGas = i.existing>0;
+  const hasEB  = eBoiler>0;
+
+  // palette — matches the recommended-configuration cards exactly
+  const C = { elec:'#1f9c8a', heat:'#E23B2E', gas:'#AEB0B0', tes:'#E0A100', eb:'#4E7EB8', bess:'#1f9c8a' };
+
+  const W=1150, H=480;
+  const srcX=40, convX=430, supX=915, bw=225, sbw=200, spw=180;
+
+  const box=(x,y,w,h,fill,title,sub,textLight,dashed)=>{
+    const tc = textLight?'#ffffff':'#12211d';
+    const sc = textLight?'rgba(255,255,255,.85)':'#5f6f6a';
+    return `<g>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${fill}"
+        ${dashed?'stroke="#9fb0ab" stroke-width="1.5" stroke-dasharray="6 5"':''}/>
+      <text x="${x+16}" y="${y+26}" font-size="15" font-weight="700" fill="${tc}">${title}</text>
+      ${sub?`<text x="${x+16}" y="${y+45}" font-size="12" fill="${sc}">${sub}</text>`:''}
+    </g>`;
+  };
+  const arrow=(x1,y1,x2,y2,color)=>`<path d="M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2}"
+      fill="none" stroke="${color}" stroke-width="2.5" marker-end="url(#a_${color.replace('#','')})"/>`;
+
+  // vertical placement — gas on top; electricity markets at the bottom
+  const yGasB=35, yTES=120, yEB=205, yBESS=295;   // conversion column
+  const yGasSrc=48, yRenSrc=170, yElecSrc=295;    // sources column (gas top, renewables mid, grid bottom)
+  const ySupHeat=85, ySupElec=295;                // demand column
+  const heaterName = i.tempC>=300 ? L.cn_eoil : L.cn_eboiler;
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      ${Object.values(C).filter((v,idx,a)=>a.indexOf(v)===idx).map(c=>`
+      <marker id="a_${c.replace('#','')}" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="${c}"/></marker>`).join('')}
+    </defs>
+    <text x="${srcX+10}" y="26" font-size="12" letter-spacing="1.5" fill="#9aa8a3" font-weight="600">${L.dg_sources}</text>
+    <text x="${convX+45}" y="26" font-size="12" letter-spacing="1.5" fill="#9aa8a3" font-weight="600">${L.dg_conv}</text>
+    <text x="${supX+10}" y="26" font-size="12" letter-spacing="1.5" fill="#9aa8a3" font-weight="600">${L.dg_demand}</text>`;
+
+  const hasRen = i.renewables>0;
+  const hasElecDemand = i.annualElec > 0;
+  const srcR = srcX+sbw, convR = convX+bw;
+
+  // ---- behind-the-boxes connections (drawn first, so the boxes cover the crossings) ----
+  // long left-source -> electricity-demand lines pass behind the storage boxes
+  if (hasElecDemand){
+    s += arrow(srcR, yElecSrc+30, supX, ySupElec+30, C.elec);            // electricity markets -> electricity demand
+    if (hasRen) s += arrow(srcR, yRenSrc+27, supX, ySupElec+46, C.elec); // onsite renewables -> electricity demand
+  }
+
+  // ---- sources ----
+  s += box(srcX,yElecSrc,sbw,60,'#ffffff',L.dg_elecmkt1,L.dg_elecmkt2,false,true);
+  if (hasRen) s += box(srcX,yRenSrc,sbw,54,'#ffffff',L.dg_renew,`${r1(i.renewables)} MW`,false,true);
+  if (hasGas) s += box(srcX,yGasSrc,sbw,54,'#ffffff',L.dg_gastariff,'',false,true);
+
+  // ---- conversion / storage ----
+  if (tes)   s += box(convX,yTES,bw,60,C.tes,L.cn_tes,`${tes.mw.toFixed(1)} MW · ${r1(tes.mwh)} MWh`,true);
+  if (hasEB) s += box(convX,yEB,bw,60,C.eb,heaterName,`${eBoiler.toFixed(1)} MW`,true);
+  if (bess)  s += box(convX,yBESS,bw,60,C.bess,L.cn_bess,`${bess.mw.toFixed(2)} MW · ${r1(bess.mwh)} MWh`,true);
+  if (hasGas)s += box(convX,yGasB,bw,54,C.gas,L.cn_gas,`${r1(i.existing)} MW · ${L.dg_backup}`,true);
+
+  // ---- supply / demand ----
+  s += box(supX,ySupHeat,spw,64,C.heat,L.dg_heatdemand,'',true);
+  if (hasElecDemand) s += box(supX,ySupElec,spw,60,C.elec,L.dg_elecdemand,'',true);
+
+  // ---- electricity flows drawn on top (each ends at a box edge, so no box is crossed) ----
+  if (tes)   s += arrow(srcR, yElecSrc+18, convX, yTES+30, C.elec);   // grid -> TES integrated e-heater
+  if (hasEB) s += arrow(srcR, yElecSrc+30, convX, yEB+30, C.elec);    // grid -> e-boiler
+  if (bess)  s += arrow(srcR, yElecSrc+42, convX, yBESS+30, C.elec);  // grid -> BESS
+  if (bess && hasElecDemand) s += arrow(convR, yBESS+30, supX, ySupElec+18, C.elec);     // BESS -> electricity demand
+  if (bess && !wantTES && hasEB)
+    s += arrow(convX+42, yBESS, convX+42, yEB+60, C.elec);            // BESS -> e-boiler (BESS-only)
+  if (hasRen){                                                        // onsite renewables feed TES, e-boiler and BESS
+    if (tes)   s += arrow(srcR, yRenSrc+27, convX, yTES+34, C.elec);
+    if (hasEB) s += arrow(srcR, yRenSrc+27, convX, yEB+34, C.elec);
+    if (bess)  s += arrow(srcR, yRenSrc+27, convX, yBESS+34, C.elec);
+  }
+
+  // ---- heat flows (red) ----
+  if (hasGas)s += arrow(convR, yGasB+27, supX, ySupHeat+16, C.heat);  // gas boiler -> heat demand (top)
+  if (tes)   s += arrow(convR, yTES+30, supX, ySupHeat+34, C.heat);   // TES -> heat demand
+  if (hasEB) s += arrow(convR, yEB+30, supX, ySupHeat+52, C.heat);    // e-boiler -> heat demand
+
+  // ---- gas flow (grey) ----
+  if (hasGas) s += arrow(srcR, yGasSrc+27, convX, yGasB+27, C.gas);   // gas tariff -> gas boiler
+
+  // ---- legend ----
+  const leg=[[C.elec,L.leg_elec],[C.heat,L.leg_heat],[C.gas,L.leg_gas],[C.tes,L.leg_tstore]];
+  s += leg.map(([c,t],k)=>{
+    const x=convX-30+k*160;
+    return `<line x1="${x}" y1="${H-12}" x2="${x+26}" y2="${H-12}" stroke="${c}" stroke-width="3"/>
+      <text x="${x+32}" y="${H-8}" font-size="12" fill="#5f6f6a">${t}</text>`;
+  }).join('');
+
+  s += `</svg>`;
+  return s;
+}
+
+function updateDerived(){
+  const ae = num('annualElec');
+  $('d_elec').textContent = ae!==null ? L.d_avg(r1(gwhToAvgMW(ae))) : '';
+
+  const hr = num('annualHeat');
+  let heatGWh = null;
+  if (hr!==null){
+    heatGWh = $('heatUnit').value==='tons' ? tonsToGWh(hr) : hr;
+    $('d_heat').textContent = ($('heatUnit').value==='tons'
+      ? L.d_heatGwh(r1(heatGWh)) : '') + L.d_avg(r1(gwhToAvgMW(heatGWh)));
+  } else $('d_heat').textContent='';
+
+  const tv = num('tempVal');
+  if (tv!==null && $('tempUnit').value==='barg'){
+    $('d_temp').textContent = L.d_sat(Math.round(bargToTempC(tv)));
+  } else $('d_temp').textContent='';
+
+  // baseload default hint
+  if (heatGWh!==null && num('baseload')===null){
+    $('d_base').textContent = L.d_baseDefault(r1(0.5*gwhToAvgMW(heatGWh)));
+  } else $('d_base').textContent='';
+
+  // grid suggestion — shown always, even when a value has been entered
+  const avgE = ae!==null?gwhToAvgMW(ae):0;
+  const avgH = heatGWh!==null?gwhToAvgMW(heatGWh):0;
+  if (ae!==null||heatGWh!==null){
+    $('d_grid').textContent = L.d_gridSuggest(Math.ceil(2*(avgE+avgH)));
+  } else $('d_grid').textContent='';
+
+  // peak thermal: default hint when blank, validation warning when below average
+  const pk = num('peakHeat'); const pd = $('d_peak');
+  const avgHm = heatGWh!==null?gwhToAvgMW(heatGWh):null;
+  pd.classList.remove('warn');
+  if (pk!==null && avgHm!==null && pk < avgHm - 1e-6){
+    pd.textContent = L.d_peakWarn(r1(avgHm)); pd.classList.add('warn');
+  } else if (pk===null && avgHm!==null){
+    pd.textContent = L.d_peakDefault(r1(2*avgHm));
+  } else pd.textContent='';
+
+  // peak electrical: default hint when blank, validation warning when below average
+  const pe = num('peakElec'); const ped = $('d_peakE');
+  const avgEm = ae!==null?gwhToAvgMW(ae):null;
+  ped.classList.remove('warn');
+  if (pe!==null && avgEm!==null && pe < avgEm - 1e-6){
+    ped.textContent = L.d_peakWarn(r1(avgEm)); ped.classList.add('warn');
+  } else if (pe===null && avgEm!==null){
+    ped.textContent = L.d_peakDefault(r1(2*avgEm));
+  } else ped.textContent='';
+
+  // gas boiler default = peak thermal demand
+  const ex = num('existing'); const exd = $('d_existing');
+  const pkEff = (num('peakHeat')!==null) ? num('peakHeat') : (avgHm!==null ? 2*avgHm : null);
+  if (ex===null && pkEff!==null){
+    exd.textContent = L.d_existingDefault(Math.ceil(pkEff));
+  } else exd.textContent='';
+}
+
+
+/* ============================================================
+   WEBSITE LAYER: copy, 3D bridge, market view, lead form
+   ============================================================ */
+const EXTRA = {
+  en:{
+    tag:"Power-to-Heat Configurator",
+    eyebrow:"Indicative sizing in two minutes",
+    lead:"Enter your site's heat and power demand. We propose an indicative mix of electric boiler, thermal energy storage (TES) and battery storage (BESS), show it in 3D and estimate what the energy markets could be worth.",
+    trust1:"ENERGYNEST rules of thumb", trust2:"Free, no sign-up", trust3:"Updates as you type",
+    live:"Live", adv_t:"Site details", adv_s:"Optional · we use sensible defaults",
+    help_baseload:"Minimum load that runs 24/7.", help_existing:"Kept on site as backup.", help_renewables:"Nameplate capacity, PV + wind.",
+    reset:"Reset to example", mob_view:"View result", copy_link:"Copy link", copied:"Link copied",
+    res_eyebrow:"Recommended solution", chip_ind:"Indicative",
+    empty_title:"Start with your annual demand", empty_text:"Enter the annual heat or electricity demand of your site and the configuration appears here.",
+    card_plant:"Your plant", tab_3d:"Plant",
+    st_idle:"Idle", st_charging:"Charging", st_discharging:"Discharging",
+    btn_casing:"Casing", btn_labels:"Labels", btn_bg:"Sky",
+    vp_note:"Schematic layout, not to scale.", vp_empty:"No equipment to show for these inputs.",
+    lbl3_tes:(mw,mwh,n)=>`${mw} MW · ${mwh} MWh · ${n} ${n>1?"modules":"module"}`,
+    lbl3_bess:(mw,mwh,n)=>`${mw} MW · ${mwh} MWh · ${n} ${n>1?"containers":"container"}`,
+    lbl3_mw:mw=>`${mw} MW`, lbl3_gas:mw=>`${mw} MW · backup`,
+    mv_title:"Market view", mv_badge:"Illustrative",
+    mv_da:"Day-ahead", mv_da_d:"Charge in the cheapest hours",
+    mv_afrr:"+ aFRR", mv_afrr_d:"Plus balancing reserve",
+    mv_full:"Full stack", mv_full_d:"Plus intraday trading",
+    mv_savings:"Energy-cost savings", mv_co2:"Gas CO₂ avoided", mv_afrrrev:"of which aFRR", mv_be:"Break-even power price",
+    mv_peryear:"per year", mv_tco2:"tonnes per year", mv_eurmwh:"€/MWh electricity", mv_none_sub:"not in this market set",
+    mv_how:"How we estimate this",
+    mv_note:(gwh)=>`Scaled from a 2024 reference run (1 MW constant heat demand, 2 MW heater, 8 MWh storage, the same 2× average power and 8 h ratio as the sizing rules) to your ${gwh} GWh/yr of heat. Gas CO₂ uses 0.201 t/MWh (natural gas) and a 90% boiler. This is not an optimisation of your site: real savings depend on your load profile, grid fees and gas contract.`,
+    mv_noTes:"The market view assumes thermal storage shifts heat into cheap hours. This configuration has no TES, so no market figures are shown.",
+    mv_detail:"Full market analysis",
+    cta_title:"Turn this estimate into a site-specific study",
+    cta_text:"Our engineers replace the rules of thumb with your real load data and model the plant against the live energy markets.",
+    cta_list_t:"A full study adds", cta_short:"Request a feasibility study", btn_pdf:"Download summary",
+    privacy:"Privacy policy", contact:"Contact",
+    print_title:"Power-to-heat configuration (indicative)", print_meta:d=>`Generated ${d} · energy-nest.com`,
+    lead_title:"Request your feasibility study", lead_sub:"We review your configuration and come back with a tailored assessment, usually within two business days.",
+    f_first:"First name", f_last:"Last name", f_email:"Work email", f_phone:"Phone", f_company:"Company", f_role:"Role",
+    f_msg:"Anything we should know?", f_msg_ph:"e.g. steam at 12 barg, two-shift operation, grid upgrade planned",
+    f_consent:url=>`I agree that ENERGYNEST may store and use my details to answer this request, as described in the <a href="${url}" target="_blank" rel="noopener">privacy policy</a>.`,
+    f_note:"Company data only used to prepare your study.",
+    f_submit:"Send my configuration", f_sending:"Sending…",
+    err_required:"Please fill in the required fields and accept the privacy notice.",
+    err_send:url=>`We could not send your request. Please try again, or <a href="${url}" target="_blank" rel="noopener">contact us directly</a>.`,
+    ok_title:"Request sent", ok_text:"Thank you. An ENERGYNEST engineer will review your configuration and get in touch.",
+    ok_proto:"Prototype: no data was sent. Set CONFIG.leadEndpoint to connect the CRM.", ok_close:"Back to configurator",
+  },
+  de:{
+    tag:"Power-to-Heat-Konfigurator",
+    eyebrow:"Indikative Auslegung in zwei Minuten",
+    lead:"Geben Sie den Wärme- und Strombedarf Ihres Standorts ein. Wir schlagen eine indikative Kombination aus Elektrokessel, thermischem Energiespeicher (TES) und Batteriespeicher (BESS) vor, zeigen sie in 3D und schätzen, was die Energiemärkte wert sein könnten.",
+    trust1:"ENERGYNEST-Faustformeln", trust2:"Kostenlos, ohne Anmeldung", trust3:"Aktualisiert sich live",
+    live:"Live", adv_t:"Standortdetails", adv_s:"Optional · sinnvolle Standardwerte",
+    help_baseload:"Mindestlast, die rund um die Uhr läuft.", help_existing:"Bleibt als Backup am Standort.", help_renewables:"Nennleistung, PV + Wind.",
+    reset:"Beispiel laden", mob_view:"Ergebnis ansehen", copy_link:"Link kopieren", copied:"Link kopiert",
+    res_eyebrow:"Empfohlene Lösung", chip_ind:"Indikativ",
+    empty_title:"Beginnen Sie mit Ihrem Jahresbedarf", empty_text:"Geben Sie den jährlichen Wärme- oder Strombedarf Ihres Standorts ein, dann erscheint hier die Konfiguration.",
+    card_plant:"Ihre Anlage", tab_3d:"Anlage",
+    st_idle:"Ruhe", st_charging:"Laden", st_discharging:"Entladen",
+    btn_casing:"Gehäuse", btn_labels:"Beschriftung", btn_bg:"Himmel",
+    vp_note:"Schematische Anordnung, nicht maßstäblich.", vp_empty:"Für diese Eingaben gibt es keine Anlage anzuzeigen.",
+    lbl3_tes:(mw,mwh,n)=>`${mw} MW · ${mwh} MWh · ${n} ${n>1?"Module":"Modul"}`,
+    lbl3_bess:(mw,mwh,n)=>`${mw} MW · ${mwh} MWh · ${n} Container`,
+    lbl3_mw:mw=>`${mw} MW`, lbl3_gas:mw=>`${mw} MW · Backup`,
+    mv_title:"Marktsicht", mv_badge:"Illustrativ",
+    mv_da:"Day-Ahead", mv_da_d:"Laden in den günstigsten Stunden",
+    mv_afrr:"+ aFRR", mv_afrr_d:"Plus Regelenergie",
+    mv_full:"Alle Märkte", mv_full_d:"Plus Intraday-Handel",
+    mv_savings:"Energiekosten-Einsparung", mv_co2:"Vermiedenes Gas-CO₂", mv_afrrrev:"davon aFRR", mv_be:"Break-even-Strompreis",
+    mv_peryear:"pro Jahr", mv_tco2:"Tonnen pro Jahr", mv_eurmwh:"€/MWh Strom", mv_none_sub:"nicht in dieser Marktauswahl",
+    mv_how:"So schätzen wir",
+    mv_note:(gwh)=>`Skaliert aus einem Referenzlauf 2024 (1 MW konstanter Wärmebedarf, 2 MW Erhitzer, 8 MWh Speicher, dasselbe Verhältnis von 2× mittlerer Leistung und 8 h wie die Auslegungsregeln) auf Ihre ${gwh} GWh/Jahr Wärme. Gas-CO₂ mit 0,201 t/MWh (Erdgas) und 90 % Kesselwirkungsgrad. Keine Optimierung Ihres Standorts: Die tatsächliche Einsparung hängt von Lastprofil, Netzentgelten und Gasvertrag ab.`,
+    mv_noTes:"Die Marktsicht setzt voraus, dass ein thermischer Speicher Wärme in günstige Stunden verschiebt. Diese Konfiguration hat keinen TES, daher werden keine Marktwerte gezeigt.",
+    mv_detail:"Vollständige Marktanalyse",
+    cta_title:"Machen Sie aus dieser Schätzung eine Standortstudie",
+    cta_text:"Unsere Ingenieure ersetzen die Faustformeln durch Ihre echten Lastdaten und rechnen die Anlage gegen die aktuellen Energiemärkte.",
+    cta_list_t:"Eine vollständige Studie ergänzt", cta_short:"Machbarkeitsstudie anfragen", btn_pdf:"Zusammenfassung laden",
+    privacy:"Datenschutz", contact:"Kontakt",
+    print_title:"Power-to-Heat-Konfiguration (indikativ)", print_meta:d=>`Erstellt am ${d} · energy-nest.com`,
+    lead_title:"Machbarkeitsstudie anfragen", lead_sub:"Wir prüfen Ihre Konfiguration und melden uns mit einer individuellen Einschätzung, meist innerhalb von zwei Werktagen.",
+    f_first:"Vorname", f_last:"Nachname", f_email:"Geschäftliche E-Mail", f_phone:"Telefon", f_company:"Unternehmen", f_role:"Funktion",
+    f_msg:"Was sollten wir noch wissen?", f_msg_ph:"z. B. Dampf mit 12 barg, Zweischichtbetrieb, Netzausbau geplant",
+    f_consent:url=>`Ich bin einverstanden, dass ENERGYNEST meine Angaben zur Bearbeitung dieser Anfrage speichert und nutzt, wie in der <a href="${url}" target="_blank" rel="noopener">Datenschutzerklärung</a> beschrieben.`,
+    f_note:"Firmendaten nur zur Vorbereitung Ihrer Studie.",
+    f_submit:"Konfiguration senden", f_sending:"Wird gesendet …",
+    err_required:"Bitte füllen Sie die Pflichtfelder aus und bestätigen Sie den Datenschutzhinweis.",
+    err_send:url=>`Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut oder <a href="${url}" target="_blank" rel="noopener">kontaktieren Sie uns direkt</a>.`,
+    ok_title:"Anfrage gesendet", ok_text:"Vielen Dank. Ein ENERGYNEST-Ingenieur prüft Ihre Konfiguration und meldet sich bei Ihnen.",
+    ok_proto:"Prototyp: Es wurden keine Daten gesendet. CONFIG.leadEndpoint setzen, um das CRM anzubinden.", ok_close:"Zurück zum Konfigurator",
+  },
+  es:{
+    tag:"Configurador Power-to-Heat",
+    eyebrow:"Dimensionamiento orientativo en dos minutos",
+    lead:"Introduzca la demanda de calor y electricidad de su planta. Proponemos una combinación orientativa de caldera eléctrica, almacenamiento térmico (TES) y baterías (BESS), la mostramos en 3D y estimamos lo que podrían aportar los mercados energéticos.",
+    trust1:"Reglas empíricas de ENERGYNEST", trust2:"Gratis, sin registro", trust3:"Se actualiza al escribir",
+    live:"En vivo", adv_t:"Detalles de la planta", adv_s:"Opcional · usamos valores razonables",
+    help_baseload:"Carga mínima que funciona 24/7.", help_existing:"Se mantiene como respaldo.", help_renewables:"Potencia nominal, FV + eólica.",
+    reset:"Cargar ejemplo", mob_view:"Ver resultado", copy_link:"Copiar enlace", copied:"Enlace copiado",
+    res_eyebrow:"Solución recomendada", chip_ind:"Orientativo",
+    empty_title:"Empiece con su demanda anual", empty_text:"Introduzca la demanda anual de calor o electricidad de su planta y la configuración aparecerá aquí.",
+    card_plant:"Su planta", tab_3d:"Planta",
+    st_idle:"Reposo", st_charging:"Carga", st_discharging:"Descarga",
+    btn_casing:"Carcasa", btn_labels:"Etiquetas", btn_bg:"Cielo",
+    vp_note:"Disposición esquemática, no a escala.", vp_empty:"No hay equipos que mostrar para estos datos.",
+    lbl3_tes:(mw,mwh,n)=>`${mw} MW · ${mwh} MWh · ${n} ${n>1?"módulos":"módulo"}`,
+    lbl3_bess:(mw,mwh,n)=>`${mw} MW · ${mwh} MWh · ${n} ${n>1?"contenedores":"contenedor"}`,
+    lbl3_mw:mw=>`${mw} MW`, lbl3_gas:mw=>`${mw} MW · respaldo`,
+    mv_title:"Vista de mercado", mv_badge:"Ilustrativo",
+    mv_da:"Diario", mv_da_d:"Carga en las horas más baratas",
+    mv_afrr:"+ aFRR", mv_afrr_d:"Más reserva de regulación",
+    mv_full:"Todos", mv_full_d:"Más mercado intradiario",
+    mv_savings:"Ahorro en energía", mv_co2:"CO₂ de gas evitado", mv_afrrrev:"de ello aFRR", mv_be:"Precio eléctrico de equilibrio",
+    mv_peryear:"al año", mv_tco2:"toneladas al año", mv_eurmwh:"€/MWh de electricidad", mv_none_sub:"no incluido en esta selección",
+    mv_how:"Cómo lo estimamos",
+    mv_note:(gwh)=>`Escalado a partir de una simulación de referencia de 2024 (demanda de calor constante de 1 MW, calentador de 2 MW, almacenamiento de 8 MWh, la misma relación de 2× potencia media y 8 h que las reglas de dimensionamiento) a sus ${gwh} GWh/año de calor. CO₂ del gas con 0,201 t/MWh (gas natural) y caldera al 90 %. No es una optimización de su planta: el ahorro real depende del perfil de carga, los peajes de red y el contrato de gas.`,
+    mv_noTes:"La vista de mercado supone que un almacenamiento térmico desplaza el calor a las horas baratas. Esta configuración no tiene TES, por lo que no se muestran cifras de mercado.",
+    mv_detail:"Análisis de mercado completo",
+    cta_title:"Convierta esta estimación en un estudio para su planta",
+    cta_text:"Nuestros ingenieros sustituyen las reglas empíricas por sus datos reales de carga y modelan la planta frente a los mercados energéticos actuales.",
+    cta_list_t:"Un estudio completo añade", cta_short:"Solicitar estudio de viabilidad", btn_pdf:"Descargar resumen",
+    privacy:"Política de privacidad", contact:"Contacto",
+    print_title:"Configuración power-to-heat (orientativa)", print_meta:d=>`Generado el ${d} · energy-nest.com`,
+    lead_title:"Solicite su estudio de viabilidad", lead_sub:"Revisamos su configuración y le enviamos una evaluación a medida, normalmente en dos días hábiles.",
+    f_first:"Nombre", f_last:"Apellidos", f_email:"Correo profesional", f_phone:"Teléfono", f_company:"Empresa", f_role:"Cargo",
+    f_msg:"¿Algo más que debamos saber?", f_msg_ph:"p. ej. vapor a 12 barg, dos turnos, ampliación de red prevista",
+    f_consent:url=>`Acepto que ENERGYNEST almacene y utilice mis datos para responder a esta solicitud, según la <a href="${url}" target="_blank" rel="noopener">política de privacidad</a>.`,
+    f_note:"Datos de empresa solo para preparar su estudio.",
+    f_submit:"Enviar mi configuración", f_sending:"Enviando…",
+    err_required:"Rellene los campos obligatorios y acepte el aviso de privacidad.",
+    err_send:url=>`No hemos podido enviar su solicitud. Inténtelo de nuevo o <a href="${url}" target="_blank" rel="noopener">contáctenos directamente</a>.`,
+    ok_title:"Solicitud enviada", ok_text:"Gracias. Un ingeniero de ENERGYNEST revisará su configuración y se pondrá en contacto con usted.",
+    ok_proto:"Prototipo: no se ha enviado ningún dato. Configure CONFIG.leadEndpoint para conectar el CRM.", ok_close:"Volver al configurador",
+  }
+};
+
+// Keys for the compact one-screen layout
+const EXTRA2 = {
+  en:{ cta_short:"Get a feasibility study", u_tons:"t steam", adv_opt:"optional", tab_diagram:"Diagram", about_t:"About these figures", mv_note_t:"Market view",
+       rail_off:"off", hide_in:"Hide inputs", hide_out:"Hide result", close_in:"Close inputs", close_out:"Close result", keep_in:"Keep inputs open", keep_out:"Keep result open", show_in:"Show inputs", show_out:"Show result",
+       iso_shown:(n,m)=>`${n} of ${m} modules drawn`, iso_shown_c:(n,m)=>`${n} of ${m} containers drawn`, iso_aria:"Isometric drawing of the recommended plant",
+       kit_power:(a)=>`${a} MW available for electrification`, mv_sav_s:"energy-cost savings per year",
+       mv_co2_s:"t gas CO₂ avoided per year", mv_afrr_s:"of which aFRR, per year", mv_be_s:"€/MWh break-even power price" },
+  de:{ cta_short:"Studie anfragen", u_tons:"t Dampf", adv_opt:"optional", tab_diagram:"Diagramm", about_t:"Zu diesen Zahlen", mv_note_t:"Marktsicht",
+       rail_off:"aus", hide_in:"Eingaben ausblenden", hide_out:"Ergebnis ausblenden", close_in:"Eingaben schließen", close_out:"Ergebnis schließen", keep_in:"Eingaben offen lassen", keep_out:"Ergebnis offen lassen", show_in:"Eingaben zeigen", show_out:"Ergebnis zeigen",
+       iso_shown:(n,m)=>`${n} von ${m} Modulen gezeichnet`, iso_shown_c:(n,m)=>`${n} von ${m} Containern gezeichnet`, iso_aria:"Isometrische Zeichnung der empfohlenen Anlage",
+       kit_power:(a)=>`${a} MW für die Elektrifizierung verfügbar`, mv_sav_s:"Energiekosten-Einsparung pro Jahr",
+       mv_co2_s:"t Gas-CO₂ vermieden pro Jahr", mv_afrr_s:"davon aFRR, pro Jahr", mv_be_s:"€/MWh Break-even-Strompreis" },
+  es:{ cta_short:"Solicitar estudio", u_tons:"t vapor", adv_opt:"opcional", tab_diagram:"Diagrama", about_t:"Sobre estas cifras", mv_note_t:"Vista de mercado",
+       rail_off:"off", hide_in:"Ocultar datos", hide_out:"Ocultar resultado", close_in:"Cerrar datos", close_out:"Cerrar resultado", keep_in:"Mantener datos abiertos", keep_out:"Mantener resultado abierto", show_in:"Mostrar datos", show_out:"Mostrar resultado",
+       iso_shown:(n,m)=>`${n} de ${m} módulos dibujados`, iso_shown_c:(n,m)=>`${n} de ${m} contenedores dibujados`, iso_aria:"Dibujo isométrico de la planta recomendada",
+       kit_power:(a)=>`${a} MW disponibles para electrificar`, mv_sav_s:"ahorro en energía al año",
+       mv_co2_s:"t de CO₂ de gas evitadas al año", mv_afrr_s:"de ello aFRR, al año", mv_be_s:"€/MWh precio eléctrico de equilibrio" },
+};
+// Keys for the easier inputs (round 3); plainer labels for the optional site details
+const EXTRA3 = {
+  en:{ q_heat:"Yearly energy for heat", b_heat:"Heat", b_gas:"Gas", b_steam:"Steam", u_gas:"GWh gas/yr",
+       h_gas:x=>`≈ ${x} GWh heat (90% boiler)`, h_conv:x=>`≈ ${x} GWh heat`,
+       q_temp:"Process temperature", tp_hot:"Hot water", tp_lp:"Low-pressure steam", tp_proc:"Process steam", tp_hp:"High-pressure steam", tp_oil:"Thermal oil", tp_other:"Other",
+       ts_hot:"Water", ts_lp:"LP steam", ts_proc:"Steam", ts_hp:"HP steam", ts_oil:"Thermal oil",
+       h_noTes:"Above 330 °C: e-heater only, no thermal storage", h_oil:"From 300 °C: thermal-oil e-heater",
+       elec_inc:"Include", elec_off:"Switch on to also size a battery for your site's power use.", q_elec:"Yearly electricity use",
+       auto:x=>`auto · ${x}`, adv_hint:"Leave blank to use the automatic value.",
+       lbl_peakHeat:"Peak heat load", lbl_baseload:"Minimum 24/7 heat load", lbl_existing:"Existing gas boiler (backup)",
+       lbl_peakElec:"Peak power load", lbl_renewables:"On-site solar + wind", lbl_grid:"Grid connection" },
+  de:{ q_heat:"Energie für Wärme pro Jahr", b_heat:"Wärme", b_gas:"Gas", b_steam:"Dampf", u_gas:"GWh Gas/Jahr",
+       h_gas:x=>`≈ ${x} GWh Wärme (Kessel 90 %)`, h_conv:x=>`≈ ${x} GWh Wärme`,
+       q_temp:"Prozesstemperatur", tp_hot:"Heißwasser", tp_lp:"Niederdruckdampf", tp_proc:"Prozessdampf", tp_hp:"Hochdruckdampf", tp_oil:"Thermoöl", tp_other:"Andere",
+       ts_hot:"Wasser", ts_lp:"ND-Dampf", ts_proc:"Dampf", ts_hp:"HD-Dampf", ts_oil:"Thermoöl",
+       h_noTes:"Über 330 °C: nur E-Erhitzer, kein Wärmespeicher", h_oil:"Ab 300 °C: Thermoöl-E-Erhitzer",
+       elec_inc:"Einbeziehen", elec_off:"Einschalten, um auch einen Batteriespeicher für Ihren Strombedarf auszulegen.", q_elec:"Strombedarf pro Jahr",
+       auto:x=>`auto · ${x}`, adv_hint:"Leer lassen für den automatischen Wert.",
+       lbl_peakHeat:"Wärme-Spitzenlast", lbl_baseload:"Wärme-Grundlast (24/7)", lbl_existing:"Bestehender Gaskessel (Backup)",
+       lbl_peakElec:"Strom-Spitzenlast", lbl_renewables:"PV + Wind vor Ort", lbl_grid:"Netzanschluss" },
+  es:{ q_heat:"Energía para calor al año", b_heat:"Calor", b_gas:"Gas", b_steam:"Vapor", u_gas:"GWh gas/año",
+       h_gas:x=>`≈ ${x} GWh de calor (caldera 90 %)`, h_conv:x=>`≈ ${x} GWh de calor`,
+       q_temp:"Temperatura de proceso", tp_hot:"Agua caliente", tp_lp:"Vapor baja presión", tp_proc:"Vapor de proceso", tp_hp:"Vapor alta presión", tp_oil:"Aceite térmico", tp_other:"Otra",
+       ts_hot:"Agua", ts_lp:"Vapor BP", ts_proc:"Vapor", ts_hp:"Vapor AP", ts_oil:"Aceite",
+       h_noTes:"Por encima de 330 °C: solo calentador eléctrico, sin almacenamiento", h_oil:"Desde 300 °C: calentador de aceite térmico",
+       elec_inc:"Incluir", elec_off:"Actívelo para dimensionar también una batería para su consumo eléctrico.", q_elec:"Consumo eléctrico anual",
+       auto:x=>`auto · ${x}`, adv_hint:"Déjelo vacío para usar el valor automático.",
+       lbl_peakHeat:"Pico de demanda térmica", lbl_baseload:"Carga térmica mínima 24/7", lbl_existing:"Caldera de gas existente (respaldo)",
+       lbl_peakElec:"Pico de demanda eléctrica", lbl_renewables:"Solar + eólica in situ", lbl_grid:"Conexión a red" },
+};
+for (const k of Object.keys(EXTRA)){
+  Object.assign(LANG[k], EXTRA[k], EXTRA2[k], EXTRA3[k]);
+  // public page: drop the leading "Prototype for internal use." sentence of Alex's footer
+  LANG[k].foot = LANG[k].foot.replace(/^[^.]*\.\s*/, '');
+}
+
+const LOCALE = { en:'en-GB', de:'de-DE', es:'es-ES' };
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EMBED = new URLSearchParams(location.search).get('embed') === '1';
+if (EMBED) document.body.classList.add('embed');
+const stacked = () => window.matchMedia('(max-width:1099px),(max-height:619px)').matches;
+
+let CUR = 'en', L = LANG.en;
+let lastOut = null, lastInputs = null;
+
+/* ─── Formatting ─── */
+const nf = (x, d=1) => new Intl.NumberFormat(LOCALE[CUR], {minimumFractionDigits:d, maximumFractionDigits:d}).format(x);
+// German Intl "compact" does not shorten thousands, so spell out "Tsd." there
+const eurCompact = x => (CUR === 'de' && x >= 1e3 && x < 1e6) ? `${nf(x/1e3, 0)} Tsd. €`
+  : new Intl.NumberFormat(LOCALE[CUR], {style:'currency', currency:'EUR', notation:'compact', maximumFractionDigits: x >= 1e6 ? 1 : 0}).format(x);
+const intCompact = x => (CUR === 'de' && x >= 1e3 && x < 1e6) ? `${nf(x/1e3, 1)} Tsd.`
+  : new Intl.NumberFormat(LOCALE[CUR], {notation:'compact', maximumFractionDigits: x >= 1000 ? 1 : 0}).format(x);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ICON = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+
+function tween(el, to, fmt){
+  const from = parseFloat(el.dataset.v);
+  el.dataset.v = to;
+  if (REDUCED || isNaN(from) || from === to){ el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 500;
+  cancelAnimationFrame(el._raf);
+  const step = now => {
+    const t = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(from + (to - from) * e);
+    if (t < 1) el._raf = requestAnimationFrame(step);
+  };
+  el._raf = requestAnimationFrame(step);
+}
+
+/* ─── i18n ─── */
+function applyLang(lang){
+  if (!LANG[lang]) lang = 'en';
+  CUR = lang; L = LANG[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { const v = L[el.dataset.i18n]; if (typeof v === 'string') el.textContent = v; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { const v = L[el.dataset.i18nPh]; if (typeof v === 'string') el.placeholder = v; });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { const v = L[el.dataset.i18nTitle]; if (typeof v === 'string'){ el.title = v; el.setAttribute('aria-label', v); } });
+  document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+  document.title = `${L.tag} · ENERGYNEST`;
+  $('consentText').innerHTML = L.f_consent(CONFIG.privacyUrl[lang]);
+  syncUnitLabels();
+  updateDerived();
+  run();
+}
+
+/* ─── Friendly inputs → the hidden fields Alex's engine reads ───
+   Visible fields accept "60,5" or "60.5"; gas and steam are converted to heat here,
+   so configure() always sees the same inputs as in Alex's tool. */
+const GAS_TO_HEAT = 0.9;   // boiler efficiency, same as the market view's reference run
+const TEMP_PRESETS = [ {c:90, k:'tp_hot'}, {c:150, k:'tp_lp'}, {c:180, k:'tp_proc'}, {c:220, k:'tp_hp'}, {c:300, k:'tp_oil'} ];
+const SLIDER = { heat:{min:1,max:1000}, gas:{min:1,max:1000}, steam:{min:1000,max:1500000}, elec:{min:0.5,max:300} };
+let basis = 'heat', tempMode = 'preset', tempPreset = 180, tempUnitC = 'C';
+
+const parseNum = s => { s = String(s ?? '').trim().replace(/\s/g, '').replace(',', '.'); if (s === '') return null; const v = Number(s); return isFinite(v) && v >= 0 ? v : null; };
+const fmtIn = (x, d=1) => new Intl.NumberFormat(LOCALE[CUR], {maximumFractionDigits:d, useGrouping:false}).format(x);
+const toPos = (v, r) => v === null || v <= r.min ? 0 : v >= r.max ? 1000 : Math.round(1000 * Math.log(v / r.min) / Math.log(r.max / r.min));
+function nice(v){
+  const m = Math.pow(10, Math.floor(Math.log10(v)) - 1), step = v < 10 ? m * 5 : m;
+  return Math.round(v / step) * step;
+}
+const fromPos = (p, r) => nice(r.min * Math.pow(r.max / r.min, p / 1000));
+function paintRange(el){ el.style.setProperty('--p', (el.value / 10) + '%'); }
+const heatGWhOf = v => v === null ? null : basis === 'gas' ? v * GAS_TO_HEAT : basis === 'steam' ? tonsToGWh(v) : v;
+const heatDec = () => basis === 'steam' ? 0 : 1;
+
+function syncHidden(){
+  const h = parseNum($('in_heat').value);
+  $('annualHeat').value = h === null ? '' : (basis === 'steam' ? h : heatGWhOf(h));
+  $('heatUnit').value = basis === 'steam' ? 'tons' : 'GWh';
+  if (tempMode === 'preset'){ $('tempVal').value = tempPreset; $('tempUnit').value = 'C'; }
+  else { const t = parseNum($('in_temp').value); $('tempVal').value = t === null ? '' : t; $('tempUnit').value = tempUnitC; }
+  const e = parseNum($('in_elec').value);
+  $('annualElec').value = $('elecOn').checked && e !== null ? e : '';
+  document.querySelectorAll('[data-adv]').forEach(el => { const v = parseNum(el.value); $(el.dataset.adv).value = v === null ? '' : v; });
+}
+
+// labels, chips, hints and "auto" placeholders (no recalculation)
+function syncUnitLabels(){
+  $('u_heat').textContent = basis === 'gas' ? L.u_gas : basis === 'steam' ? L.opt_tons : L.opt_gwh;
+  document.querySelectorAll('#basisSeg [data-b]').forEach(x => x.setAttribute('aria-checked', String(x.dataset.b === basis)));
+  $('tempChips').innerHTML = TEMP_PRESETS.map(p =>
+      `<button type="button" role="radio" class="chip-t" data-t="${p.c}" title="${L[p.k]}" aria-label="${p.c} °C, ${L[p.k]}" aria-checked="${tempMode === 'preset' && tempPreset === p.c}"><b>${p.c} °C</b><span>${L[p.k.replace('tp_','ts_')]}</span></button>`).join('')
+    + `<button type="button" role="radio" class="chip-t" data-t="other" aria-checked="${tempMode === 'custom'}"><b>${L.tp_other}</b><span>°C · barg</span></button>`;
+  $('customTemp').hidden = tempMode !== 'custom';
+  $('u_temp').textContent = tempUnitC === 'barg' ? 'barg' : '°C';
+  document.querySelectorAll('#tempUnitSeg button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === tempUnitC)));
+  $('elecBox').hidden = !$('elecOn').checked; $('elecOffHint').hidden = $('elecOn').checked;
+  $('secElec').classList.toggle('off', !$('elecOn').checked);
+
+  const hv = parseNum($('in_heat').value), hGWh = heatGWhOf(hv), eGWh = $('elecOn').checked ? parseNum($('in_elec').value) : null;
+  const avgH = hGWh === null ? null : gwhToAvgMW(hGWh), avgE = eGWh === null ? null : gwhToAvgMW(eGWh);
+  $('h_heat').textContent = hGWh === null ? '' :
+    (basis === 'gas' ? L.h_gas(nf(hGWh)) + ' · ' : basis === 'steam' ? L.h_conv(nf(hGWh)) + ' · ' : '') + L.d_avg(nf(avgH));
+  $('h_elec').textContent = avgE === null ? '' : L.d_avg(nf(avgE));
+  const tC = parseNum($('tempVal').value) === null ? null : ($('tempUnit').value === 'barg' ? bargToTempC(parseNum($('tempVal').value)) : parseNum($('tempVal').value));
+  const th = $('h_temp');
+  th.className = 'hint' + (tC !== null && tC >= 300 ? ' warn' : '');
+  th.textContent = tC === null ? '' : [tempMode === 'custom' && tempUnitC === 'barg' ? L.d_sat(Math.round(tC)) : '',
+    tC >= 330 ? L.h_noTes : tC >= 300 ? L.h_oil : ''].filter(Boolean).join(' · ');
+  [['r_heat', SLIDER[basis], hv], ['r_elec', SLIDER.elec, eGWh]].forEach(([id, r, v]) => {
+    if (document.activeElement !== $(id)) $(id).value = toPos(v, r);
+    paintRange($(id));
+  });
+  // what Alex's rules will use when a detail is left blank
+  const pk = parseNum($('in_peakHeat').value) ?? (avgH === null ? null : 2 * avgH);
+  const autos = { in_peakHeat: avgH === null ? null : nf(2 * avgH), in_baseload: avgH === null ? null : nf(0.5 * avgH),
+    in_existing: pk === null ? null : nf(Math.ceil(pk), 0), in_peakElec: avgE === null ? null : nf(2 * avgE),
+    in_renewables: nf(0, 0), in_grid: nf(Math.ceil(2 * ((avgE || 0) + (avgH || 0))), 0) };
+  Object.entries(autos).forEach(([id, v]) => $(id).placeholder = v === null ? '' : L.auto(v));
+  fitNum($('in_heat')); fitNum($('in_elec'));
+}
+
+// the big number fields grow with their content, so the unit sits right after the number
+function fitNum(el){
+  if (!el.offsetParent) return;          // hidden (electricity switched off)
+  // measured on a mirror of the text, not by scrollWidth: Firefox leaves the field's own padding out of scrollWidth and clipped the last digit
+  const cs = getComputedStyle(el), m = document.createElement('span');
+  m.style.cssText = `position:absolute;visibility:hidden;white-space:pre;font-family:${cs.fontFamily};font-size:${cs.fontSize};font-weight:${cs.fontWeight};letter-spacing:${cs.letterSpacing};font-feature-settings:${cs.fontFeatureSettings}`;
+  m.textContent = el.value || el.placeholder || '0';
+  document.body.appendChild(m);
+  const w = m.getBoundingClientRect().width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 3;
+  m.remove();
+  el.style.width = Math.ceil(w) + 'px';
+}
+document.fonts && document.fonts.ready.then(() => { fitNum($('in_heat')); fitNum($('in_elec')); });
+function syncAll(now){ syncHidden(); syncUnitLabels(); onInput(now); }
+
+$('in_heat').addEventListener('input', () => syncAll(false));
+$('r_heat').addEventListener('input', () => { $('in_heat').value = fmtIn(fromPos(+$('r_heat').value, SLIDER[basis]), heatDec()); syncAll(false); });
+$('in_elec').addEventListener('input', () => syncAll(false));
+$('r_elec').addEventListener('input', () => { $('in_elec').value = fmtIn(fromPos(+$('r_elec').value, SLIDER.elec)); syncAll(false); });
+$('elecOn').addEventListener('change', () => syncAll(true));
+$('basisSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-b]'); if (!b || b.dataset.b === basis) return;
+  // keep the same heat demand when switching basis, so the result does not jump
+  const g = heatGWhOf(parseNum($('in_heat').value));
+  basis = b.dataset.b;
+  if (g !== null) $('in_heat').value = fmtIn(basis === 'gas' ? g / GAS_TO_HEAT : basis === 'steam' ? g * 1000 / MWH_PER_TON_STEAM : g, heatDec());
+  syncAll(true);
+});
+$('tempChips').addEventListener('click', e => {
+  const c = e.target.closest('[data-t]'); if (!c) return;
+  if (c.dataset.t === 'other'){
+    if (tempMode !== 'custom'){ tempMode = 'custom'; if (!$('in_temp').value){ $('in_temp').value = fmtIn(tempPreset, 0); tempUnitC = 'C'; } }
+  } else { tempMode = 'preset'; tempPreset = +c.dataset.t; }
+  syncAll(true);
+  if (tempMode === 'custom') $('in_temp').focus();
+});
+$('in_temp').addEventListener('input', () => syncAll(false));
+$('tempUnitSeg').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; tempUnitC = b.dataset.v; syncAll(true); });
+document.querySelectorAll('[data-adv]').forEach(el => el.addEventListener('input', () => syncAll(false)));
+
+/* ─── Stage bridge (v3): the isometric plant, drawn by iso-stage.js from the figure kit ─── */
+let stage = null, stageWanted = null;
+let thermalState = 'idle';
+let labelsOn = true, casingOn = false;
+$('btnLabels').setAttribute('aria-pressed', String(labelsOn));
+setTimeout(() => $('viewerPane').classList.add('ready'), 6000);   // never leave the stage blank
+import('./iso-stage.js').then(m => {
+  stage = m.createStage($('isoHost'), {base:'stage-iso/'});
+  $('isoHost').addEventListener('iso:drawn', () => $('viewerPane').classList.add('ready'));
+  if (stageWanted) stage.update(stageWanted);
+}).catch(err => { console.error('stage failed', err); $('viewerPane').classList.add('ready'); });
+function plantFromConfig(out){
+  const d = out && out._diag;
+  if (!d || !out.components.length) return null;
+  const {tes, bess, eBoiler, i} = d;
+  const heaterName = i.tempC >= 300 ? L.cn_eoil : L.cn_eboiler;
+  const tesModules = tes ? Math.floor(tes.mw/6) + (tes.mw % 6 > 0 ? 1 : 0) : 0;
+  const bessUnits = bess ? Math.round(bess.mw/1.25) : 0;
+  return {
+    tes: tes ? {modules:tesModules, mw:tes.mw, mwh:tes.mwh, label:L.cn_tes, sub:L.lbl3_tes(nf(tes.mw), nf(tes.mwh,0), tesModules), val:nf(tes.mw), unit:'MW', sec:L.lbl3_tes(nf(tes.mw), nf(tes.mwh,0), tesModules).replace(nf(tes.mw)+' MW · ','')} : null,
+    eboiler: eBoiler>0 ? {mw:eBoiler, label:heaterName, sub:L.lbl3_mw(nf(eBoiler)), val:nf(eBoiler), unit:'MW', sec:''} : null,
+    bess: bess ? {units:bessUnits, label:L.cn_bess, sub:L.lbl3_bess(nf(bess.mw,2), nf(bess.mwh,0), bessUnits), val:nf(bess.mw,2), unit:'MW', sec:L.lbl3_bess(nf(bess.mw,2), nf(bess.mwh,0), bessUnits).replace(nf(bess.mw,2)+' MW · ','')} : null,
+    gas: i.existing>0 ? {mw:i.existing, label:L.cn_gas, sub:L.lbl3_gas(nf(i.existing,0)), val:nf(i.existing,0), unit:'MW', sec:L.lbl3_gas(nf(i.existing,0)).replace(nf(i.existing,0)+' MW · ','')} : null,
+  };
+}
+let shownPlant = null;
+function pushStage(){
+  const plant = shownPlant;
+  stageWanted = plant ? {
+    tes: !!plant.tes, modules: plant.tes ? plant.tes.modules : 0,
+    heater: !!plant.eboiler, gas: !!plant.gas, bessUnits: plant.bess ? plant.bess.units : 0,
+    labels: {tes: plant.tes, heater: plant.eboiler, gas: plant.gas, bess: plant.bess && {...plant.bess, total: plant.bess.units}},
+    state: thermalState, insulation: casingOn, showLabels: labelsOn,
+    text: {modulesShown: L.iso_shown, bessShown: L.iso_shown_c},
+  } : null;
+  $('stateSeg').hidden = !(plant && plant.tes);
+  $('vbot').classList.toggle('no-states', !(plant && plant.tes));
+  $('btnCasing').hidden = !(plant && plant.tes);
+  if (stage) stage.update(stageWanted); 
+}
+function showPlant(out){
+  const plant = plantFromConfig(out);
+  $('vEmpty').textContent = L.vp_empty;
+  $('vEmpty').hidden = !!plant;
+  $('isoHost').setAttribute('aria-label', L.iso_aria);
+  shownPlant = plant;
+  pushStage();
+}
+document.querySelectorAll('.vtop [role=tab]').forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
+function setView(v){
+  document.querySelectorAll('.vtop [role=tab]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.view === v)));
+  $('diagram').classList.toggle('show', v === 'diagram');
+  $('vbot').style.visibility = v === 'diagram' ? 'hidden' : '';
+}
+document.querySelectorAll('#stateSeg button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#stateSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  thermalState = b.dataset.state; pushStage();
+}));
+function toggleBtn(id, get, set, msg){
+  $(id).addEventListener('click', () => { set(!get()); $(id).setAttribute('aria-pressed', String(get())); msg(get()); });
+}
+toggleBtn('btnCasing', () => casingOn, v => casingOn = v, () => pushStage());
+toggleBtn('btnLabels', () => labelsOn, v => labelsOn = v, () => pushStage());
+
+/* ─── Result: solution, equipment list, notes ─── */
+const COMP_COLOR = { eboiler:'var(--c-eb)', tes:'var(--c-tes)', bess:'var(--c-bess)', gas:'var(--c-gas)' };
+const COMP_ICON = { eboiler:'bolt', tes:'layers', bess:'battery', gas:'flame' };
+
+function renderResult(out, errs){
+  const el = $('res');
+  const head = '';
+  if (errs){
+    el.innerHTML = `<div class="state"><div class="state-ic err">${ICON('alert')}</div><h3>${L.v_fixTitle}</h3><ul>${errs.map(e => `<li>${e}</li>`).join('')}</ul></div>`;
+    return;
+  }
+  if (!out){
+    el.innerHTML = `<div class="state"><div class="state-ic">${ICON('gauge')}</div><h3>${L.empty_title}</h3><p>${L.empty_text}</p></div>`;
+    return;
+  }
+  if (out.verdict.type === 'stop'){
+    el.innerHTML = `<div class="state"><div class="state-ic">${ICON('info')}</div><h3>${out.verdict.title}</h3><p>${out.verdict.text}</p></div>`;
+    return;
+  }
+  const i = out._diag.i;
+  const kit = out.components.map(c => {
+    const dec = c.cls === 'bess' ? 2 : 1;
+    const e = c.mwh !== undefined ? `<div class="e">${nf(c.mwh,0)} MWh · ${nf(c.mwh/Math.max(c.mw,0.01))} h</div>` : '';
+    return `<li style="--c:${COMP_COLOR[c.cls]}"><span class="ic">${ICON(COMP_ICON[c.cls] || 'gauge')}</span>
+      <div style="min-width:0"><div class="n">${c.name}</div><div class="s" title="${esc(c.sub)}">${c.sub}</div></div>
+      <div><div class="v">${nf(c.mw,dec)}<small>MW</small></div>${e}</div></li>`;
+  }).join('');
+  const notes = out.notes.length ? `<div class="notes">${out.notes.map(n =>
+      `<button type="button" class="note ${n.t === 'info' ? 'info' : 'warn'}" aria-expanded="false">${ICON(n.t === 'info' ? 'info' : 'alert')}<span>${n.m}</span></button>`).join('')}</div>` : '';
+  el.innerHTML = `${head}<h2 class="res-t">${out.verdict.title}</h2>
+    <div class="res-x">${ICON('bolt')}${L.kit_power(nf(i.grid + i.renewables, 0))}</div>
+    <ul class="kit">${kit}</ul>${notes}`;
+}
+$('res').addEventListener('click', e => {
+  const n = e.target.closest('.note'); if (!n) return;
+  n.setAttribute('aria-expanded', String(n.getAttribute('aria-expanded') !== 'true'));
+});
+
+/* ─── Market view ───
+   July 2024 reference run (optimization/demo/scenarios.json, "curated showcase
+   scenarios", not a live solver export): 1 MW constant heat demand, 2 MW heater,
+   8 MWh store, gas 65 €/MWh, boiler 90 %, η 0.95. Scaled per MWh of heat demand. */
+const REF = {
+  heatMWh: 1.0 * 366 * 24, gasEurMWh: 65, boilerEff: 0.9, eta: 0.95,
+  scenarios: {
+    'da-only':    {savings:107356, afrr:0,     elecPct:38, elecMWh:2499.7},
+    'da-afrr':    {savings:201555, afrr:84951, elecPct:52, elecMWh:3453.2},
+    'full-stack': {savings:256418, afrr:91733, elecPct:61, elecMWh:4075.4},
+  }
+};
+const GAS_EF_T_PER_MWH = 0.201;   // natural gas, t CO2 per MWh fuel (UBA)
+let currentMarket = 'full-stack';
+
+function renderMarket(){
+  const box = $('mkt'), body = $('mktBody');
+  const ok = lastOut && lastOut._diag && lastOut.components.length;
+  box.hidden = !ok;
+  if (!ok) return;
+  const {tes, i} = lastOut._diag;
+  if (!tes){ railHead = null; body.innerHTML = `<div class="mkt-none">${L.mv_noTes}</div>`; return; }
+  if (!body.querySelector('.hero')){
+    body.innerHTML = `<div class="seg" role="radiogroup" id="mktSeg" style="display:flex"></div>
+      <div class="hero"><div class="hero-v" id="k_sav"></div><div class="hero-s" data-k="s1"></div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-v" id="k_co2"></div><div class="kpi-s" data-k="s2"></div></div>
+        <div class="kpi"><div class="kpi-v" id="k_afrr"></div><div class="kpi-s" data-k="s3"></div></div>
+        <div class="kpi"><div class="kpi-v" id="k_be"></div><div class="kpi-s" data-k="s4"></div></div>
+      </div>`;
+  }
+  const opts = [['da-only', L.mv_da], ['da-afrr', L.mv_afrr], ['full-stack', L.mv_full]];
+  $('mktSeg').innerHTML = opts.map(([id, t]) =>
+    `<button type="button" role="radio" style="flex:1" aria-checked="${id === currentMarket}" data-m="${id}">${t}</button>`).join('');
+  const s = REF.scenarios[currentMarket];
+  const heatMWh = i.annualHeat * 1000;
+  const savings = s.savings / REF.heatMWh * heatMWh;
+  railHead = eurCompact(savings);
+  const afrr = s.afrr / REF.heatMWh * heatMWh;
+  const co2 = heatMWh * (s.elecPct/100) / REF.boilerEff * GAS_EF_T_PER_MWH;
+  const be = (REF.gasEurMWh / REF.boilerEff) * REF.eta + (s.elecMWh > 0 ? s.afrr / s.elecMWh : 0);
+  const set = (k, v) => body.querySelector(`[data-k="${k}"]`).textContent = v;
+  set('s1', L.mv_sav_s); set('s2', L.mv_co2_s); set('s3', L.mv_afrr_s); set('s4', L.mv_be_s);
+  tween($('k_sav'), savings, eurCompact);
+  tween($('k_co2'), co2, intCompact);
+  if (afrr > 0) tween($('k_afrr'), afrr, eurCompact); else { $('k_afrr').dataset.v = 0; $('k_afrr').textContent = '—'; }
+  tween($('k_be'), be, x => nf(x, 0));
+}
+$('mktBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  currentMarket = b.dataset.m; renderMarket();
+});
+$('mktBody').addEventListener('keydown', e => {
+  if (!e.target.closest('[data-m]') || !['ArrowRight','ArrowLeft','ArrowDown','ArrowUp'].includes(e.key)) return;
+  e.preventDefault();
+  const ids = Object.keys(REF.scenarios), k = ids.indexOf(currentMarket);
+  currentMarket = ids[(k + (['ArrowRight','ArrowDown'].includes(e.key) ? 1 : ids.length - 1)) % ids.length];
+  renderMarket();
+  $('mktBody').querySelector(`[data-m="${currentMarket}"]`).focus();
+});
+
+/* ─── "About these figures" popover: caveats, market method, disclaimer ─── */
+function renderAbout(){
+  const i = lastOut && lastOut._diag ? lastOut._diag.i : null;
+  const showMkt = lastOut && lastOut._diag && lastOut._diag.tes;
+  $('aboutPop').innerHTML =
+    `<h4>${L.caveats_title}</h4><ul>${L.caveats.map(c => `<li>${c}</li>`).join('')}</ul>` +
+    (showMkt ? `<h4>${L.mv_note_t}</h4><p>${L.mv_note(nf(i.annualHeat))}</p>` : '') +
+    (showMkt && CONFIG.analysisUrl ? `<p style="margin-top:6px"><a href="${CONFIG.analysisUrl}" target="_blank" rel="noopener">${L.mv_detail} →</a></p>` : '') +
+    `<h4>${L.about_t}</h4><p>${L.foot}</p>` +
+    `<p style="margin-top:10px"><a href="${CONFIG.privacyUrl[CUR]}" target="_blank" rel="noopener">${L.privacy}</a> · <a href="${CONFIG.contactUrl[CUR]}" target="_blank" rel="noopener">${L.contact}</a></p>`;
+}
+function setAbout(open){
+  $('aboutPop').classList.toggle('open', open);
+  $('aboutBtn').setAttribute('aria-expanded', String(open));
+}
+$('aboutBtn').addEventListener('click', e => { e.stopPropagation(); setAbout(!$('aboutPop').classList.contains('open')); });
+document.addEventListener('click', e => { if (!e.target.closest('.about')) setAbout(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setAbout(false); });
+
+/* ─── Print summary of the inputs ─── */
+function renderPrint(i){
+  $('printMeta').textContent = L.print_meta(new Date().toLocaleDateString(LOCALE[CUR], {dateStyle:'long'}));
+  $('printFoot').innerHTML = L.foot;
+  if (!i){ $('printInputs').innerHTML = ''; return; }
+  const rows = [
+    [L.lbl_annualHeat, `${nf(i.annualHeat)} ${L.opt_gwh}`], [L.lbl_temp, `${nf(i.tempC,0)} °C`], [L.lbl_annualElec, `${nf(i.annualElec)} ${L.opt_gwh}`],
+    [L.lbl_peakHeat, `${nf(i.peakHeat)} MW`], [L.lbl_baseload, `${nf(i.baseload)} MW`], [L.lbl_existing, `${nf(i.existing,0)} MW`],
+    [L.lbl_peakElec, `${nf(i.peakElec)} MW`], [L.lbl_renewables, `${nf(i.renewables)} MW`], [L.lbl_grid, `${nf(i.grid,0)} MW`],
+  ];
+  $('printInputs').innerHTML = rows.map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}</b></div>`).join('');
+}
+
+/* ─── Shareable state (URL hash) ─── */
+const ADV_IDS = ['in_peakHeat','in_baseload','in_existing','in_peakElec','in_renewables','in_grid'];
+function writeHash(){
+  const p = new URLSearchParams();
+  const h = parseNum($('in_heat').value); if (h !== null) p.set('h', h);
+  if (basis !== 'heat') p.set('b', basis);
+  if (tempMode === 'preset') p.set('t', tempPreset);
+  else { const t = parseNum($('in_temp').value); if (t !== null) p.set('t', t); p.set('tc', tempUnitC); }
+  if (!$('elecOn').checked) p.set('e', 'off');
+  else { const e = parseNum($('in_elec').value); if (e !== null) p.set('e', e); }
+  ADV_IDS.forEach(id => { const v = parseNum($(id).value); if (v !== null) p.set($(id).dataset.adv, v); });
+  history.replaceState(null, '', '#' + p.toString());
+}
+function loadState(src){
+  // also reads links made by the previous version (annualHeat=…&heatUnit=…&tempVal=…)
+  basis = src.b || (src.heatUnit === 'tons' ? 'steam' : 'heat');
+  const h = src.h ?? src.annualHeat ?? '';
+  $('in_heat').value = h === '' ? '' : fmtIn(+h, heatDec());
+  const t = src.t ?? src.tempVal, tu = src.tc || src.tempUnit || 'C';
+  if (t !== undefined && t !== '' && tu === 'C' && TEMP_PRESETS.some(p => p.c === +t) && !src.tc){ tempMode = 'preset'; tempPreset = +t; }
+  else if (t !== undefined && t !== ''){ tempMode = 'custom'; tempUnitC = tu; $('in_temp').value = fmtIn(+t, 1); }
+  else { tempMode = 'preset'; tempPreset = 180; }
+  const e = src.e ?? src.annualElec ?? '';
+  $('elecOn').checked = e !== 'off';
+  $('in_elec').value = (e === '' || e === 'off') ? '' : fmtIn(+e);
+  ADV_IDS.forEach(id => { const v = src[$(id).dataset.adv]; $(id).value = (v === undefined || v === '') ? '' : fmtIn(+v); });
+  $('adv').open = ADV_IDS.some(id => $(id).value !== '' && !(id === 'in_renewables' && parseNum($(id).value) === 0));
+  syncHidden();
+}
+
+/* ─── Run (live) ─── */
+function markInvalid(i){
+  const bad = {
+    f_peakHeat: i.peakHeatRaw !== null && i.peakHeatRaw < i.avgHeat - 1e-6,
+    f_peakElec: i.peakElecRaw !== null && i.peakElecRaw < i.avgElec - 1e-6,
+    f_existing: i.existing > 0 && i.existing < i.peakHeat - 1e-6,
+  };
+  Object.entries(bad).forEach(([id, b]) => $(id).classList.toggle('invalid', b));
+  if (Object.values(bad).some(Boolean)) $('adv').open = true;
+}
+function run(){
+  const nothing = num('annualHeat') === null && num('annualElec') === null;
+  if (nothing){
+    lastOut = null; lastInputs = null;
+    document.querySelectorAll('.field.invalid').forEach(f => f.classList.remove('invalid'));
+    renderResult(null); showPlant(null); renderMarket(); renderPrint(null); renderAbout();
+    $('ctaBtn').disabled = true; $('diagram').innerHTML = ''; return;
+  }
+  const i = readInputs();
+  markInvalid(i);
+  const errs = validate(i);
+  if (errs.length){
+    renderResult(null, errs); $('mkt').hidden = true; $('ctaBtn').disabled = true;
+    $('vEmpty').textContent = L.v_fixTitle; $('vEmpty').hidden = false;   // don't show a plant for invalid inputs
+    return;
+  }
+  const out = configure(i);
+  lastOut = out; lastInputs = i;
+  renderResult(out);
+  $('diagram').innerHTML = (out._diag && out.components.length) ? buildDiagram(out) : '';
+  showPlant(out);
+  renderMarket();
+  renderPrint(i);
+  renderAbout();
+  $('ctaBtn').disabled = !out.components.length;
+}
+let tmr = null;
+function onInput(now){
+  updateDerived();
+  writeHash();
+  clearTimeout(tmr);
+  tmr = setTimeout(run, now ? 0 : 300);
+}
+$('resetBtn').addEventListener('click', () => { loadState(CONFIG.example); $('adv').open = false; syncUnitLabels(); onInput(true); });
+$('toViewer').addEventListener('click', () => $('viewerPane').scrollIntoView({behavior: REDUCED ? 'auto' : 'smooth', block:'start'}));
+
+/* ─── Copy link, PDF ─── */
+function toast(msg){
+  $('toastT').textContent = msg; $('toast').classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => $('toast').classList.remove('show'), 1800);
+}
+$('copyLink').addEventListener('click', async () => {
+  writeHash();
+  const url = location.href.split('#')[0].replace(/[?&]embed=1/, '') + location.hash;
+  try { await navigator.clipboard.writeText(url); } catch(e){ prompt('', url); }
+  toast(L.copied);
+});
+let viewBeforePrint = '3d';
+$('pdfBtn').addEventListener('click', () => {
+  viewBeforePrint = $('diagram').classList.contains('show') ? 'diagram' : '3d';
+  setView('diagram');
+  setTimeout(() => window.print(), 60);
+});
+window.addEventListener('afterprint', () => setView(viewBeforePrint));
+
+/* ─── Lead form ─── */
+let lastFocus = null;
+function openModal(){
+  lastFocus = document.activeElement;
+  const out = lastOut;
+  const pills = out ? [`<span class="pill t">${esc(out.verdict.title)}</span>`].concat(out.components.map(c =>
+    `<span class="pill" style="--c:${COMP_COLOR[c.cls]}"><i></i>${esc(c.name)} ${nf(c.mw, c.cls === 'bess' ? 2 : 1)} MW${c.mwh !== undefined ? ` / ${nf(c.mwh,0)} MWh` : ''}</span>`)) : [];
+  $('mSum').innerHTML = pills.join('');
+  $('mSum').hidden = !pills.length;
+  $('leadPane').hidden = false; $('donePane').classList.remove('show');
+  $('fErr').classList.remove('show');
+  // embedded in a frame taller than the screen: "fixed" would centre on the whole frame
+  const tall = EMBED && document.documentElement.scrollHeight > window.innerHeight + 4;
+  document.body.classList.toggle('tall', tall);
+  $('overlay').classList.add('open');
+  if (!tall) document.body.style.overflow = 'hidden';
+  else {
+    const anchor = (lastFocus && lastFocus.getBoundingClientRect) ? lastFocus : $('ctaBtn');
+    const r = anchor.getBoundingClientRect(), modal = $('overlay').querySelector('.modal');
+    const top = r.top + window.scrollY + r.height / 2 - modal.offsetHeight / 2;
+    $('overlay').style.paddingTop = Math.max(16, Math.min(top, document.body.scrollHeight - modal.offsetHeight - 16)) + 'px';
+    modal.scrollIntoView({block:'nearest'});
+  }
+  setTimeout(() => $('lf_first').focus({preventScroll: tall}), 30);
+}
+function closeModal(){
+  $('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  if (lastFocus) lastFocus.focus({preventScroll:true});
+}
+$('ctaBtn').addEventListener('click', openModal);
+$('overlay').addEventListener('click', e => { if (e.target === $('overlay') || e.target.closest('[data-close]')) closeModal(); });
+document.addEventListener('keydown', e => {
+  if (!$('overlay').classList.contains('open')) return;
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Tab'){   // keep focus inside the dialog
+    const f = [...$('overlay').querySelectorAll('button,input,textarea,a[href]')].filter(x => x.offsetParent && !x.classList.contains('hp'));
+    if (!f.length) return;
+    if (e.shiftKey && document.activeElement === f[0]){ e.preventDefault(); f[f.length-1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length-1]){ e.preventDefault(); f[0].focus(); }
+  }
+});
+$('leadForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target;
+  if (!form.checkValidity()){
+    $('fErrT').textContent = L.err_required; $('fErr').classList.add('show');
+    form.querySelector(':invalid').focus(); return;
+  }
+  $('fErr').classList.remove('show');
+  const data = Object.fromEntries(new FormData(form).entries());
+  if (data.website){ showDone(true); return; }           // honeypot: silently drop bots
+  delete data.website;
+  const payload = {
+    contact: data, language: CUR, submittedAt: new Date().toISOString(), page: location.href,
+    solution: lastOut ? lastOut.verdict.title : null,
+    components: lastOut ? lastOut.components.map(c => ({type:c.cls, mw:c.mw, mwh:c.mwh ?? null})) : [],
+    inputs: lastInputs,
+  };
+  if (!CONFIG.leadEndpoint){ showDone(false); return; }
+  const btn = $('submitBtn'); btn.disabled = true; btn.classList.add('sending');
+  try {
+    const r = await fetch(CONFIG.leadEndpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    if (!r.ok) throw new Error(r.status);
+    showDone(true);
+  } catch(err){
+    $('fErrT').innerHTML = L.err_send(CONFIG.contactUrl[CUR]); $('fErr').classList.add('show');
+  } finally { btn.disabled = false; btn.classList.remove('sending'); }
+});
+function showDone(sent){
+  $('protoNote').hidden = sent;
+  $('leadPane').hidden = true; $('donePane').classList.add('show');
+  $('donePane').querySelector('[data-close]').focus();
+  $('leadForm').reset();
+}
+
+
+/* ─── Layout (v3): collapse the inputs column first, then the result column ───
+   A column is kept open while the stage keeps at least STAGE_MIN px (room for the plant and its callouts at full detail; below
+   that the callouts shrink to names). Left first, because the inputs are set once and the result is what is looked at: with the
+   widths below that is 1244 px for all three columns (288 + 356 + 600), 980 px with only the result kept, and narrower both
+   collapse (the stage then has the window minus two 64 px rails). The stacked page is only for phones (< 520 px) and windows
+   lower than 440 px (a stage under 384 px high cannot show the plant). Manual choices hold until a breakpoint is crossed. */
+let railHead = null;
+const LAY = {userL:null, userR:null, openL:false, openR:false, key:''};
+const STAGE_MIN = 560, RAIL_W = 64, FULL_MIN = 600;
+const stackedMQ = matchMedia('(max-width:519px),(max-height:439px)');
+function autoCollapsed(){
+  const W = window.innerWidth, big = W >= 1400, lw = big ? 320 : 288, rw = big ? 380 : 356;
+  if (W - lw - rw >= FULL_MIN) return [false, false];
+  if (W - RAIL_W - rw >= STAGE_MIN) return [true, false];
+  return [true, true];
+}
+function applyLayout(){
+  const main = document.querySelector('.main'), stacked = stackedMQ.matches;
+  const [aL, aR] = autoCollapsed(), key = `${aL}${aR}${stacked}`;
+  if (key !== LAY.key){ if (LAY.key){ LAY.userL = LAY.userR = null; LAY.openL = LAY.openR = false; } LAY.key = key; }
+  const cL = !stacked && (LAY.userL ?? aL), cR = !stacked && (LAY.userR ?? aR);
+  const oL = cL && LAY.openL, oR = cR && LAY.openR;
+  main.classList.toggle('lc', cL); main.classList.toggle('rc', cR);
+  main.classList.toggle('l-open', oL); main.classList.toggle('r-open', oR);
+  $('inputsPane').inert = cL && !oL; $('resultPane').inert = cR && !oR;
+  $('railL').setAttribute('aria-expanded', String(oL)); $('railR').setAttribute('aria-expanded', String(oR));
+  $('railL').tabIndex = cL ? 0 : -1; $('railR').tabIndex = cR ? 0 : -1;
+  $('edgeL').setAttribute('aria-label', cL ? L.close_in : L.hide_in); $('edgeR').setAttribute('aria-label', cR ? L.close_out : L.hide_out);
+  $('pinL').setAttribute('aria-label', L.keep_in); $('pinR').setAttribute('aria-label', L.keep_out);
+  $('edgeL').title = $('edgeL').getAttribute('aria-label'); $('edgeR').title = $('edgeR').getAttribute('aria-label');
+  $('pinL').title = L.keep_in; $('pinR').title = L.keep_out;
+  return {cL, cR};
+}
+function updateRails(){
+  const i = lastInputs, out = lastOut, ok = i && out && out._diag && out.components && out.components.length;
+  const set = (id, v, u, title) => { const el = $(id); el.querySelector('b').textContent = v; el.querySelector('small').textContent = u; el.title = title; };
+  if (i){
+    set('rlHeat', nf(i.annualHeat, i.annualHeat < 10 ? 1 : 0), L.opt_gwh, L.q_heat);
+    set('rlTemp', nf(i.tempC, 0), '°C', L.q_temp);
+    const elecOn = $('elecOn').checked && i.annualElec > 0;
+    set('rlElec', elecOn ? nf(i.annualElec, i.annualElec < 10 ? 1 : 0) : L.rail_off, elecOn ? L.opt_gwh : '', L.q_elec || '');
+  } else { ['rlHeat','rlTemp','rlElec'].forEach(id => set(id, '–', '', '')); }
+  $('rrFig').textContent = ok && out.verdict.type !== 'stop' ? (railHead || `${nf(i.grid + i.renewables, 0)} MW`) : '';
+  $('rrTitle').textContent = ok && out.verdict.type !== 'stop' ? out.verdict.title : '';
+  const sum = [$('rlHeat'), $('rlTemp'), $('rlElec')].map(e => e.title && e.querySelector('b').textContent !== '–' ? `${e.title} ${e.querySelector('b').textContent} ${e.querySelector('small').textContent}`.trim() : '').filter(Boolean).join(', ');
+  $('railL').setAttribute('aria-label', `${L.show_in}${sum ? ': ' + sum : ''}`);
+  $('railR').setAttribute('aria-label', `${L.show_out}${$('rrTitle').textContent ? ': ' + $('rrTitle').textContent + ' ' + $('rrFig').textContent : ''}`);
+  applyLayout();
+}
+const _run = run; run = function(){ _run(); updateRails(); };
+function openPanel(side){
+  LAY['open' + side] = true; applyLayout();
+  setTimeout(() => $(side === 'L' ? 'inputsPane' : 'resultPane').focus({preventScroll:true}), 30);
+}
+function closePanel(side, back){
+  LAY['open' + side] = false; if (LAY['user' + side] === false) LAY['user' + side] = true;
+  applyLayout(); if (back) $(side === 'L' ? 'railL' : 'railR').focus({preventScroll:true});
+}
+['L','R'].forEach(side => {
+  $('rail' + side).addEventListener('click', () => openPanel(side));
+  $('edge' + side).addEventListener('click', () => {
+    const {cL, cR} = applyLayout(), collapsed = side === 'L' ? cL : cR;
+    if (collapsed) closePanel(side, true);
+    else { LAY['user' + side] = true; LAY['open' + side] = false; applyLayout(); $('rail' + side).focus({preventScroll:true}); }
+  });
+  $('pin' + side).addEventListener('click', () => { LAY['user' + side] = false; LAY['open' + side] = false; applyLayout(); $(side === 'L' ? 'inputsPane' : 'resultPane').focus({preventScroll:true}); });
+});
+$('scrim').addEventListener('click', () => { if (LAY.openL) closePanel('L', true); if (LAY.openR) closePanel('R', true); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || $('overlay').classList.contains('open')) return;
+  if (LAY.openL && document.querySelector('.main').classList.contains('l-open')) closePanel('L', true);
+  else if (LAY.openR && document.querySelector('.main').classList.contains('r-open')) closePanel('R', true);
+});
+let layRaf = 0;
+window.addEventListener('resize', () => { cancelAnimationFrame(layRaf); layRaf = requestAnimationFrame(applyLayout); });
+stackedMQ.addEventListener('change', applyLayout);
+applyLayout();
+
+/* ─── Embed: report height to the host page ─── */
+if (EMBED && window.parent !== window){
+  new ResizeObserver(() => window.parent.postMessage({type:'energynest-configurator:height', height:document.documentElement.scrollHeight}, '*'))
+    .observe(document.body);
+}
+
+/* ─── Start ─── */
+document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => {
+  const vals = ['in_heat','in_elec','in_temp', ...ADV_IDS].map(id => [id, parseNum($(id).value)]);
+  CUR = LANG[b.dataset.lang] ? b.dataset.lang : 'en';
+  vals.forEach(([id, v]) => { if (v !== null) $(id).value = fmtIn(v, id === 'in_heat' ? heatDec() : 1); });
+  applyLang(b.dataset.lang);
+}));
+(function init(){
+  const q = new URLSearchParams(location.search).get('lang');
+  const nav = (navigator.language || 'en').slice(0, 2);
+  const lang = LANG[q] ? q : (LANG[nav] ? nav : 'en');
+  CUR = lang; L = LANG[lang];                      // so numbers are written in the visitor's format
+  const hash = Object.fromEntries(new URLSearchParams(location.hash.slice(1)).entries());
+  loadState(Object.keys(hash).length ? hash : CONFIG.example);
+  applyLang(lang);
+})();
+</script>
+</body>
+</html>
