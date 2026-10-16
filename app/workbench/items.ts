@@ -167,7 +167,7 @@ export const items: WorkbenchItem[] = [
   },
   {
     title: "CardLine",
-    href: "https://www.luminoaistudio.com/cardline",
+    href: "/cardline",
     kind: "mobile",
     date: "2026-01-04",
     description:
