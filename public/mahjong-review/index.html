@@ -256,7 +256,7 @@ body.review{background:var(--paper)}
 .hand-list h3{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;letter-spacing:.3px;color:var(--muted);margin:16px 8px 6px;font-weight:650}
 .hand-list .count{font-weight:400;font-size:12px;color:var(--muted)}
 .hand-list ol{list-style:none;margin:0;padding:0}
-.row{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;border-radius:7px;padding:6px 8px;min-height:36px;text-align:left;color:var(--ink);font-size:13px}
+.row{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;border-radius:7px;padding:7px 8px;min-height:38px;text-align:left;color:var(--ink);font-size:14px}
 .row:hover{background:#f0f3ea}
 .row[aria-current]{background:#e4ece0;box-shadow:inset 3px 0 0 var(--green)}
 .row .n{flex:none;width:22px;text-align:right;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
@@ -279,26 +279,59 @@ body.review{background:var(--paper)}
 .welcome p{margin:0;font-size:14px;line-height:1.55}
 .link-btn{border:0;background:transparent;color:var(--green);font-weight:650;padding:8px 4px;min-height:40px;white-space:nowrap}
 .link-btn:disabled{opacity:.35;cursor:default}
-.eyebrow-line{font-size:12px;letter-spacing:.3px;color:var(--muted);margin:0 0 2px}
+.eyebrow-line{font-size:13px;letter-spacing:.2px;color:var(--muted);margin:0 0 2px}
 .hand-pane h2{font-size:28px;margin:0 0 2px;letter-spacing:-.5px}
-.situation{margin:0 0 14px}
+.situation{margin:0 0 14px;font-size:14px}
 .rack{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;max-width:860px;margin:0 0 24px;padding:14px 12px 10px;background:#edf1e6;border-radius:10px}
 .rack>span{display:block;min-width:0}
 .rack .tile{width:100%;height:auto}
 .rack .drawn .tile{background:#fff3cf;border-color:#d3ae59;box-shadow:0 3px 0 #d3ae59}
 .hand-grid{display:grid;gap:22px}
-.label-line{font-size:12px;letter-spacing:.3px;color:var(--muted);margin:0 0 4px}
+.label-line{font-size:13px;letter-spacing:.2px;color:var(--muted);margin:0 0 4px}
 .answer-line{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:12px}
 .answer-line h3{font-size:22px;margin:0;color:var(--green)}
 .answer-art{display:flex;align-items:center;gap:8px}
 .answer-tiles{display:flex;gap:2px}
 .answer-tiles .tile{width:30px;height:41px;padding:2px 1px 3px}
 .or{font-size:12px;color:var(--muted)}
-.explain{font-size:16px;line-height:1.6;margin:0 0 14px}
-.working{border:1px solid var(--line);border-radius:9px;background:var(--white)}
-.working summary{padding:10px 14px;font-size:14px;min-height:0}
-.working[open] summary{border-bottom:1px solid var(--line)}
-.working>:not(summary){margin:12px 14px}
+.explain{font-size:17px;line-height:1.6;margin:0}
+.working{margin-top:22px}
+.working h4{font-size:13px;letter-spacing:.3px;color:var(--muted);font-weight:650;margin:0 0 8px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--white)}
+.compare{font-size:14px;width:100%}
+.compare th,.compare td{padding:8px 12px;vertical-align:middle;border-bottom:1px solid #e7ebe3}
+.compare tbody tr:last-child>*{border-bottom:0}
+.compare thead th{font-size:11px;font-weight:650;letter-spacing:.3px;color:var(--muted);background:#f6f7f1;padding-top:7px;padding-bottom:7px}
+.compare .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.compare tbody .num{font-weight:650}
+.compare tbody th{font-size:14px;color:var(--ink)}
+.app-says{min-width:0}
+.compare tr.best>*{background:#eef6ef}
+.compare tr.best th{box-shadow:inset 3px 0 0 #2f7d4c}
+.mv{display:flex;align-items:center;gap:10px;font-weight:650;white-space:nowrap}
+.mv>.tile{width:24px;height:33px;padding:1px;box-shadow:0 2px 0 #afc3aa}
+.mv em{display:block;font-style:normal;font-weight:650;font-size:11px;color:#2f7d4c}
+.ws{display:flex;flex-wrap:wrap;gap:6px}
+.w{display:inline-flex;flex-direction:column;align-items:center;gap:1px}
+.w .tile{width:24px;height:33px;padding:1px;box-shadow:0 2px 0 #afc3aa}
+.w small{font-size:10px;line-height:1.1;font-weight:700;color:#2f7d4c}
+.w.draw .tile{background:#fff3cf;border-color:#d3ae59}
+.w.draw small{color:#9a6b12}
+.w.short{opacity:.55}
+.w.short small{color:var(--muted)}
+.ws-big{gap:10px;margin:0}
+.ws-big .tile{width:32px;height:44px}
+.ws-big small{font-size:11px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:var(--muted);margin:8px 0 0}
+.legend .w{flex-direction:row;gap:6px}
+.legend .w i{width:10px;height:13px;border-radius:2px;border:1px solid #c6ccb7;background:#fffdf4}
+.legend .w.draw i{background:#fff3cf;border-color:#d3ae59}
+.legend .w.short{opacity:.6}
+.reasons{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 14px}
+.reason{border:1px solid #e2a59c;background:var(--white);color:#8f2f28;border-radius:99px;padding:6px 12px;min-height:34px;font-size:13px;font-weight:600}
+.reason:hover{background:#fbefec}
+.reason[aria-pressed=true]{background:#f6e3df;border-color:var(--red);color:var(--red)}
+.reason[aria-pressed=true]::before{content:"✓ "}
 .decide{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px #0000000d}
 .decide.agree{border-color:#9cc4a4}
 .decide.disagree{border-color:#e2a59c}
@@ -312,9 +345,9 @@ body.review{background:var(--paper)}
 .verdict.disagree:hover{background:#fbefec}
 .verdict.agree[aria-pressed=true]{background:#2f7d4c;color:white}
 .verdict.disagree[aria-pressed=true]{background:var(--red);color:white}
-.decide label{display:block;font-size:13px;font-weight:650;margin-bottom:6px}
+.decide label{display:block;font-size:14px;font-weight:650;margin-bottom:6px}
 .decide label .sub{font-weight:400}
-textarea.field{font:inherit;font-size:14px;resize:vertical;line-height:1.5;min-height:96px}
+textarea.field{font:inherit;font-size:15px;resize:vertical;line-height:1.5;min-height:96px}
 .decide.disagree textarea{border-color:#e2a59c;background:#fffaf8}
 .nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
 .nav .btn{min-width:170px}
@@ -339,6 +372,19 @@ kbd{font:inherit;font-size:10px;border:1px solid var(--line);border-bottom-width
   .rack.rack-13{grid-template-columns:repeat(13,minmax(0,1fr));max-width:800px}
   .hand-grid{grid-template-columns:minmax(0,1.25fr) minmax(300px,1fr);align-items:start}
   .decide{position:sticky;top:0}
+}
+/* A phone: each move is a small block, its name and numbers above the tiles that would win. */
+@media(max-width:600px){
+  .compare thead{display:none}
+  .compare tr{display:grid;grid-template-columns:1fr auto auto;gap:6px 14px;align-items:center;padding:10px 12px;border-bottom:1px solid #e7ebe3}
+  .compare tbody tr:last-child{border-bottom:0}
+  .compare th,.compare td{padding:0;border:0}
+  .compare td:nth-child(2){grid-column:1/-1;grid-row:2}
+  .compare td.num:nth-of-type(2)::after{content:" left";font-weight:400;color:var(--muted)}
+  .compare td.num:nth-of-type(3)::after{content:" pts";font-weight:400;color:var(--muted)}
+  .compare tr.best{background:#eef6ef;box-shadow:inset 3px 0 0 #2f7d4c}
+  .compare tr.best>*{background:transparent}
+  .compare tr.best th{box-shadow:none}
 }
 @media(max-width:899px){
   .review-top{flex-wrap:wrap;gap:6px 16px;padding:10px 16px}
@@ -1210,8 +1256,17 @@ const QUESTIONS=[
 // ---- The hands, and the answer the app gives for each -----------------------------------------------
 
 const move=m=>m.startsWith('kong ')?'Kong '+tileName(m.slice(5)):'Discard '+tileName(m);
-const winsText={discard:'wins',draw:'self-draw only',short:'under 8'};
-const count=n=>`${n} tile${n===1?'':'s'}`;
+const winsText={discard:'wins on a discard',draw:'wins by self-draw only',short:'under 8 points'};
+// A small tile with how many copies are left, coloured by whether it wins on a discard.
+const winTile=(t,kind,note)=>`<span class="w ${kind}" title="${tileName(t)}: ${note}">${tile(t)}<small>${note.split(',')[0].replace(/ (wins|under).*/,'')}</small></span>`;
+const range=ps=>!ps.length?'–':Math.min(...ps)===Math.max(...ps)?`${ps[0]}`:`${Math.min(...ps)}–${Math.max(...ps)}`;
+
+// What she can say is wrong, by the kind of hand. These map onto where a fix would go: the judging rule,
+// the scorer, or the explanation.
+const REASONS={
+  discard:[['move','There’s a better move'],['points','The points are wrong'],['wording','The explanation is unclear'],['other','Something else']],
+  wait:[['tiles','The winning tiles are wrong'],['points','The points are wrong'],['wording','The explanation is unclear'],['other','Something else']],
+};
 
 function discardHand(p){
   const tiles=[...MahjongTrainer.sortTiles(p.tiles.slice(0,13)),p.tiles[13]],winds={seatWind:p.seat||'E',prevalentWind:p.round||'E'};
@@ -1239,7 +1294,7 @@ if(linkKey)saved.key=linkKey;
 function keep(){try{localStorage.setItem(STORE,JSON.stringify(saved));}catch{}}
 keep();
 
-const entry=id=>saved.entries[id]||{verdict:null,note:''};
+const entry=id=>saved.entries[id]||{verdict:null,note:'',reasons:[]};
 function mark(id,change,answer){
   saved.entries[id]={...entry(id),...change,answer,at:new Date().toISOString()};
   saved.pending[id]=1;keep();showStatus();
@@ -1301,12 +1356,16 @@ const QUESTIONS_VIEW=-1,DONE_VIEW=-2;
 
 function discardParts(h){
   const {p,tiles,winds,a}=h,ready=a.options.filter(o=>o.ready),dead=a.options.length-ready.length;
-  const row=o=>`<div class="trainer-row${a.best.includes(o.move)?' best':''}"><div class="trainer-choice">${tile(o.discard)}<span class="small"><strong>${move(o.move)}</strong>${a.best.includes(o.move)?' · app’s answer':''}<br>${o.onDiscard?count(o.onDiscard):'No tiles'} win${o.onDiscard===1?'s':''} on a discard${o.drawOnly?`, ${o.drawOnly} ${o.onDiscard?'more by self-draw':'by self-draw only'}`:''}${o.short?`, ${o.short} never reach 8`:''}</span></div><div class="trainer-waits">${o.waits.map(w=>`<span class="trainer-wait ${w.wins}">${tile(w.tile)}<span class="trainer-note">×${w.live} · ${w.wins==='draw'?w.drawnPoints:w.points} pts<br>${winsText[w.wins]}</span></span>`).join('')}</div></div>`;
+  const row=o=>{
+    const best=a.best.includes(o.move),win=o.waits.filter(w=>w.wins==='discard');
+    return `<tr class="${best?'best':''}"><th scope="row"><span class="mv">${tile(o.discard)}<span>${move(o.move)}${best?'<em>App’s answer</em>':''}</span></span></th><td><span class="ws">${o.waits.map(w=>winTile(w.tile,w.wins,`×${w.live} ${winsText[w.wins]}`)).join('')}</span></td><td class="num">${o.onDiscard}${o.drawOnly?`<span class="sub"> +${o.drawOnly}</span>`:''}</td><td class="num">${range(win.map(w=>w.points))}</td></tr>`;
+  };
   return {
     situation:`${windNames[winds.seatWind]} seat, ${windNames[winds.prevalentWind]} round, nothing claimed. The highlighted tile was just drawn.`,
     rack:tiles.map((t,i)=>`<span class="${i===13?'drawn':''}">${tile(t)}</span>`).join(''),
     explain:p.lesson,
-    working:{label:`How the app compared the ${ready.length} moves that keep the hand ready`,body:`<div class="trainer-rows">${ready.map(row).join('')}</div><p class="small sub">×3 means three copies the player cannot see. Points are for a win on a discard, or by self-draw where marked.${dead?` ${dead} other move${dead===1?' leaves':'s leave'} a hand that is not ready.`:''}</p>`},
+    working:`<h4>The moves the app compared</h4><div class="table-wrap"><table class="compare"><thead><tr><th scope="col">Move</th><th scope="col">Tiles that would win</th><th scope="col" class="num">Winning tiles left</th><th scope="col" class="num">Points</th></tr></thead><tbody>${ready.map(row).join('')}</tbody></table></div>
+<p class="legend"><span class="w discard"><i></i>wins on a discard</span>${ready.some(o=>o.drawOnly)?'<span class="w draw"><i></i>self-draw only (the +)</span>':''}${ready.some(o=>o.short)?'<span class="w short"><i></i>under 8 points</span>':''}<span>×3 is copies the player cannot see. Points are for a win on a discard.${dead?` ${dead} other move${dead===1?' leaves':'s leave'} the hand not ready.`:''}</span></p>`,
   };
 }
 function waitParts(h){
@@ -1315,7 +1374,7 @@ function waitParts(h){
     situation:'13 tiles, nothing claimed.',
     rack:p.tiles.map(t=>`<span>${tile(t)}</span>`).join(''),
     explain:p.explain,
-    working:{label:'What each winning tile scores',body:`<div class="trainer-waits">${winners.map(w=>`<span class="trainer-wait ${w.s.qualifies?'discard':'short'}">${tile(w.t)}<span class="trainer-note">${w.s.points} pts<br>${w.s.qualifies?'wins':'under 8'}</span></span>`).join('')}</div><p class="small sub">Points are for a win on a discard, East seat in the East round. Under 8 completes the shape but cannot be declared.</p>`},
+    working:`<h4>Every tile that completes the hand</h4><p class="ws ws-big">${winners.map(w=>winTile(w.t,w.s.qualifies?'discard':'short',`${w.s.points} pts${w.s.qualifies?'':', under 8'}`)).join('')}</p><p class="legend"><span>Points for a win on a discard, East seat in the East round.${winners.some(w=>!w.s.qualifies)?' Under 8 completes the shape but cannot be declared.':''}</span></p>`,
   };
 }
 
@@ -1328,14 +1387,19 @@ function show(){
 <h2>${esc(h.p.theme)}</h2><p class="small sub situation">${parts.situation}</p>
 <div class="rack${h.kind==='wait'?' rack-13':''}">${parts.rack}</div>
 <div class="hand-grid"><div class="app-says"><p class="label-line">The app’s answer</p><div class="answer-line"><h3>${esc(h.answer)}</h3><div class="answer-art">${answer}</div></div><p class="explain">${esc(parts.explain)}</p>
-<details class="working"><summary>${parts.working.label}</summary>${parts.working.body}</details></div>
+<div class="working">${parts.working}</div></div>
 <div class="decide${e.verdict?' '+e.verdict:''}"><p class="decide-q">Is the app’s answer right?</p><div class="verdict-buttons"><button class="verdict agree" data-verdict="agree" aria-pressed="${e.verdict==='agree'}"><span aria-hidden="true">✓</span>Agree</button><button class="verdict disagree" data-verdict="disagree" aria-pressed="${e.verdict==='disagree'}"><span aria-hidden="true">✕</span>Disagree</button></div>
+${e.verdict==='disagree'?`<div class="reasons" role="group" aria-label="What is wrong?">${REASONS[h.kind].map(([k,t])=>`<button class="reason" data-reason="${k}" aria-pressed="${(e.reasons||[]).includes(k)}">${t}</button>`).join('')}</div>`:''}
 <label for="note">${e.verdict==='disagree'?'What would you do instead, and why?':'Note <span class="sub">(optional)</span>'}</label><textarea id="note" class="field" rows="4" placeholder="${e.verdict==='disagree'?'For example: kong the East, then wait on North or White dragon.':'Wording, points, anything that looks off.'}">${esc(e.note||'')}</textarea>
 <div class="nav"><button class="link-btn" id="prev"${at?'':' disabled'}>← Previous</button><button class="btn${e.verdict?'':' alt'}" id="next">${e.verdict?'Next hand →':'Skip for now →'}</button></div>
 <p class="keys">Keys: <kbd>A</kbd> agree · <kbd>D</kbd> disagree · <kbd>←</kbd> <kbd>→</kbd> move</p></div></div>`;
   const id=h.p.id;
   bindWelcome();
   $('hand').querySelectorAll('[data-verdict]').forEach(b=>b.onclick=()=>setVerdict(b.dataset.verdict));
+  $('hand').querySelectorAll('[data-reason]').forEach(b=>b.onclick=()=>{
+    const now=entry(id).reasons||[],k=b.dataset.reason,reasons=now.includes(k)?now.filter(x=>x!==k):[...now,k];
+    mark(id,{reasons},h.answer);flush();b.setAttribute('aria-pressed',reasons.includes(k));
+  });
   $('note').oninput=()=>{mark(id,{note:$('note').value},h.answer);later(id);showIndex();};
   $('note').onblur=()=>flush();
   $('prev').onclick=()=>go(at-1);
@@ -1348,7 +1412,7 @@ let advance=null;
 function setVerdict(verdict){
   if(at<0)return;
   const h=hands[at],id=h.p.id,before={...entry(id)},v=before.verdict===verdict?null:verdict;
-  mark(id,{verdict:v,note:$('note').value},h.answer);flush();
+  mark(id,{verdict:v,note:$('note').value,...(v==='disagree'?{}:{reasons:[]})},h.answer);flush();
   clearTimeout(advance);show();showIndex();
   if(v==='disagree')$('note').focus();
   if(v==='agree'){

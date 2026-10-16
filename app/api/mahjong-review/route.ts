@@ -12,7 +12,10 @@ const REDIS_TOKEN = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_R
 
 export const dynamic = "force-dynamic";
 
-type Mark = { verdict: "agree" | "disagree" | null; note: string; answer: string; at: string };
+// What a disagreement can say is wrong; the page offers these as buttons.
+const REASONS = ["move", "tiles", "points", "wording", "other"];
+
+type Mark = { verdict: "agree" | "disagree" | null; note: string; reasons: string[]; answer: string; at: string };
 
 function authorized(request: Request) {
   const key = request.headers.get("x-review-key") ?? "";
@@ -37,13 +40,14 @@ function refuse(status: number, error: string) {
 
 function parseMark(body: unknown): { id: string; mark: Mark } | null {
   if (!body || typeof body !== "object") return null;
-  const { id, verdict, note, answer, at } = body as Record<string, unknown>;
+  const { id, verdict, note, reasons = [], answer, at } = body as Record<string, unknown>;
   if (typeof id !== "string" || !/^(?:[dw]\d{3}|q\d)$/.test(id)) return null;
   if (verdict !== null && verdict !== "agree" && verdict !== "disagree") return null;
   if (typeof note !== "string" || note.length > 4000) return null;
+  if (!Array.isArray(reasons) || reasons.length > REASONS.length || !reasons.every(r => REASONS.includes(r))) return null;
   if (typeof answer !== "string" || answer.length > 400) return null;
   if (typeof at !== "string" || Number.isNaN(Date.parse(at))) return null;
-  return { id, mark: { verdict, note, answer, at } };
+  return { id, mark: { verdict, note, reasons, answer, at } };
 }
 
 export async function GET(request: Request) {
