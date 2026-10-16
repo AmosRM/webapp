@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
         source: "/cardline/support",
         destination: "/cardline/support.html",
       },
+      // A single self-contained page, so it can stay at the bare path.
+      {
+        source: "/mahjong-review",
+        destination: "/mahjong-review/index.html",
+      },
     ];
   },
   // Both pages load their assets with relative paths, so they have to be
