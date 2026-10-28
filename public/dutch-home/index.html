@@ -2962,7 +2962,10 @@ function switchView(v) {
 }
 
 function boot() {
-  $('verified-stamp').innerHTML = 'rules verified<br>' + state.rules.verifiedDate;
+  // verifiedDate can come from an imported backup, so it goes in as text, never as HTML.
+  const stamp = $('verified-stamp');
+  stamp.textContent = 'rules verified';
+  stamp.append(document.createElement('br'), String(state.rules.verifiedDate));
   $('rules-stamp').textContent = 'Verified ' + state.rules.verifiedDate + '. Every value is editable.';
 
   CORE_FIELDS.forEach(function (f) { $('fld-core').appendChild(makeStepper(f)); });

@@ -1286,11 +1286,18 @@ const answerTiles=h=>h.kind==='wait'?[h.p.options[h.p.correct]]:h.a.best.map(m=>
 // ---- Marks: kept on this device, and sent to the site -----------------------------------------------
 
 const STORE='mahjong-review-v1';
-let saved={key:'',entries:{},pending:{}},sync='idle',refused=false;
-try{const d=JSON.parse(localStorage.getItem(STORE)||'null');if(d&&typeof d==='object')saved={key:typeof d.key==='string'?d.key:'',entries:d.entries||{},pending:d.pending||{}};}catch{}
-// The link carries the key as #k=…; once seen it is kept, so a bookmark without it still works.
+let saved={entries:{},pending:{}},key='',sync='idle',refused=false;
+try{const d=JSON.parse(localStorage.getItem(STORE)||'null');if(d&&typeof d==='object')saved={entries:d.entries||{},pending:d.pending||{}};}catch{}
+// The link carries the key as #k=…. Every page on this site shares localStorage, so the key is
+// held only for this tab (sessionStorage) and taken out of the address bar and history.
+try{key=sessionStorage.getItem(STORE+'-key')||'';}catch{}
 const linkKey=(location.hash.match(/k=([A-Za-z0-9_-]{16,64})/)||[])[1];
-if(linkKey)saved.key=linkKey;
+if(linkKey){
+  key=linkKey;
+  try{sessionStorage.setItem(STORE+'-key',key);}catch{}
+  history.replaceState(null,'',location.pathname+location.search);
+}
+// Saving without the key also drops one that an earlier version kept in localStorage.
 function keep(){try{localStorage.setItem(STORE,JSON.stringify(saved));}catch{}}
 keep();
 
@@ -1300,7 +1307,7 @@ function mark(id,change,answer){
   saved.pending[id]=1;keep();showStatus();
 }
 async function api(method,body){
-  const r=await fetch('/api/mahjong-review',{method,headers:{'content-type':'application/json','x-review-key':saved.key},body:body&&JSON.stringify(body),cache:'no-store'});
+  const r=await fetch('/api/mahjong-review',{method,headers:{'content-type':'application/json','x-review-key':key},body:body&&JSON.stringify(body),cache:'no-store'});
   // A refused key stays reported until a request gets through.
   refused=r.status===401;
   if(!r.ok)throw Object.assign(new Error('HTTP '+r.status),{status:r.status});
@@ -1308,7 +1315,7 @@ async function api(method,body){
 }
 let flushing=null;
 function flush(){
-  if(!saved.key){sync='nokey';return showStatus();}
+  if(!key){sync='nokey';return showStatus();}
   if(flushing)return flushing;
   flushing=(async()=>{
     for(const id of Object.keys(saved.pending)){
@@ -1327,7 +1334,7 @@ let timers={};
 function later(id){clearTimeout(timers[id]);timers[id]=setTimeout(flush,900);}
 // Marks made on another device come back from the site; the newer of the two wins.
 async function pull(){
-  if(!saved.key)return;
+  if(!key)return;
   try{
     const remote=await api('GET');
     for(const [id,e] of Object.entries(remote.entries||{}))if(!saved.pending[id]&&(!saved.entries[id]||e.at>saved.entries[id].at))saved.entries[id]=e;
@@ -1337,7 +1344,7 @@ async function pull(){
 function showStatus(){
   const waiting=Object.keys(saved.pending).length,el=$('syncStatus'),nokey=sync==='nokey'||refused;
   el.className='sync '+(nokey?'bad':waiting?'wait':'ok');
-  el.textContent=nokey?'This link is missing its key, so marks stay on this device. Ask Amos for the full link.'
+  el.textContent=nokey?'This page is missing its key, so marks stay on this device. Open the review link Amos sent you.'
     :sync==='saving'?'Saving…'
     :waiting?`${waiting} mark${waiting===1?'':'s'} kept on this device, waiting to upload`
     :'All changes saved';
